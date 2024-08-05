@@ -1,6 +1,7 @@
 import express, { ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { authRouter } from './routes/auth.route';
+import { HttpError } from './utility/errors';
 
 export const appFactory = () => {
     const app = express();
@@ -14,10 +15,11 @@ export const appFactory = () => {
     });
 
     const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-        if (err instanceof ZodError) {
-            res.status(400).send({ message: err.message });
-            return;
-        }
+        if (err instanceof ZodError)
+            return res.status(422).send({ message: err.message });
+        if (err instanceof HttpError)
+            return res.status(err.statusCode).send({ message: err.message });
+
         res.status(500);
     };
 
