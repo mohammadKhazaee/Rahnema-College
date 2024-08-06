@@ -19,7 +19,6 @@ export const appFactory = () => {
             return res.status(422).send({ message: err.message });
         if (err instanceof HttpError)
             return res.status(err.statusCode).send({ message: err.message });
-
         res.status(500);
     };
 

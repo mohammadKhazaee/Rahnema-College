@@ -23,6 +23,3 @@ export class NotAuthorizedError extends HttpError {
         super(401, 'NotAuthorized')
     }
 }
-
-
-

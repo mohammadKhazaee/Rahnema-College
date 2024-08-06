@@ -5,5 +5,5 @@ export class AuthService {
     constructor(
         private authRepo: AuthRepository,
         private userService: UserService
-    ) {}
+    ) { }
 }
