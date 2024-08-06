@@ -9,13 +9,28 @@ import {
 @Entity('users')
 export class UserEntity {
     @PrimaryColumn()
-    id!: string;
-
-    @Column()
     username!: string;
 
     @Column()
+    email!: string;
+
+    @Column()
     password!: string;
+
+    @Column()
+    fName!: string;
+
+    @Column()
+    lName!: string;
+
+    @Column()
+    imageUrl!: string;
+
+    @Column({ nullable: true })
+    bio!: string;
+
+    @Column({ default: true })
+    isPrivate!: boolean;
 
     @CreateDateColumn()
     createdAt!: Date;
