@@ -9,11 +9,11 @@ export class UserRepository {
         this.userRepo = dataSource.getRepository(UserEntity);
     }
 
-    findOne(username: string): Promise<User | null> {
+    findByUsername(username: string): Promise<User | null> {
         return this.userRepo.findOneBy({ username });
     }
 
-    findById(id: string): Promise<User | null> {
-        return this.userRepo.findOneBy({ id });
+    findByEmail(email: string): Promise<User | null> {
+        return this.userRepo.findOneBy({ email });
     }
 }
