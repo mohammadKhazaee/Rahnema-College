@@ -14,9 +14,11 @@
         "url": "https://hamgit.ir/rc-dev-1403/rebuilders/collegegeram-backend.git"
     },
     "dependencies": {
+        "bcrypt": "^5.1.1",
         "cross-env": "^7.0.3",
         "dotenv-flow": "^4.1.0",
         "express": "^4.19.2",
+        "jsonwebtoken": "^9.0.2",
         "mysql": "^2.18.1",
         "reflect-metadata": "^0.2.2",
         "typeorm": "^0.3.20",
