@@ -2,13 +2,21 @@ import express, { ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { authRouter } from './routes/auth.route';
 import { HttpError } from './utility/errors';
+import { AuthService } from './modules/Auth/auth.service';
+import { AuthRepository } from './modules/Auth/auth.repository';
+import { DataSource } from 'typeorm';
+import { UserRepository } from './modules/User/user.repository';
 
-export const appFactory = () => {
+export const appFactory = (dataSource: DataSource) => {
     const app = express();
 
     app.use(express.json());
 
-    app.use('/auth', authRouter());
+    const authRepo = new AuthRepository(dataSource);
+    const userRepo = new UserRepository(dataSource);
+    const authService = new AuthService(authRepo, userRepo);
+
+    app.use('/auth', authRouter(authService));
 
     app.use((req, res) => {
         res.status(404).send({ message: 'Not Found' });

@@ -10,5 +10,5 @@ import { AppDataSource } from './data-source';
 // }
 
 AppDataSource.initialize().then((dataSource) => {
-    appFactory().listen(3000);
+    appFactory(dataSource).listen(3000);
 });
