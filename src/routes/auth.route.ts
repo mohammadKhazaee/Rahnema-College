@@ -7,14 +7,14 @@ import { AuthService } from '../modules/Auth/auth.service';
 export const authRouter = (authService: AuthService) => {
     const app = Router();
 
-    app.post('/signup', (req, res) => {
+    app.post('/signup', (req, res, next) => {
         const { confirmPassword, ...dto } = signupDto.parse(req.body);
-        handleExpress(res, 201, async () => authService.signup(dto));
+        handleExpress(res, 201, next, async () => authService.signup(dto));
     });
 
-    app.post('/login', (req, res) => {
+    app.post('/login', (req, res, next) => {
         const dto = logindto.parse(req.body);
-        handleExpress(res, 200, async () => authService.login(dto));
+        handleExpress(res, 200, next, async () => authService.login(dto));
     });
 
     app.get('/user-info');
