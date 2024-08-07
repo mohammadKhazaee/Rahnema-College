@@ -39,15 +39,26 @@ export class AuthService {
 
     async resetPassword(dto: ResetPaswordDto) {
         let user: User | null
-        if ("username" in dto)
+        if ("username" in dto) {
             user = await this.userRepo.findByUsername(dto.username)
-        else user = await this.userRepo.findByEmail(dto.email)
+            if (!user) {
+                throw new NotFoundError()
+            }
 
-        if (!user) {
-            throw new NotFoundError()
+            if (dto.username !== user.username) {
+                throw new NotFoundError()
+            }
+        } else {
+            user = await this.userRepo.findByEmail(dto.email)
+
+            if (!user) {
+                throw new NotFoundError()
+            }
+
+            if (dto.email !== user.email) {
+                throw new NotFoundError()
+            }
         }
-
-
         const accessToken = await oauth2Client.getAccessToken();
         const resetToken = this.authRepo.generateTokenForReset(user)
         const resetLink = `https://RebuildersGeram.com/reset-password?token=${resetToken}`;
@@ -64,8 +75,6 @@ export class AuthService {
             }
 
         })
-
-
 
         const mailOptions = {
             from: "ehsunhagh86@gmail.com",
@@ -89,7 +98,5 @@ export class AuthService {
         };
         const result = await transporter.sendMail(mailOptions);
         console.log('Email sent:', result);
-
     }
-
 }
