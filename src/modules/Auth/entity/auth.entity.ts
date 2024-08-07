@@ -20,12 +20,9 @@ export class AuthEntity {
     @Column()
     resetToken!: ResetToken;
 
-    @Column()
-    resetTokenExp!: number;
-
     @CreateDateColumn()
     createdAt!: Date;
 
     @UpdateDateColumn()
     updatedAt!: Date;
-}
+}   
