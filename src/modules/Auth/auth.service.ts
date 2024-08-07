@@ -123,6 +123,4 @@ export class AuthService {
         const result = await transporter.sendMail(mailOptions);
         console.log('Email sent:', result);
     }
-
-
 }
