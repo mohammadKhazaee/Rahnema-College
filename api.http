@@ -15,12 +15,12 @@ GET http://localhost:3000/plan/2
 
 
 ###
-POST http://localhost:3000/login
+POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-    "username": "admin",
-    "password": "admin"
+    "username": "test1",
+    "password": "12345678"
 }
 
 

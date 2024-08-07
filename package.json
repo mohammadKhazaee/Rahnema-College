@@ -5,9 +5,7 @@
     "main": "main.js",
     "scripts": {
         "start": "cross-env NODE_ENV=production node dist/src/main.js",
-        "start": "cross-env NODE_ENV=production node dist/src/main.js",
         "start:dev": "cross-env NODE_ENV=development nodemon src/main.ts",
-        "build": "npm i && tsc",
         "build": "npm i && tsc",
         "test": "cross-env NODE_ENV=test jest",
         "test:e2e": "cross-env NODE_ENV=test jest --testMatch **/e2e/**/*.spec.ts"
@@ -19,12 +17,10 @@
     "dependencies": {
         "bcrypt": "^5.1.1",
         "compression": "^1.7.4",
-        "compression": "^1.7.4",
         "cross-env": "^7.0.3",
         "dotenv-flow": "^4.1.0",
         "express": "^4.19.2",
         "helmet": "^7.1.0",
-        "googleapis": "^140.0.1",
         "jsonwebtoken": "^9.0.2",
         "mysql": "^2.18.1",
         "nodemailer": "^6.9.14",

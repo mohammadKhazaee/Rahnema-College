@@ -1,25 +1,23 @@
 export class HttpError extends Error {
     constructor(public statusCode: number, public message: string) {
-        super(message)
+        super(message);
     }
 }
 
 export class NotFoundError extends HttpError {
-    constructor() {
-        super(404, 'NotFound')
+    constructor(message?: string) {
+        super(404, message || 'NotFound');
     }
 }
-
 
 export class ForbiddenError extends HttpError {
-    constructor() {
-        super(403, 'Forbidden')
+    constructor(message?: string) {
+        super(403, message || 'Forbidden');
     }
 }
 
-
 export class NotAuthorizedError extends HttpError {
-    constructor() {
-        super(401, 'NotAuthorized')
+    constructor(message?: string) {
+        super(401, message || 'NotAuthorized');
     }
 }

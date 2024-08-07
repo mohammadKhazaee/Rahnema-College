@@ -8,6 +8,7 @@ import { DataSource } from 'typeorm';
 import { UserRepository } from './modules/User/user.repository';
 import helmet from 'helmet';
 import compression from 'compression';
+import { GmailHandler } from './utility/gmail-handler';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -33,7 +34,7 @@ export const appFactory = (dataSource: DataSource) => {
     const userRepo = new UserRepository(dataSource);
     const authService = new AuthService(authRepo, userRepo);
 
-    app.use('/auth', authRouter(authService));
+    app.use('/auth', authRouter(authService, new GmailHandler()));
 
     app.use((req, res) => {
         res.status(404).send({ message: 'Not Found' });
