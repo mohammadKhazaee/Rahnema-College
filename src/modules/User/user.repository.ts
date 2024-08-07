@@ -16,4 +16,8 @@ export class UserRepository {
     findByEmail(email: string): Promise<User | null> {
         return this.userRepo.findOneBy({ email });
     }
+
+    create(user: User): Promise<User> {
+        return this.userRepo.save(user);
+    }
 }

@@ -7,6 +7,4 @@ export interface User {
     imageUrl: string;
     bio: string;
     isPrivate: boolean;
-    createdAt: Date;
-    updatedAt: Date;
 }

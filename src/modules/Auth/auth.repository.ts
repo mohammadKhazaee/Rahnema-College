@@ -1,8 +1,6 @@
 import { Repository, DataSource } from 'typeorm';
 import { User } from '../User/model/user';
 import { sign } from 'jsonwebtoken';
-import Jwt from 'jsonwebtoken';
-
 
 export class AuthRepository {
     private userRepo: Repository<any>;
