@@ -1,3 +1,4 @@
+import { Jwt, JwtPayload } from 'jsonwebtoken';
 import * as nodemailer from 'nodemailer';
 
 type MailOption = {

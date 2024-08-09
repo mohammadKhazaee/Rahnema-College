@@ -2,16 +2,19 @@ import { User } from '../User/model/user';
 import { UserRepository } from '../User/user.repository';
 import { AuthRepository } from './auth.repository';
 import { LoginDto } from './dto/logindto';
-import { HttpError, NotFoundError } from '../../utility/errors';
+import { ForbiddenError, HttpError, NotFoundError } from '../../utility/errors';
 import { ResetPaswordDto } from './dto/resetpassword-dto';
 import { GmailHandler } from '../../utility/gmail-handler';
 import { CreateUser } from '../User/model/create-user';
+import jwt from "jsonwebtoken"
+import { ResetPasswordToken } from './model/resetToken';
+import { ConfirmPasswordDto } from './dto/confrimpassword-dto';
 
 export class AuthService {
     constructor(
         private authRepo: AuthRepository,
         private userRepo: UserRepository
-    ) {}
+    ) { }
 
     async login(dto: LoginDto) {
         let user: User | null;
@@ -86,5 +89,17 @@ export class AuthService {
         );
 
         return gmailHandler.send(mailOption);
+    }
+
+
+    async changePassword(dto: ConfirmPasswordDto, token: string) {
+        const validated = jwt.verify(token, 'randomsecretkeydorresetpass1593574862') as ResetPasswordToken
+        const email = validated.email
+        const user = await this.userRepo.findByEmail(email)
+        if (!user) {
+            throw new NotFoundError()
+        }
+        user.password = dto.newPassword
+        return this.userRepo.create(user)
     }
 }

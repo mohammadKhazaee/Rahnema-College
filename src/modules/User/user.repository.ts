@@ -1,4 +1,4 @@
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, UpdateResult } from 'typeorm';
 import { UserEntity } from './entity/user.entity';
 import { User } from './model/user';
 import { UpdateUser } from './model/update-user';

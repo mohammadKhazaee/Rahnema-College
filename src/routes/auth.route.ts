@@ -6,6 +6,8 @@ import { AuthService } from '../modules/Auth/auth.service';
 import { GmailHandler } from '../utility/gmail-handler';
 import { resetPasswordDto } from '../modules/Auth/dto/resetpassword-dto';
 import { isAuthenticated } from '../login-middleware';
+import { confirmpassworddto } from '../modules/Auth/dto/confrimpassword-dto';
+
 
 export const authRouter = (
     authService: AuthService,
@@ -36,7 +38,11 @@ export const authRouter = (
         );
     });
 
-    app.post('/reset-pass');
+    app.post('/reset-pass/:resetToken', async (req, res, next) => {
+        const resetToken = req.params.resetToken
+        const dto = confirmpassworddto.parse(req.body)
+        handleExpress(res, 200, next, () => authService.changePassword(dto, resetToken))
+    });
 
     return app;
 };
