@@ -49,7 +49,7 @@ export const appFactory = (dataSource: DataSource) => {
             return res.status(422).send({ message: err.format() });
         if (err instanceof HttpError)
             return res.status(err.statusCode).send({ message: err.message });
-        res.status(500);
+        res.status(500).send({ message: 'somethin went wrong' });
     };
 
     app.use(errorHandler);
