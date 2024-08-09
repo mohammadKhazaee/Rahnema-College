@@ -12,13 +12,13 @@ export class AuthRepository {
 
     public generateTokenForLogin(user: User, rememberMe?: boolean) {
         const expiresIn = rememberMe ? '30d' : '1w';
-        const secret = 'Rebuilders';
         const payload = { username: user.username, email: user.email };
-        return sign(payload, secret, { expiresIn });
+        return sign(payload, process.env.JWT_SECRET!, { expiresIn });
     }
 
     public generateTokenForReset(user: User) {
-        const secretKey = 'randomsecretkeydorresetpass1593574862'
-        return Jwt.sign({ email: user.email }, secretKey, { expiresIn: '24h' })
+        return Jwt.sign({ email: user.email }, process.env.JWT_SECRET!, {
+            expiresIn: '24h',
+        });
     }
 }

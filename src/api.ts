@@ -9,6 +9,8 @@ import { UserRepository } from './modules/User/user.repository';
 import helmet from 'helmet';
 import compression from 'compression';
 import { GmailHandler } from './utility/gmail-handler';
+import { UserService } from './modules/User/user.service';
+import { profileRouter } from './routes/profile.route';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -33,8 +35,10 @@ export const appFactory = (dataSource: DataSource) => {
     const authRepo = new AuthRepository(dataSource);
     const userRepo = new UserRepository(dataSource);
     const authService = new AuthService(authRepo, userRepo);
+    const userService = new UserService(userRepo);
 
     app.use('/auth', authRouter(authService, new GmailHandler()));
+    app.use(profileRouter(userService));
 
     app.use((req, res) => {
         res.status(404).send({ message: 'Not Found' });

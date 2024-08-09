@@ -1,6 +1,7 @@
 import { DataSource, Repository } from 'typeorm';
 import { UserEntity } from './entity/user.entity';
 import { User } from './model/user';
+import { UpdateUser } from './model/update-user';
 
 export class UserRepository {
     private userRepo: Repository<UserEntity>;
@@ -18,6 +19,10 @@ export class UserRepository {
     }
 
     create(user: User): Promise<User> {
+        return this.userRepo.save(user);
+    }
+
+    upadte(user: UpdateUser): Promise<User> {
         return this.userRepo.save(user);
     }
 }
