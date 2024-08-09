@@ -5,6 +5,7 @@ import { LoginDto } from './dto/logindto';
 import { HttpError, NotFoundError } from '../../utility/errors';
 import { ResetPaswordDto } from './dto/resetpassword-dto';
 import { GmailHandler } from '../../utility/gmail-handler';
+import { CreateUser } from '../User/model/create-user';
 
 export class AuthService {
     constructor(
@@ -28,7 +29,7 @@ export class AuthService {
         return token;
     }
 
-    async signup(dto: { username: string; password: string; email: string }) {
+    async signup(dto: CreateUser) {
         const user = await this.userRepo.findByUsername(dto.username);
 
         if (user)
@@ -49,6 +50,24 @@ export class AuthService {
         };
 
         return this.userRepo.create(createUser);
+    }
+
+    async getProfileInfo(username: string) {
+        const user = await this.userRepo.findByUsername(username);
+
+        if (!user) throw new HttpError(401, 'Not authenticated');
+
+        const returnUser = {
+            email: user.email,
+            username,
+            imageUrl: user.imageUrl,
+            fName: user.fName,
+            lName: user.lName,
+            isPrivate: user.isPrivate,
+            bio: user.bio,
+        };
+
+        return returnUser;
     }
 
     async resetPassword(dto: ResetPaswordDto, gmailHandler: GmailHandler) {

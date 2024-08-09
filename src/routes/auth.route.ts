@@ -5,6 +5,7 @@ import { signupDto } from '../modules/Auth/dto/signup-dto';
 import { AuthService } from '../modules/Auth/auth.service';
 import { GmailHandler } from '../utility/gmail-handler';
 import { resetPasswordDto } from '../modules/Auth/dto/resetpassword-dto';
+import { isAuthenticated } from '../login-middleware';
 
 export const authRouter = (
     authService: AuthService,
@@ -22,7 +23,11 @@ export const authRouter = (
         handleExpress(res, 200, next, async () => authService.login(dto));
     });
 
-    app.get('/user-info');
+    app.get('/user-info', isAuthenticated, (req, res, next) => {
+        handleExpress(res, 200, next, async () =>
+            authService.getProfileInfo(req.username)
+        );
+    });
 
     app.post('/send-reset', (req, res, next) => {
         const dto = resetPasswordDto.parse(req.body);
