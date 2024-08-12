@@ -24,12 +24,6 @@ export const authRouter = (authService: AuthService) => {
         }));
     });
 
-    app.get('/user-info', isAuthenticated, (req, res, next) => {
-        handleExpress(res, 200, next, async () =>
-            authService.getProfileInfo(req.username)
-        );
-    });
-
     app.post('/send-reset', (req, res, next) => {
         const dto = resetPasswordDto.parse(req.body);
         handleExpress(res, 200, next, async () => ({

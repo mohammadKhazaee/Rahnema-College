@@ -6,6 +6,24 @@ import { UserRepository } from './user.repository';
 export class UserService {
     constructor(private userRepo: UserRepository) {}
 
+    async getProfileInfo(username: string) {
+        const user = await this.fetchUser({ username });
+
+        if (!user) throw new HttpError(401, 'Not authenticated');
+
+        const returnUser = {
+            email: user.email,
+            username,
+            imageUrl: user.imageUrl,
+            fName: user.fName,
+            lName: user.lName,
+            isPrivate: user.isPrivate,
+            bio: user.bio,
+        };
+
+        return returnUser;
+    }
+
     async editUser(
         username: string,
         dto: EditProfileDto

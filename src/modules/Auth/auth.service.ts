@@ -38,24 +38,6 @@ export class AuthService {
         return 'user created successfully!';
     }
 
-    async getProfileInfo(username: string) {
-        const user = await this.userService.fetchUser({ username });
-
-        if (!user) throw new HttpError(401, 'Not authenticated');
-
-        const returnUser = {
-            email: user.email,
-            username,
-            imageUrl: user.imageUrl,
-            fName: user.fName,
-            lName: user.lName,
-            isPrivate: user.isPrivate,
-            bio: user.bio,
-        };
-
-        return returnUser;
-    }
-
     async resetPassword(dto: ResetPaswordDto) {
         const user = await this.userService.fetchUser(dto);
 
