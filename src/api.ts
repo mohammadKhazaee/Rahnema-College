@@ -3,7 +3,6 @@ import { ZodError } from 'zod';
 import { authRouter } from './routes/auth.route';
 import { HttpError } from './utility/errors';
 import { AuthService } from './modules/Auth/auth.service';
-import { AuthRepository } from './modules/Auth/auth.repository';
 import { DataSource } from 'typeorm';
 import { UserRepository } from './modules/User/user.repository';
 import helmet from 'helmet';
@@ -32,12 +31,11 @@ export const appFactory = (dataSource: DataSource) => {
         next();
     });
 
-    const authRepo = new AuthRepository(dataSource);
     const userRepo = new UserRepository(dataSource);
-    const authService = new AuthService(authRepo, userRepo);
     const userService = new UserService(userRepo);
+    const authService = new AuthService(userService, new GmailHandler());
 
-    app.use('/auth', authRouter(authService, new GmailHandler()));
+    app.use('/auth', authRouter(authService));
     app.use(profileRouter(userService));
 
     app.use((req, res) => {

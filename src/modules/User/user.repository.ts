@@ -1,7 +1,6 @@
 import { DataSource, Repository, UpdateResult } from 'typeorm';
 import { UserEntity } from './entity/user.entity';
-import { User } from './model/user';
-import { UpdateUser } from './model/update-user';
+import { User, UpdateUser } from './model/user';
 
 export class UserRepository {
     private userRepo: Repository<UserEntity>;

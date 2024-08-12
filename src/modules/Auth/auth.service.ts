@@ -1,39 +1,31 @@
-import { User } from '../User/model/user';
-import { UserRepository } from '../User/user.repository';
-import { AuthRepository } from './auth.repository';
 import { LoginDto } from './dto/logindto';
-import { ForbiddenError, HttpError, NotFoundError } from '../../utility/errors';
+import { HttpError, NotFoundError } from '../../utility/errors';
 import { ResetPaswordDto } from './dto/resetpassword-dto';
 import { GmailHandler } from '../../utility/gmail-handler';
-import { CreateUser } from '../User/model/create-user';
-import jwt from "jsonwebtoken"
-import { ResetPasswordToken } from './model/resetToken';
+import jwt, { JwtPayload, sign } from 'jsonwebtoken';
 import { ConfirmPasswordDto } from './dto/confrimpassword-dto';
+import { UserService } from '../User/user.service';
+import { isResetTokenPayload } from './model/resetToken';
+import { CreateUser, User } from '../User/model/user';
 
 export class AuthService {
     constructor(
-        private authRepo: AuthRepository,
-        private userRepo: UserRepository
-    ) { }
+        private userService: UserService,
+        private gmailHandler: GmailHandler
+    ) {}
 
     async login(dto: LoginDto) {
-        let user: User | null;
-        if ('username' in dto)
-            user = await this.userRepo.findByUsername(dto.username);
-        else user = await this.userRepo.findByEmail(dto.email);
+        const user = await this.userService.getUser(dto);
 
-        if (!user) {
-            throw new HttpError(401, ' username or password not found');
-        }
-        if (dto.password !== user.password) {
+        if (dto.password !== user.password)
             throw new HttpError(401, 'passwort is wrong');
-        }
-        const token = this.authRepo.generateTokenForLogin(user);
+
+        const token = this.generateTokenForLogin(user, dto.rememberMe);
         return token;
     }
 
     async signup(dto: CreateUser) {
-        const user = await this.userRepo.findByUsername(dto.username);
+        const user = await this.userService.doesUserExists(dto);
 
         if (user)
             throw new HttpError(
@@ -41,22 +33,13 @@ export class AuthService {
                 'account with this credential already exists'
             );
 
-        const createUser: User = {
-            username: dto.username,
-            email: dto.email,
-            password: dto.password,
-            fName: '',
-            lName: '',
-            imageUrl: '',
-            bio: '',
-            isPrivate: true,
-        };
+        await this.userService.createUser(dto);
 
-        return this.userRepo.create(createUser);
+        return 'user created successfully!';
     }
 
     async getProfileInfo(username: string) {
-        const user = await this.userRepo.findByUsername(username);
+        const user = await this.userService.fetchUser({ username });
 
         if (!user) throw new HttpError(401, 'Not authenticated');
 
@@ -73,33 +56,48 @@ export class AuthService {
         return returnUser;
     }
 
-    async resetPassword(dto: ResetPaswordDto, gmailHandler: GmailHandler) {
-        let user: User | null;
-        if ('username' in dto)
-            user = await this.userRepo.findByUsername(dto.username);
-        else user = await this.userRepo.findByEmail(dto.email);
+    async resetPassword(dto: ResetPaswordDto) {
+        const user = await this.userService.fetchUser(dto);
 
         if (!user)
             throw new NotFoundError('no user with this credentials was found');
 
-        const resetToken = this.authRepo.generateTokenForReset(user);
-        const mailOption = gmailHandler.createMailOption(
+        const resetToken = this.generateTokenForReset(user);
+        const mailOption = this.gmailHandler.createMailOption(
             resetToken,
             user.email
         );
+        this.gmailHandler.send(mailOption);
 
-        return gmailHandler.send(mailOption);
+        return 'email has been sent';
     }
 
-
     async changePassword(dto: ConfirmPasswordDto, token: string) {
-        const validated = jwt.verify(token, 'randomsecretkeydorresetpass1593574862') as ResetPasswordToken
-        const email = validated.email
-        const user = await this.userRepo.findByEmail(email)
-        if (!user) {
-            throw new NotFoundError()
-        }
-        user.password = dto.newPassword
-        return this.userRepo.create(user)
+        const payload = jwt.verify(
+            token,
+            process.env.JWT_SECRET!
+        ) as JwtPayload;
+
+        if (!isResetTokenPayload(payload))
+            throw new HttpError(400, 'Invalid reset password token');
+
+        const user = await this.userService.fetchUser({ email: payload.email });
+        if (!user) throw new NotFoundError();
+
+        user.password = dto.newPassword;
+        await this.userService.updateUser(user);
+        return 'Passwrod updated';
+    }
+
+    private generateTokenForLogin(user: User, rememberMe?: boolean) {
+        const expiresIn = rememberMe ? '30d' : '1w';
+        const payload = { username: user.username, email: user.email };
+        return sign(payload, process.env.JWT_SECRET!, { expiresIn });
+    }
+
+    private generateTokenForReset(user: User) {
+        return jwt.sign({ email: user.email }, process.env.JWT_SECRET!, {
+            expiresIn: '24h',
+        });
     }
 }

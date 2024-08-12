@@ -9,9 +9,9 @@ export const profileRouter = (userService: UserService) => {
 
     app.put('/edit-profile', isAuthenticated, (req, res, next) => {
         const dto = editProfileDto.parse(req.body);
-        handleExpress(res, 200, next, async () =>
-            userService.editUser(req.username, dto)
-        );
+        handleExpress(res, 200, next, async () => ({
+            message: userService.editUser(req.username, dto),
+        }));
     });
 
     return app;

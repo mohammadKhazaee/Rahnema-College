@@ -1,14 +1,9 @@
-import { z } from 'zod';
-import { Brand } from '../../../utility/brand';
 import { JwtPayload } from 'jsonwebtoken';
 
-export type ResetToken = Brand<string, 'ResetToken'>;
-
-export const isResetToken = (value: string): value is ResetToken =>
-    value.length === 64;
-
-export const zodResetToken = z.string().refine(isResetToken);
-
-export interface ResetPasswordToken extends JwtPayload {
-    email: string
+export interface ResetTokenPayload {
+    email: string;
 }
+
+export const isResetTokenPayload = (
+    value: JwtPayload | string
+): value is ResetTokenPayload => typeof value !== 'string' && 'email' in value;
