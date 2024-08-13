@@ -4,7 +4,11 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
+    OneToMany,
 } from 'typeorm';
+import { PostEntity } from '../../Post/entity/post.entity';
+import { FollowingEntity } from './following.entity';
+import { MentionEntity } from './mentions.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -31,6 +35,18 @@ export class UserEntity {
 
     @Column({ default: true })
     isPrivate!: boolean;
+
+    @OneToMany(() => PostEntity, (post) => post.creator)
+    posts!: PostEntity[];
+
+    @OneToMany(() => FollowingEntity, (f) => f.follower)
+    followings!: FollowingEntity[];
+
+    @OneToMany(() => FollowingEntity, (f) => f.followed)
+    followers!: FollowingEntity[];
+
+    @OneToMany(() => MentionEntity, (m) => m.mentioned)
+    mentions!: MentionEntity[];
 
     @CreateDateColumn()
     createdAt!: Date;

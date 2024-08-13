@@ -1,3 +1,5 @@
+import { PostEntity } from '../../Post/entity/post.entity';
+
 export interface User {
     username: string;
     email: string;
@@ -7,6 +9,7 @@ export interface User {
     imageUrl: string;
     bio: string;
     isPrivate: boolean;
+    posts?: PostEntity[];
 }
 
 export interface UpdateUser {
