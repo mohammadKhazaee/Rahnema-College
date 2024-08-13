@@ -12,7 +12,7 @@ export class AuthService {
     constructor(
         private userService: UserService,
         private gmailHandler: GmailHandler
-    ) {}
+    ) { }
 
     async login(dto: LoginDto) {
         const user = await this.userService.getUser(dto);
@@ -49,7 +49,7 @@ export class AuthService {
             resetToken,
             user.email
         );
-        this.gmailHandler.send(mailOption);
+        await this.gmailHandler.send(mailOption);
 
         return 'email has been sent';
     }

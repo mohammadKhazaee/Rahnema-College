@@ -13,29 +13,27 @@ export const authRouter = (authService: AuthService) => {
     app.post('/signup', (req, res, next) => {
         const { confirmPassword, ...dto } = signupDto.parse(req.body);
         handleExpress(res, 201, next, async () => ({
-            message: authService.signup(dto),
+            message: await authService.signup(dto),
         }));
     });
 
     app.post('/login', (req, res, next) => {
         const dto = logindto.parse(req.body);
         handleExpress(res, 200, next, async () => ({
-            token: authService.login(dto),
+            token: await authService.login(dto),
         }));
     });
 
     app.post('/send-reset', (req, res, next) => {
         const dto = resetPasswordDto.parse(req.body);
-        handleExpress(res, 200, next, async () => ({
-            message: authService.resetPassword(dto),
-        }));
+        handleExpress(res, 200, next, async () => await authService.resetPassword(dto));
     });
 
     app.post('/reset-pass/:resetToken', async (req, res, next) => {
         const resetToken = req.params.resetToken;
         const dto = confirmpassworddto.parse(req.body);
         handleExpress(res, 200, next, async () => ({
-            message: authService.changePassword(dto, resetToken),
+            message: await authService.changePassword(dto, resetToken),
         }));
     });
 

@@ -32,7 +32,7 @@ export class GmailHandler {
         };
     }
 
-    send(mailOption: MailOption) {
+    async send(mailOption: MailOption) {
         const transporter = nodemailer.createTransport({
             host: 'smtp.gmail.com',
             port: 587,
