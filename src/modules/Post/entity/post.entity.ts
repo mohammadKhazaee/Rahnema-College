@@ -7,11 +7,12 @@ import {
     ManyToOne,
     JoinColumn,
     OneToMany,
+    ManyToMany,
+    JoinTable,
 } from 'typeorm';
 import { UserEntity } from '../../User/entity/user.entity';
-import { PostsTagedEntity } from './posts-taged.entity';
 import { PostImageEntity } from './post-image.entity';
-import { MentionEntity } from '../../User/entity/mentions.entity';
+import { TagEntity } from './tag.entity';
 
 @Entity('posts')
 export class PostEntity {
@@ -28,14 +29,42 @@ export class PostEntity {
     @JoinColumn({ name: 'creatorId' })
     creator!: UserEntity;
 
-    @OneToMany(() => PostsTagedEntity, (r) => r.post)
-    tags!: PostsTagedEntity[];
+    @ManyToMany(() => TagEntity, (t) => t.posts, {
+        cascade: true,
+    })
+    @JoinTable({
+        name: 'posts_taged',
+        joinColumn: {
+            name: 'postId',
+            referencedColumnName: 'postId',
+        },
+        inverseJoinColumn: {
+            name: 'tagId',
+            referencedColumnName: 'tagId',
+        },
+    })
+    tags!: TagEntity[];
 
-    @OneToMany(() => PostImageEntity, (image) => image.post)
+    @OneToMany(() => PostImageEntity, (image) => image.post, {
+        cascade: true,
+    })
     images!: PostImageEntity[];
 
-    @OneToMany(() => MentionEntity, (m) => m.post)
-    mentions!: MentionEntity[];
+    @ManyToMany(() => UserEntity, (m) => m.mentions, {
+        cascade: true,
+    })
+    @JoinTable({
+        name: 'mentions',
+        joinColumn: {
+            name: 'postId',
+            referencedColumnName: 'postId',
+        },
+        inverseJoinColumn: {
+            name: 'mentionedId',
+            referencedColumnName: 'username',
+        },
+    })
+    mentions!: UserEntity[];
 
     @CreateDateColumn()
     createdAt!: Date;

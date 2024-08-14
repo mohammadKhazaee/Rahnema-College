@@ -10,6 +10,10 @@ import compression from 'compression';
 import { GmailHandler } from './utility/gmail-handler';
 import { UserService } from './modules/User/user.service';
 import { profileRouter } from './routes/profile.route';
+import { postRouter } from './routes/post.route';
+import { PostRepository } from './modules/Post/post.repository';
+import { PostService } from './modules/Post/post.service';
+import { FileParser } from './utility/file-parser';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -33,9 +37,14 @@ export const appFactory = (dataSource: DataSource) => {
 
     const userRepo = new UserRepository(dataSource);
     const userService = new UserService(userRepo);
+    const postRepo = new PostRepository(dataSource);
+    const postService = new PostService(postRepo, userService);
     const authService = new AuthService(userService, new GmailHandler());
 
+    const fileParser = new FileParser();
+
     app.use('/auth', authRouter(authService));
+    app.use('/posts', postRouter(postService, fileParser));
     app.use(profileRouter(userService));
 
     app.use((req, res) => {
@@ -43,6 +52,7 @@ export const appFactory = (dataSource: DataSource) => {
     });
 
     const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+        console.log(err);
         if (err instanceof ZodError)
             return res.status(422).send({ message: err.format() });
         if (err instanceof HttpError)
