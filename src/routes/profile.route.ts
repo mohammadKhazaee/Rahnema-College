@@ -7,16 +7,16 @@ import { UserService } from '../modules/User/user.service';
 export const profileRouter = (userService: UserService) => {
     const app = Router();
 
-    app.get('/user-info', isAuthenticated, (req, res, next) => {
+    app.get('/user-info', isAuthenticated(userService), (req, res, next) => {
         handleExpress(res, 200, next, async () =>
             userService.getProfileInfo(req.username)
         );
     });
 
-    app.put('/edit-profile', isAuthenticated, (req, res, next) => {
+    app.put('/edit-profile', isAuthenticated(userService), (req, res, next) => {
         const dto = editProfileDto.parse(req.body);
         handleExpress(res, 200, next, async () => ({
-            message: userService.editUser(req.username, dto),
+            message: await userService.editUser(req.username, dto),
         }));
     });
 

@@ -45,7 +45,7 @@ export const appFactory = (dataSource: DataSource) => {
     const fileParser = new FileParser();
 
     app.use('/auth', authRouter(authService));
-    app.use('/posts', postRouter(postService, fileParser));
+    app.use('/posts', postRouter(postService, userService, fileParser));
     app.use(profileRouter(userService));
     app.use(followRouter(userService))
 

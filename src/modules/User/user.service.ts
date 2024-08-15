@@ -36,9 +36,10 @@ export class UserService {
         username: string,
         dto: EditProfileDto
     ): Promise<string> | never {
-        const user = await this.userRepo.findByUsername(username);
+        const dupEmail = await this.userRepo.findByEmail(dto.email);
 
-        if (!user) throw new HttpError(401, 'Not authenticated');
+        if (dupEmail && dupEmail.username !== username)
+            throw new HttpError(409, 'the new email is already in use');
 
         const createUser: UpdateUser = {
             username,

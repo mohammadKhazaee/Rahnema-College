@@ -3,20 +3,20 @@ import { handleExpress } from '../utility/handle-express';
 import { isAuthenticated } from '../login-middleware';
 import { PostService } from '../modules/Post/post.service';
 import { createPostDto } from '../modules/Post/dto/create-post-dto';
-import { PostRepository } from '../modules/Post/post.repository';
 import { FileParser, IFile } from '../utility/file-parser';
-import { HttpError } from '../utility/errors';
+import { UserService } from '../modules/User/user.service';
 import { z } from 'zod';
 
 export const postRouter = (
     postService: PostService,
+    userService: UserService,
     fileParser: FileParser
 ) => {
     const app = Router();
 
     app.post(
         '/',
-        isAuthenticated,
+        isAuthenticated(userService),
         fileParser.fileParser().array('imageUrls'),
         (req, res, next) => {
             const dto = createPostDto.parse(req.body);
