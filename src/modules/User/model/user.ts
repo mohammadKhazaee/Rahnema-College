@@ -1,4 +1,6 @@
 import { PostEntity } from '../../Post/entity/post.entity';
+import { Mention } from '../../Post/model/mention';
+import { Following } from './follow';
 
 export interface User {
     username: string;
@@ -10,6 +12,9 @@ export interface User {
     bio: string;
     isPrivate: boolean;
     posts?: PostEntity[];
+    followings?: Following[];
+    followers?: Following[];
+    mentions?: Mention[]
 }
 
 export interface UpdateUser {
@@ -31,8 +36,8 @@ export interface CreateUser {
 
 export type userIdentifier =
     | {
-          email: string;
-      }
+        email: string;
+    }
     | {
-          username: string;
-      };
+        username: string;
+    };

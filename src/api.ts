@@ -14,10 +14,11 @@ import { postRouter } from './routes/post.route';
 import { PostRepository } from './modules/Post/post.repository';
 import { PostService } from './modules/Post/post.service';
 import { FileParser } from './utility/file-parser';
+import { followRouter } from './routes/follow-unfollow.route';
+
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
-
     app.use(express.json());
     app.use(helmet());
     app.use(compression());
@@ -46,6 +47,7 @@ export const appFactory = (dataSource: DataSource) => {
     app.use('/auth', authRouter(authService));
     app.use('/posts', postRouter(postService, fileParser));
     app.use(profileRouter(userService));
+    app.use(followRouter(userService))
 
     app.use((req, res) => {
         res.status(404).send({ message: 'Not Found' });
