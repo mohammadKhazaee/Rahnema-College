@@ -1,0 +1,58 @@
+services:
+    # reverse-proxy:
+    #   image: nginx
+    #     #container_name: nginx_reverse_proxy
+    #   depends_on:
+    #     - backend
+    #     - frontend
+    #   volumes:
+    #     - images:/app/images
+    #     - ./reverse_proxy/nginx.conf:/etc/nginx/nginx.conf
+    #   posts:
+    #     - 80:80
+    main_db:
+        image: hub.hamdocker.ir/mysql
+        restart: always
+        environment:
+            MYSQL_DATABASE: clgram
+            MYSQL_ROOT_PASSWORD: rahnema403
+        volumes:
+            - db_storage:/var/lib/mysql
+        healthcheck:
+            test: mysqladmin ping -h localhost --user=$MYSQL_USER --password=$MYSQL_ROOT_PASSWORD
+            interval: 10s
+            timeout: 12s
+            retries: 10
+    backend:
+        build: .
+        ports:
+            - 3000:3000
+        environment:
+            DB_NAME: clgram
+            DB_USER: root
+            DB_PASS: rahnema403
+            DB_IP: main_db
+            DB_PORT: 3306
+            RESET_PASS_GMAIL: mohammad.test.p@gmail.com
+            GMAIL_PASSWORD: 'joky uish rnts tmcg'
+            FRONTEND_DOMAIN: http://37.32.5.72
+            JWT_SECRET: 'super long secret'
+        volumes:
+            - images:/app/src/images
+        depends_on:
+            main_db:
+                condition: service_healthy
+        restart: on-failure
+
+    frontend:
+        build: ../collegegram-frontend2
+        ports:
+            - 8080:3000
+        #environment:
+        depends_on:
+            - backend
+        restart: on-failure
+
+volumes:
+    images:
+    db_storage:
