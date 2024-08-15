@@ -8,7 +8,7 @@ import { CreatePostImage } from './model/image';
 import { CreatePost } from './model/post';
 import { CreateTag } from './model/tag';
 import { PostRepository } from './post.repository';
-
+import { PostEntity } from './entity/post.entity';
 export class PostService {
     constructor(
         private postRepo: PostRepository,
@@ -55,4 +55,14 @@ export class PostService {
             .filter((s) => s !== '')
             .map((s) => ({ name: s }));
     }
+    async getPostById(postId: number): Promise<PostEntity> {
+        const post = await this.postRepo.findPostById(postId);
+        if (!post) {
+            throw new Error('Post not found');
+        }
+        return post;
+    }
 }
+
+
+    
