@@ -57,12 +57,9 @@ export class PostService {
     }
     async getPostById(postId: number): Promise<PostEntity> {
         const post = await this.postRepo.findPostById(postId);
-        if (!post) {
-            throw new Error('Post not found');
-        }
+
+        if (!post) throw new HttpError(404, 'Post not found');
+
         return post;
     }
 }
-
-
-    

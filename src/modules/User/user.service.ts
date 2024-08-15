@@ -8,11 +8,10 @@ import { UserRepository } from './user.repository';
 import { AppDataSource } from '../../data-source';
 
 export class UserService {
-    private followingRepo: Repository<FollowingEntity>
+    private followingRepo: Repository<FollowingEntity>;
     constructor(private userRepo: UserRepository) {
-        this.followingRepo = AppDataSource.getRepository(FollowingEntity)
+        this.followingRepo = AppDataSource.getRepository(FollowingEntity);
     }
-
 
     async getProfileInfo(username: string) {
         const user = await this.fetchUser({ username });
@@ -97,35 +96,34 @@ export class UserService {
         return this.userRepo.create(createUser);
     }
 
-
-
     async followUser(mainUsername: string, followedUsername: string) {
+        if (mainUsername === followedUsername)
+            throw new ForbiddenError('user cant follow themself');
 
         const follower = await this.fetchUser({ username: mainUsername });
-        const followed = await this.fetchUser({ username: followedUsername })
-        if (!follower || !followed)
-            throw new NotFoundError()
+        const followed = await this.fetchUser({ username: followedUsername });
+        if (!follower || !followed) throw new NotFoundError();
 
-        const following = this.createFollowing(follower, followed)
-        const fetchedfollowing = await this.fetchFollowing(following)
+        const following = this.createFollowing(follower, followed);
+        const fetchedfollowing = await this.fetchFollowing(following);
 
-        if (fetchedfollowing) {
-            throw new ForbiddenError()
-        }
+        if (fetchedfollowing)
+            throw new ForbiddenError('already following the user');
 
-        if (follower.username === followed.username) {
-            throw new ForbiddenError()
-        }
-
-        await this.followingRepo.save(following)
-        console.log("follower: ", follower)
-        console.log("followed: ", followed)
-        return `${follower.username} followed ${followed.username}`
+        await this.followingRepo.save(following);
+        console.log('follower: ', follower);
+        console.log('followed: ', followed);
+        return `success`;
     }
 
     async fetchFollowing(following: Following) {
-        const data = await this.followingRepo.findOne({ where: { followerId: following.followerId, followedId: following.followedId } })
-        return data
+        const data = await this.followingRepo.findOne({
+            where: {
+                followerId: following.followerId,
+                followedId: following.followedId,
+            },
+        });
+        return data;
     }
 
     createFollowing(follower: User, followed: User) {
@@ -134,8 +132,8 @@ export class UserService {
             follower,
             followedId: followed.username,
             followed,
-        }
-        return following
+        };
+        return following;
     }
 
     updateUser(dto: UpdateUser) {

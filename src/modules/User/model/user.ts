@@ -14,7 +14,7 @@ export interface User {
     posts?: PostEntity[];
     followings?: Following[];
     followers?: Following[];
-    mentions?: Mention[]
+    mentions?: PostEntity[];
 }
 
 export interface UpdateUser {
@@ -36,8 +36,8 @@ export interface CreateUser {
 
 export type userIdentifier =
     | {
-        email: string;
-    }
+          email: string;
+      }
     | {
-        username: string;
-    };
+          username: string;
+      };
