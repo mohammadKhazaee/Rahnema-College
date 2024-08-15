@@ -9,7 +9,7 @@ export const logindto = z
     .or(
         z.object({
             email: z.string().email(),
-            password: z.string().min(8, 'Please enter a valid password'),
+            password: z.string().min(8, 'Should be more than 8 character'),
             rememberMe: z.boolean(),
         })
     );

@@ -10,20 +10,14 @@ import { CreateUser, User } from '../User/model/user';
 import * as bcrypt from 'bcrypt';
 
 export class AuthService {
-    constructor(
-        private userService: UserService,
-        private gmailHandler: GmailHandler
-    ) {}
+    constructor(private userService: UserService, private gmailHandler: GmailHandler) {}
 
     async login(dto: LoginDto) {
         const user = await this.userService.getUser(dto);
 
         if (!user) throw new HttpError(401, 'User not found');
 
-        const isPasswordValid = await bcrypt.compare(
-            dto.password,
-            user.password
-        );
+        const isPasswordValid = await bcrypt.compare(dto.password, user.password);
 
         if (!isPasswordValid) throw new HttpError(401, 'Password is wrong');
 
@@ -40,10 +34,7 @@ export class AuthService {
         });
 
         if (userWithEmail || userWithUsername)
-            throw new HttpError(
-                409,
-                'account with this credential already exists'
-            );
+            throw new HttpError(409, 'account with this credential already exists');
 
         const hashPassword = await bcrypt.hash(dto.password, 12);
         const hashDto = { ...dto, password: hashPassword };
@@ -56,27 +47,19 @@ export class AuthService {
     async resetPassword(dto: ResetPaswordDto) {
         const user = await this.userService.fetchUser(dto);
 
-        if (!user)
-            throw new NotFoundError('no user with this credentials was found');
+        if (!user) throw new NotFoundError('no user with this credentials was found');
 
         const resetToken = this.generateTokenForReset(user);
-        const mailOption = this.gmailHandler.createMailOption(
-            resetToken,
-            user.email
-        );
+        const mailOption = this.gmailHandler.createMailOption(resetToken, user.email);
         await this.gmailHandler.send(mailOption);
 
         return 'email has been sent';
     }
 
     async changePassword(dto: ConfirmPasswordDto, token: string) {
-        const payload = jwt.verify(
-            token,
-            process.env.JWT_SECRET!
-        ) as JwtPayload;
+        const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
 
-        if (!isResetTokenPayload(payload))
-            throw new HttpError(400, 'Invalid reset password token');
+        if (!isResetTokenPayload(payload)) throw new HttpError(400, 'Invalid reset password token');
 
         const user = await this.userService.fetchUser({ email: payload.email });
         if (!user) throw new NotFoundError();

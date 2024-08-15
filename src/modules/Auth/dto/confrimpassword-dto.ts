@@ -2,8 +2,8 @@ import z from 'zod';
 
 export const confirmpassworddto = z
     .object({
-        newPassword: z.string().min(8, 'Please enter a valid password'),
-        confirmPassword: z.string().min(8, 'Please enter a valid password'),
+        newPassword: z.string().min(8, 'Should be more than 8 character'),
+        confirmPassword: z.string().min(8, 'Should be more than 8 character'),
     })
     .superRefine(({ confirmPassword, newPassword }, ctx) => {
         if (confirmPassword !== newPassword) {
