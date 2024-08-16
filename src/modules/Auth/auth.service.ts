@@ -7,18 +7,25 @@ import { ConfirmPasswordDto } from './dto/confrimpassword-dto';
 import { UserService } from '../User/user.service';
 import { isResetTokenPayload } from './model/resetToken';
 import { CreateUser, User } from '../User/model/user';
+import * as bcrypt from 'bcrypt';
 
 export class AuthService {
     constructor(
         private userService: UserService,
         private gmailHandler: GmailHandler
-    ) { }
+    ) {}
 
     async login(dto: LoginDto) {
         const user = await this.userService.getUser(dto);
 
-        if (dto.password !== user.password)
-            throw new HttpError(401, 'passwort is wrong');
+        if (!user) throw new HttpError(401, 'User not found');
+
+        const isPasswordValid = await bcrypt.compare(
+            dto.password,
+            user.password
+        );
+
+        if (!isPasswordValid) throw new HttpError(401, 'Password is wrong');
 
         const token = this.generateTokenForLogin(user, dto.rememberMe);
         return token;
@@ -33,7 +40,10 @@ export class AuthService {
                 'account with this credential already exists'
             );
 
-        await this.userService.createUser(dto);
+        const hashPassword = await bcrypt.hash(dto.password, 12);
+        const hashDto = { ...dto, password: hashPassword };
+
+        await this.userService.createUser(hashDto);
 
         return 'user created successfully!';
     }
@@ -66,9 +76,9 @@ export class AuthService {
         const user = await this.userService.fetchUser({ email: payload.email });
         if (!user) throw new NotFoundError();
 
-        user.password = dto.newPassword;
+        user.password = await bcrypt.hash(dto.newPassword, 12);
         await this.userService.updateUser(user);
-        return 'Passwrod updated';
+        return 'Password updated';
     }
 
     private generateTokenForLogin(user: User, rememberMe?: boolean) {

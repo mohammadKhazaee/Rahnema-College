@@ -10,10 +10,11 @@ import { PostEntity } from '../Post/entity/post.entity';
 
 export class UserService {
     private followingRepo: Repository<FollowingEntity>;
-    private postRepo: Repository<PostEntity>
+    private postRepo: Repository<PostEntity>;
+    private SALT_ROUNDS = 10;
     constructor(private userRepo: UserRepository) {
         this.followingRepo = AppDataSource.getRepository(FollowingEntity);
-        this.postRepo = AppDataSource.getRepository(PostEntity)
+        this.postRepo = AppDataSource.getRepository(PostEntity);
     }
 
     async getProfileInfo(username: string) {
@@ -21,9 +22,9 @@ export class UserService {
 
         if (!user) throw new HttpError(401, 'Not authenticated');
 
-        const followers = await this.getFollowersCount(username)
-        const postCount = await this.getPostCount(username)
-        const following = await this.getFollowingsCount(username)
+        const followers = await this.getFollowersCount(username);
+        const postCount = await this.getPostCount(username);
+        const following = await this.getFollowingsCount(username);
 
         const returnUser = {
             email: user.email,
@@ -126,7 +127,6 @@ export class UserService {
         return `success`;
     }
 
-
     async unfollowUser(followerName: string, followedUsername: string) {
         if (followerName === followedUsername)
             throw new ForbiddenError('user cant unfollow themself');
@@ -138,59 +138,45 @@ export class UserService {
         const following = this.createFollowing(follower, followed);
         const fetchedfollowing = await this.fetchFollowing(following);
         if (!fetchedfollowing)
-            throw new ForbiddenError("user can't unfallow another user if didn't follow them first")
-
+            throw new ForbiddenError(
+                "user can't unfallow another user if didn't follow them first"
+            );
 
         await this.followingRepo.delete({
             followerId: follower.username,
             followedId: followed.username,
-        })
+        });
         console.log('follower: ', follower);
         console.log('followed: ', followed);
-        return 'success'
+        return 'success';
     }
-
 
     private async getFollowersCount(username: string) {
         const followers = await this.followingRepo.count({
             where: {
                 followedId: username,
-            }
-        })
-        return followers
+            },
+        });
+        return followers;
     }
-
 
     private async getFollowingsCount(username: string) {
         const followers = await this.followingRepo.count({
             where: {
                 followerId: username,
-            }
-        })
-        return followers
+            },
+        });
+        return followers;
     }
-
 
     private async getPostCount(username: string) {
         const posts = await this.postRepo.count({
             where: {
                 creatorId: username,
-            }
-        })
-        return posts
+            },
+        });
+        return posts;
     }
-
-
-
-
-
-
-
-
-
-
-
-
 
     async fetchFollowing(following: Following) {
         const data = await this.followingRepo.findOne({
