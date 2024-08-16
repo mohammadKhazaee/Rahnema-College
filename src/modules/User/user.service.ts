@@ -116,6 +116,44 @@ export class UserService {
         return `success`;
     }
 
+
+    async unfollowUser(followerName: string, followedUsername: string) {
+        if (followerName === followedUsername)
+            throw new ForbiddenError('user cant unfollow themself');
+
+        const follower = await this.fetchUser({ username: followerName });
+        const followed = await this.fetchUser({ username: followedUsername });
+        if (!follower || !followed) throw new NotFoundError();
+
+        const following = this.createFollowing(follower, followed);
+        const fetchedfollowing = await this.fetchFollowing(following);
+        if (!fetchedfollowing)
+            throw new ForbiddenError("user can't unfallow another user if didn't follow them first")
+
+
+        await this.followingRepo.delete({
+            followerId: follower.username,
+            followedId: followed.username,
+        })
+        console.log('follower: ', follower);
+        console.log('followed: ', followed);
+        return 'success'
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     async fetchFollowing(following: Following) {
         const data = await this.followingRepo.findOne({
             where: {

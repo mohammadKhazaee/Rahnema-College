@@ -3,10 +3,10 @@ POST http://localhost:3000/auth/signup
 Content-Type: application/json
 
 {
-    "username": "ehsan2",
-    "email": "ehsunhagh1386@gamil.com",
-    "password": "ehsunhaq1386",
-    "confirmPassword": "ehsunhaq1386"
+    "username": "test",
+    "email": "testemohemnist86@gamil.com",
+    "password": "testesakht86",
+    "confirmPassword": "testesakht86"
 }
 
 ###
@@ -14,19 +14,28 @@ POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-    "username": "ehsan2",
-    "password": "ehsunhaq1386",
+    "username": "test",
+    "password": "testesakht86",
     "rememberMe" : true
 }
 
 ###
 
-PATCH http://localhost:3000/follow/ehsan2
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImVoc2FuMiIsImVtYWlsIjoiZWhzdW5oYWdoMTM4NkBnYW1pbC5jb20iLCJpYXQiOjE3MjM3MTQ1NDksImV4cCI6MTcyNjMwNjU0OX0.3efxnE_yZTGC5mAhgHKmBK6y_a0pvIzIkGjEPG62uC8
+PATCH http://localhost:3000/follow/ehsan
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJlbWFpbCI6InRlc3RlbW9oZW1uaXN0ODZAZ2FtaWwuY29tIiwiaWF0IjoxNzIzODAwODEyLCJleHAiOjE3MjYzOTI4MTJ9.SDV5hIRi4DL1_kVaLIWvuKJ6QVvdg7lyrAwPvFIj0xw
 Content-Type: application/json
 
 {
-    "username" : "ehsan2"
+    "username" : "test"
+}
+
+###
+PATCH http://localhost:3000/unfollow/test
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImVoc2FuIiwiZW1haWwiOiJlaHN1bmhhZ2g4NkBnYW1pbC5jb20iLCJpYXQiOjE3MjM4MDA1MzgsImV4cCI6MTcyNjM5MjUzOH0.CJWbEvLaJqcIqeyJ6ej9u1aa5vVkQ1Y-6JQ4kigdp94
+Content-Type: application/json
+
+{
+    "username" : "ehsan"
 }
 
 # Authorization: f4fa59bc-290f-417a-8968-83ba5ee9c25c
