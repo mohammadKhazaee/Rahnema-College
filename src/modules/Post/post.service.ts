@@ -1,11 +1,11 @@
-import { HttpError } from '../../utility/errors';
+import { HttpError, NotFoundError } from '../../utility/errors';
 import { IFile, IFiles } from '../../utility/file-parser';
 import { imageUrlPath } from '../../utility/path-adjuster';
 import { User } from '../User/model/user';
 import { UserService } from '../User/user.service';
 import { CreatePostDto } from './dto/create-post-dto';
 import { CreatePostImage } from './model/image';
-import { CreatePost } from './model/post';
+import { CreatePost, Post } from './model/post';
 import { CreateTag } from './model/tag';
 import { PostRepository } from './post.repository';
 import { PostEntity } from './entity/post.entity';
@@ -13,7 +13,7 @@ export class PostService {
     constructor(
         private postRepo: PostRepository,
         private userService: UserService
-    ) {}
+    ) { }
 
     async createPost(
         { mentions, caption }: CreatePostDto,
@@ -61,5 +61,12 @@ export class PostService {
         if (!post) throw new HttpError(404, 'Post not found');
 
         return post;
+    }
+
+    async getUserPosts(username: string): Promise<PostEntity[] | null> {
+        const posts = await this.postRepo.getPosts(username)
+        if (!posts) throw new NotFoundError("This user doesn't have a post")
+
+        return posts
     }
 }

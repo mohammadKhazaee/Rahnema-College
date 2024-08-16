@@ -34,5 +34,10 @@ export const postRouter = (
         handleExpress(res, 200, next, () => postService.getPostById(postId));
     });
 
+    app.get('/', isAuthenticated(userService), (req, res, next) => {
+        const name = req.username;
+        handleExpress(res, 200, next, () => postService.getUserPosts(name));
+    });
+
     return app;
 };

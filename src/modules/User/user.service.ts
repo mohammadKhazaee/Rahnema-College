@@ -6,17 +6,24 @@ import { Following } from './model/follow';
 import { UpdateUser, userIdentifier, User, CreateUser } from './model/user';
 import { UserRepository } from './user.repository';
 import { AppDataSource } from '../../data-source';
+import { PostEntity } from '../Post/entity/post.entity';
 
 export class UserService {
     private followingRepo: Repository<FollowingEntity>;
+    private postRepo: Repository<PostEntity>
     constructor(private userRepo: UserRepository) {
         this.followingRepo = AppDataSource.getRepository(FollowingEntity);
+        this.postRepo = AppDataSource.getRepository(PostEntity)
     }
 
     async getProfileInfo(username: string) {
         const user = await this.fetchUser({ username });
 
         if (!user) throw new HttpError(401, 'Not authenticated');
+
+        const followers = await this.getFollowersCount(username)
+        const postCount = await this.getPostCount(username)
+        const following = await this.getFollowingsCount(username)
 
         const returnUser = {
             email: user.email,
@@ -26,6 +33,9 @@ export class UserService {
             lName: user.lName,
             isPrivate: user.isPrivate,
             bio: user.bio,
+            followers,
+            following,
+            postCount,
         };
 
         return returnUser;
@@ -141,6 +151,34 @@ export class UserService {
     }
 
 
+    private async getFollowersCount(username: string) {
+        const followers = await this.followingRepo.count({
+            where: {
+                followedId: username,
+            }
+        })
+        return followers
+    }
+
+
+    private async getFollowingsCount(username: string) {
+        const followers = await this.followingRepo.count({
+            where: {
+                followerId: username,
+            }
+        })
+        return followers
+    }
+
+
+    private async getPostCount(username: string) {
+        const posts = await this.postRepo.count({
+            where: {
+                creatorId: username,
+            }
+        })
+        return posts
+    }
 
 
 
