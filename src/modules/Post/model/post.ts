@@ -1,16 +1,15 @@
 import { User } from '../../User/model/user';
-import { Mention } from './mention';
-import { CreatePostImage, CreateRelatedPostImage } from './image';
-import { CreateTag } from './tag';
+import { CreateRelatedPostImage, PostImage } from './image';
+import { CreateTag, Tag } from './tag';
 
 export interface Post {
     postId: string;
     caption: string;
     creatorId: string;
     creator: User;
-    tags: PostTag[];
-    images: PostImage[];
-    mentions: Mention[];
+    tags?: PostTag[];
+    images?: PostImage[];
+    mentions?: Mention[];
 }
 
 export interface PostImage {
@@ -31,6 +30,9 @@ export interface Tag {
     tagId: string;
     name: string;
     posts: PostTag[];
+    tags?: Tag[];
+    images?: PostImage[];
+    mentions?: User[];
 }
 
 export interface CreatePost {

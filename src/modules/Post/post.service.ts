@@ -5,8 +5,8 @@ import { User } from '../User/model/user';
 import { UserService } from '../User/user.service';
 import { CreatePostDto } from './dto/create-post-dto';
 import { CreateRelatedPostImage } from './model/image';
-import { CreatePost, UpdatePost, Post } from './model/post';
-import { CreateTag } from './model/tag';
+import { CreatePost, Post, UpdatePost } from './model/post';
+import { CreateTag, Tag } from './model/tag';
 import { PostRepository } from './post.repository';
 import { PostEntity } from './entity/post.entity';
 import { EditImagesDto, EditPostDto } from './dto/edit-post-dto';
@@ -26,12 +26,18 @@ export class PostService {
         { mentions, caption, oldImages: keepingImages }: EditPostDto,
         images: IFile[]
     ) {
-        let tags: CreateTag[] | undefined;
+        let tags: Tag[] | undefined;
         if (caption) tags = this.extractTags(caption);
 
         let mentionedUsers: User[] | undefined;
         if (mentions)
             mentionedUsers = await this.verifyMentionedExists(mentions);
+
+        const post: Post = await this.getPostById(postId);
+
+        if (caption) post.caption = caption;
+        if (tags) post.tags = tags;
+        if (mentionedUsers) post.mentions = mentionedUsers;
 
         const newImageEntities = await this.saveNewImages(images);
         console.log('newImageEntities: ********************************');
@@ -47,16 +53,7 @@ export class PostService {
         console.log([...newImageEntities, ...keptImages]);
         console.log(postId);
 
-        const updatedUser: UpdatePost = {
-            postId,
-        };
-
-        if (tags) updatedUser.tags = tags;
-        if (caption) updatedUser.caption = caption;
-        if (mentionedUsers) updatedUser.mentions = mentionedUsers;
-
-        console.log('base error');
-        await this.postRepo.update(updatedUser);
+        await this.postRepo.update(post);
 
         await this.fileHandler.deleteFiles(deletedImageUrls);
 

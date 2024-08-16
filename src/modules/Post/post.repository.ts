@@ -1,5 +1,5 @@
 import { Repository, DataSource } from 'typeorm';
-import { CreatePost, UpdatePost } from './model/post';
+import { CreatePost, Post, UpdatePost } from './model/post';
 import { PostEntity } from './entity/post.entity';
 
 export class PostRepository {
@@ -8,7 +8,8 @@ export class PostRepository {
     constructor(dataSource: DataSource) {
         this.postRepo = dataSource.getRepository(PostEntity);
     }
-    getPosts(username: string): Promise<PostEntity[]> {
+
+    getPosts(username: string): Promise<Post[]> {
         return this.postRepo.findBy({ creatorId: username });
     }
 
@@ -26,7 +27,7 @@ export class PostRepository {
     async findPostById(postId: string): Promise<PostEntity | null> {
         return await this.postRepo.findOne({
             where: { postId },
-            relations: ['creator', 'tags', 'images', 'mentions'],
+            relations: ['tags', 'images', 'mentions'],
         });
     }
 }
