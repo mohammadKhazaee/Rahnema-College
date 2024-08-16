@@ -1,5 +1,7 @@
 import multer from 'multer';
+import * as fs from 'fs';
 import { v4 } from 'uuid';
+import { convertToFsPaths } from './path-adjuster';
 
 export type IFiles =
     | {
@@ -47,6 +49,26 @@ export class FileParser {
         return multer({
             storage: this.storageConfig(),
             fileFilter: this.fileFilter(),
+        });
+    }
+
+    async deleteFiles(paths: string[]) {
+        try {
+            await Promise.all(
+                convertToFsPaths(paths).map((p) => this.deleteFile(p))
+            );
+        } catch (err) {
+            console.log(err);
+        }
+        return 'iamges deleted';
+    }
+
+    private deleteFile(path: string) {
+        return new Promise((resolve, reject) => {
+            fs.unlink(path, (err) => {
+                if (err) return reject(err);
+                resolve('image deleted');
+            });
         });
     }
 }

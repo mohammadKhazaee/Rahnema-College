@@ -1,4 +1,7 @@
+export interface CreateRelatedPostImage {
+    url: string;
+}
 export interface CreatePostImage {
     url: string;
-    postId?: string;
+    postId: number;
 }

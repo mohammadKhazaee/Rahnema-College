@@ -6,6 +6,7 @@ import { createPostDto } from '../modules/Post/dto/create-post-dto';
 import { FileParser, IFile } from '../utility/file-parser';
 import { UserService } from '../modules/User/user.service';
 import { z } from 'zod';
+import { editPostDto } from '../modules/Post/dto/edit-post-dto';
 
 export const postRouter = (
     postService: PostService,
@@ -25,6 +26,24 @@ export const postRouter = (
                     dto,
                     req.files as IFile[],
                     req.username
+                ),
+            }));
+        }
+    );
+
+    app.put(
+        '/:postId',
+        isAuthenticated(userService),
+        fileParser.fileParser().array('imageUrls'),
+        (req, res, next) => {
+            const dto = editPostDto.parse(req.body);
+            const postId = z.coerce.number().parse(req.params.postId);
+
+            handleExpress(res, 201, next, async () => ({
+                message: await postService.updatePost(
+                    postId,
+                    dto,
+                    req.files as IFile[]
                 ),
             }));
         }

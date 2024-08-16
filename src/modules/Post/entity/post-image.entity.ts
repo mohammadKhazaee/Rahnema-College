@@ -18,7 +18,7 @@ export class PostImageEntity {
     url!: string;
 
     @Column()
-    postId!: string;
+    postId!: number;
 
     @ManyToOne(() => PostEntity, (post) => post.images)
     @JoinColumn({ name: 'postId' })

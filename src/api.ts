@@ -15,7 +15,7 @@ import { PostRepository } from './modules/Post/post.repository';
 import { PostService } from './modules/Post/post.service';
 import { FileParser } from './utility/file-parser';
 import { followRouter } from './routes/follow-unfollow.route';
-
+import { PostImageRepository } from './modules/Post/image.repository';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -36,18 +36,24 @@ export const appFactory = (dataSource: DataSource) => {
         next();
     });
 
+    const fileParser = new FileParser();
+
     const userRepo = new UserRepository(dataSource);
     const userService = new UserService(userRepo);
     const postRepo = new PostRepository(dataSource);
-    const postService = new PostService(postRepo, userService);
+    const postImageRepo = new PostImageRepository(dataSource);
+    const postService = new PostService(
+        postRepo,
+        postImageRepo,
+        userService,
+        fileParser
+    );
     const authService = new AuthService(userService, new GmailHandler());
-
-    const fileParser = new FileParser();
 
     app.use('/auth', authRouter(authService));
     app.use('/posts', postRouter(postService, userService, fileParser));
     app.use(profileRouter(userService));
-    app.use(followRouter(userService))
+    app.use(followRouter(userService));
 
     app.use((req, res) => {
         res.status(404).send({ message: 'Not Found' });
