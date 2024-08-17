@@ -7,16 +7,9 @@ export interface Post {
     caption: string;
     creatorId: string;
     creator: User;
-    tags?: PostTag[];
+    tags?: Tag[];
     images?: PostImage[];
-    mentions?: Mention[];
-}
-
-export interface PostImage {
-    imageId: string;
-    url: string;
-    postId: string;
-    post: Post;
+    mentions?: User[];
 }
 
 export interface PostTag {
@@ -24,15 +17,6 @@ export interface PostTag {
     tag: Tag;
     postId: string;
     post: Post;
-}
-
-export interface Tag {
-    tagId: string;
-    name: string;
-    posts: PostTag[];
-    tags?: Tag[];
-    images?: PostImage[];
-    mentions?: User[];
 }
 
 export interface CreatePost {

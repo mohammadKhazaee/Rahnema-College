@@ -16,6 +16,7 @@ import { PostService } from './modules/Post/post.service';
 import { FileParser } from './utility/file-parser';
 import { followRouter } from './routes/follow-unfollow.route';
 import { PostImageRepository } from './modules/Post/image.repository';
+import { TagRepository } from './modules/Post/tag.repository';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -42,9 +43,11 @@ export const appFactory = (dataSource: DataSource) => {
     const userService = new UserService(userRepo);
     const postRepo = new PostRepository(dataSource);
     const postImageRepo = new PostImageRepository(dataSource);
+    const tagRepo = new TagRepository(dataSource);
     const postService = new PostService(
         postRepo,
         postImageRepo,
+        tagRepo,
         userService,
         fileParser
     );

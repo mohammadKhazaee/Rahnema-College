@@ -4,54 +4,47 @@ import { imageUrlPath } from '../../utility/path-adjuster';
 import { User } from '../User/model/user';
 import { UserService } from '../User/user.service';
 import { CreatePostDto } from './dto/create-post-dto';
-import { CreateRelatedPostImage } from './model/image';
-import { CreatePost, Post, UpdatePost } from './model/post';
+import { CreatePost, Post } from './model/post';
 import { CreateTag, Tag } from './model/tag';
 import { PostRepository } from './post.repository';
-import { PostEntity } from './entity/post.entity';
 import { EditImagesDto, EditPostDto } from './dto/edit-post-dto';
 import { PostImageRepository } from './image.repository';
-import { PostImageEntity } from './entity/post-image.entity';
+import { TagRepository } from './tag.repository';
+import { CreateRelatedPostImage, PostImage } from './model/image';
 
 export class PostService {
     constructor(
         private postRepo: PostRepository,
         private imageRepo: PostImageRepository,
+        private tagRepo: TagRepository,
         private userService: UserService,
         private fileHandler: FileParser
     ) {}
 
     async updatePost(
         postId: number,
-        { mentions, caption, oldImages: keepingImages }: EditPostDto,
+        { mentions, caption, oldImages: keepingImages = [] }: EditPostDto,
         images: IFile[]
     ) {
+        const post: Post = await this.getPostById(postId);
+
         let tags: Tag[] | undefined;
-        if (caption) tags = this.extractTags(caption);
+        if (caption) tags = await this.prepareTagEntities(caption);
 
         let mentionedUsers: User[] | undefined;
         if (mentions)
             mentionedUsers = await this.verifyMentionedExists(mentions);
 
-        const post: Post = await this.getPostById(postId);
-
-        if (caption) post.caption = caption;
-        if (tags) post.tags = tags;
-        if (mentionedUsers) post.mentions = mentionedUsers;
-
-        const newImageEntities = await this.saveNewImages(images);
-        console.log('newImageEntities: ********************************');
-        console.log(newImageEntities, images);
-
-        const currentImages = await this.imageRepo.getPostImages(postId);
-
+        const newImageEntities = await this.saveNewImages(images, postId);
         const [keptImages, deletedImageUrls] = this.splitDeletedImages(
-            currentImages,
+            post.images,
             keepingImages
         );
-        console.log('result:*****************************************');
-        console.log([...newImageEntities, ...keptImages]);
-        console.log(postId);
+
+        // post.images = [...newImageEntities, ...keptImages];
+        // if (caption) post.caption = caption;
+        // if (tags) post.tags = tags;
+        // if (mentionedUsers) post.mentions = mentionedUsers;
 
         await this.postRepo.update(post);
 
@@ -60,19 +53,31 @@ export class PostService {
         return 'post updated successfully';
     }
 
-    private saveNewImages(images: IFile[]) {
+    private async prepareTagEntities(caption: string) {
+        const tags = this.extractTags(caption);
+        const existingTags = await this.tagRepo.findTagsByNames(tags);
+        let newTags: CreateTag[] = [];
+        for (const tag of tags) {
+            if (!existingTags.find((t) => t.name === tag))
+                newTags.push({ name: tag });
+        }
+        const newTagsEntities = await this.tagRepo.saveBulk(newTags);
+        return [...newTagsEntities, ...existingTags];
+    }
+
+    private saveNewImages(images: IFile[], postId: number) {
         const preparedImageUrls = images.map((i) => ({
             url: imageUrlPath(i.path),
-            postId: 1,
+            postId,
         }));
         return this.imageRepo.saveBulk(preparedImageUrls);
     }
 
     private splitDeletedImages(
-        currentImages: PostImageEntity[],
+        currentImages: PostImage[],
         keepingImages: EditImagesDto[]
-    ): [PostImageEntity[], string[]] {
-        const [keptImages, deletedImageUrls]: [PostImageEntity[], string[]] = [
+    ): [PostImage[], string[]] {
+        const [keptImages, deletedImageUrls]: [PostImage[], string[]] = [
             [],
             [],
         ];
@@ -85,13 +90,12 @@ export class PostService {
         return [keptImages, deletedImageUrls];
     }
 
-    private extractTags(caption: string): CreateTag[] {
+    private extractTags(caption: string): string[] {
         return caption
             .split(' ')
             .filter((s) => s.includes('#'))
             .flatMap((s) => s.split('#'))
-            .filter((s) => s !== '')
-            .map((s) => ({ name: s }));
+            .filter((s) => s !== '');
     }
 
     async createPost(
@@ -112,8 +116,8 @@ export class PostService {
         const newPost: CreatePost = {
             caption: caption,
             creatorId: creatorId,
-            tags,
-            images: preparedImageUrls || [],
+            tags: tags.map((t) => ({ name: t })),
+            images: preparedImageUrls,
             mentions: mentionedUsers,
         };
 
@@ -132,7 +136,7 @@ export class PostService {
             throw new HttpError(404, 'couldnt find mentioned user');
         return mentionedUsers;
     }
-    async getPostById(postId: string): Promise<PostEntity> {
+    async getPostById(postId: string): Promise<Post> {
         const post = await this.postRepo.findPostById(postId);
 
         if (!post) throw new HttpError(404, 'Post not found');
@@ -140,7 +144,7 @@ export class PostService {
         return post;
     }
 
-    async getUserPosts(username: string): Promise<PostEntity[] | null> {
+    async getUserPosts(username: string): Promise<Post[] | null> {
         const posts = await this.postRepo.getPosts(username);
         if (!posts) throw new NotFoundError("This user doesn't have a post");
 

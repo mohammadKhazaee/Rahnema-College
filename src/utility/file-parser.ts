@@ -66,6 +66,8 @@ export class FileParser {
     private deleteFile(path: string) {
         return new Promise((resolve, reject) => {
             fs.unlink(path, (err) => {
+                console.log(err);
+
                 if (err) return reject(err);
                 resolve('image deleted');
             });

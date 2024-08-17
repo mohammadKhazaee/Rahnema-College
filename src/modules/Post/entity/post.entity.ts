@@ -50,7 +50,7 @@ export class PostEntity {
     tags!: TagEntity[];
 
     @OneToMany(() => PostImageEntity, (image) => image.post, {
-        cascade: ['insert'],
+        cascade: true,
     })
     images!: PostImageEntity[];
 
