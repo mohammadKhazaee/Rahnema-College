@@ -4,7 +4,7 @@ import { CreatePostImage } from './image';
 import { CreateTag } from './tag';
 
 export interface Post {
-    postId: number;
+    postId: string;
     caption: string;
     creatorId: string;
     creator: User;
@@ -14,21 +14,21 @@ export interface Post {
 }
 
 export interface PostImage {
-    imageId: number;
+    imageId: string;
     url: string;
     postId: string;
     post: Post;
 }
 
 export interface PostTag {
-    tagId: number;
+    tagId: string;
     tag: Tag;
-    postId: number;
+    postId: string;
     post: Post;
 }
 
 export interface Tag {
-    tagId: number;
+    tagId: string;
     name: string;
     posts: PostTag[];
 }

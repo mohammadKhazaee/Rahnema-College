@@ -30,7 +30,7 @@ export const postRouter = (
         }
     );
     app.get('/:postId', (req, res, next) => {
-        const postId = z.coerce.number().parse(req.params.postId);
+        const postId = z.string().parse(req.params.postId);
         handleExpress(res, 200, next, () => postService.getPostById(postId));
     });
 

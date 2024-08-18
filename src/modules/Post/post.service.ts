@@ -13,7 +13,7 @@ export class PostService {
     constructor(
         private postRepo: PostRepository,
         private userService: UserService
-    ) { }
+    ) {}
 
     async createPost(
         { mentions, caption }: CreatePostDto,
@@ -55,7 +55,7 @@ export class PostService {
             .filter((s) => s !== '')
             .map((s) => ({ name: s }));
     }
-    async getPostById(postId: number): Promise<PostEntity> {
+    async getPostById(postId: string): Promise<PostEntity> {
         const post = await this.postRepo.findPostById(postId);
 
         if (!post) throw new HttpError(404, 'Post not found');
@@ -64,9 +64,9 @@ export class PostService {
     }
 
     async getUserPosts(username: string): Promise<PostEntity[] | null> {
-        const posts = await this.postRepo.getPosts(username)
-        if (!posts) throw new NotFoundError("This user doesn't have a post")
+        const posts = await this.postRepo.getPosts(username);
+        if (!posts) throw new NotFoundError("This user doesn't have a post");
 
-        return posts
+        return posts;
     }
 }

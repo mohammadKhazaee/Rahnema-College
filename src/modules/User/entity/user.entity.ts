@@ -9,6 +9,9 @@ import {
 } from 'typeorm';
 import { PostEntity } from '../../Post/entity/post.entity';
 import { FollowingEntity } from './following.entity';
+import { PostCommentEntity } from '../../Post/entity/post-comment.entity';
+import { PostLikeEntity } from '../../Post/entity/post-Likes.entity';
+import { BookmarkEntity } from '../../Post/entity/bookmark.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -47,6 +50,21 @@ export class UserEntity {
 
     @ManyToMany(() => PostEntity, (m) => m.mentions)
     mentions!: PostEntity[];
+
+    @OneToMany(() => PostCommentEntity, (comment) => comment.post, {
+        cascade: true,
+    })
+    comments!: PostCommentEntity[];
+
+    @OneToMany(() => PostLikeEntity, (like) => like.post, {
+        cascade: true,
+    })
+    likes!: PostLikeEntity[];
+
+    @OneToMany(() => BookmarkEntity, (bookmark) => bookmark.post, {
+        cascade: true,
+    })
+    bookmarks!: BookmarkEntity[];
 
     @CreateDateColumn()
     createdAt!: Date;

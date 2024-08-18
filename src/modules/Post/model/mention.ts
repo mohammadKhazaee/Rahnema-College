@@ -1,9 +1,9 @@
-import { User } from "../../User/model/user";
-import { Post } from "./post";
+import { User } from '../../User/model/user';
+import { Post } from './post';
 
 export interface Mention {
     mentionedId: string;
     mentioned: User;
-    postId: number;
+    postId: string;
     post: Post;
 }

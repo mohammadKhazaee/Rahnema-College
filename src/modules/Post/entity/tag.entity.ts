@@ -5,13 +5,14 @@ import {
     UpdateDateColumn,
     PrimaryGeneratedColumn,
     ManyToMany,
+    PrimaryColumn,
 } from 'typeorm';
 import { PostEntity } from './post.entity';
 
 @Entity('tags')
 export class TagEntity {
-    @PrimaryGeneratedColumn()
-    tagId!: number;
+    @PrimaryColumn('uuid')
+    tagId!: string;
 
     @Column()
     name!: string;

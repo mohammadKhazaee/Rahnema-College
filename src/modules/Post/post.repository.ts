@@ -1,7 +1,7 @@
 import { Repository, DataSource } from 'typeorm';
 import { CreatePost } from './model/post';
 import { PostEntity } from './entity/post.entity';
-import { Post } from './model/post';
+
 export class PostRepository {
     private postRepo: Repository<PostEntity>;
 
@@ -15,7 +15,7 @@ export class PostRepository {
         return this.postRepo.save(createPostObject);
     }
 
-    async findPostById(postId: number): Promise<PostEntity | null> {
+    async findPostById(postId: string): Promise<PostEntity | null> {
         return await this.postRepo.findOne({
             where: { postId },
             relations: ['creator', 'tags', 'images', 'mentions'],

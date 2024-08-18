@@ -6,6 +6,10 @@ import { TagEntity } from './modules/Post/entity/tag.entity';
 import { PostEntity } from './modules/Post/entity/post.entity';
 import { PostImageEntity } from './modules/Post/entity/post-image.entity';
 import { FollowingEntity } from './modules/User/entity/following.entity';
+import { PostCommentEntity } from './modules/Post/entity/post-comment.entity';
+import { PostLikeEntity } from './modules/Post/entity/post-Likes.entity';
+import { BookmarkEntity } from './modules/Post/entity/bookmark.entity';
+import { CommentLikeEntity } from './modules/Post/entity/comment-Likes.entity';
 dotenv.config();
 
 export const AppDataSource = new DataSource({
@@ -23,6 +27,10 @@ export const AppDataSource = new DataSource({
         PostEntity,
         PostImageEntity,
         FollowingEntity,
+        PostCommentEntity,
+        PostLikeEntity,
+        BookmarkEntity,
+        CommentLikeEntity,
     ],
     migrations: [],
     subscribers: [],

@@ -8,19 +8,21 @@ import {
     PrimaryColumn,
 } from 'typeorm';
 import { PostEntity } from './post.entity';
+import { UserEntity } from '../../User/entity/user.entity';
 
-@Entity('post_image')
-export class PostImageEntity {
-    @PrimaryColumn('uuid')
-    imageId!: string;
+@Entity('post_likes')
+export class PostLikeEntity {
+    @PrimaryColumn()
+    userId!: string;
 
-    @Column({ unique: true })
-    url!: string;
+    @ManyToOne(() => UserEntity, (user) => user.likes)
+    @JoinColumn({ name: 'userId' })
+    user!: UserEntity;
 
-    @Column()
+    @PrimaryColumn()
     postId!: string;
 
-    @ManyToOne(() => PostEntity, (post) => post.images)
+    @ManyToOne(() => PostEntity, (post) => post.likes)
     @JoinColumn({ name: 'postId' })
     post!: PostEntity;
 

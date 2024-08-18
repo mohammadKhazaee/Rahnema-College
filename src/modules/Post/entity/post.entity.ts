@@ -9,15 +9,19 @@ import {
     OneToMany,
     ManyToMany,
     JoinTable,
+    PrimaryColumn,
 } from 'typeorm';
 import { UserEntity } from '../../User/entity/user.entity';
 import { PostImageEntity } from './post-image.entity';
 import { TagEntity } from './tag.entity';
+import { PostCommentEntity } from './post-comment.entity';
+import { PostLikeEntity } from './post-Likes.entity';
+import { BookmarkEntity } from './bookmark.entity';
 
 @Entity('posts')
 export class PostEntity {
-    @PrimaryGeneratedColumn()
-    postId!: number;
+    @PrimaryColumn('uuid')
+    postId!: string;
 
     @Column()
     caption!: string;
@@ -50,6 +54,11 @@ export class PostEntity {
     })
     images!: PostImageEntity[];
 
+    @OneToMany(() => PostCommentEntity, (comment) => comment.post, {
+        cascade: true,
+    })
+    comments!: PostCommentEntity[];
+
     @ManyToMany(() => UserEntity, (m) => m.mentions, {
         cascade: true,
     })
@@ -65,6 +74,16 @@ export class PostEntity {
         },
     })
     mentions!: UserEntity[];
+
+    @OneToMany(() => PostLikeEntity, (like) => like.post, {
+        cascade: true,
+    })
+    likes!: PostLikeEntity[];
+
+    @OneToMany(() => BookmarkEntity, (bookmark) => bookmark.post, {
+        cascade: true,
+    })
+    bookmarks!: BookmarkEntity[];
 
     @CreateDateColumn()
     createdAt!: Date;
