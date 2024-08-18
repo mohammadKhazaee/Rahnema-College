@@ -44,4 +44,8 @@ Content-Type: application / json
     "username" : "ehsan"
 }
 
+###
+GET http://localhost:3000/ehsan
+
+
 # Authorization: f4fa59bc - 290f - 417a - 8968 - 83ba5ee9c25c
