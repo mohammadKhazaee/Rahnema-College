@@ -20,13 +20,9 @@ export const postRouter = (
         isAuthenticated(userService),
         fileParser.fileParser().array('imageUrls'),
         (req, res, next) => {
-            const dto = createPostDto.parse(req.body);
+            const dto = createPostDto.parse({ ...req.body, images: req.files });
             handleExpress(res, 201, next, async () => ({
-                message: await postService.createPost(
-                    dto,
-                    req.files as IFile[],
-                    req.username
-                ),
+                message: await postService.createPost(dto, req.username),
             }));
         }
     );
@@ -34,17 +30,16 @@ export const postRouter = (
     app.put(
         '/:postId',
         isAuthenticated(userService),
-        fileParser.fileParser().array('imageUrls'),
+        fileParser.fileParser().array('images'),
         (req, res, next) => {
-            const dto = editPostDto.parse(req.body);
-            const postId = z.coerce.number().parse(req.params.postId);
+            const dto = editPostDto.parse({
+                postId: req.params.postId,
+                ...req.body,
+                images: req.files,
+            });
 
-            handleExpress(res, 201, next, async () => ({
-                message: await postService.updatePost(
-                    postId,
-                    dto,
-                    req.files as IFile[]
-                ),
+            handleExpress(res, 200, next, async () => ({
+                message: await postService.updatePost(dto),
             }));
         }
     );
