@@ -11,7 +11,7 @@ import { PostEntity } from '../Post/entity/post.entity';
 export class UserService {
     private followingRepo: Repository<FollowingEntity>;
     private postRepo: Repository<PostEntity>;
-    private SALT_ROUNDS = 10;
+
     constructor(private userRepo: UserRepository) {
         this.followingRepo = AppDataSource.getRepository(FollowingEntity);
         this.postRepo = AppDataSource.getRepository(PostEntity);
