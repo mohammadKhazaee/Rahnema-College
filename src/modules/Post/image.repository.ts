@@ -9,7 +9,7 @@ export class PostImageRepository {
         this.imageRepo = dataSource.getRepository(PostImageEntity);
     }
 
-    getPostImages(postId: number): Promise<PostImageEntity[]> {
+    getPostImages(postId: string): Promise<PostImageEntity[]> {
         return this.imageRepo.findBy({ postId });
     }
 

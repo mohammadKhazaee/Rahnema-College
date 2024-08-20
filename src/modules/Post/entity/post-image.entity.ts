@@ -5,20 +5,20 @@ import {
     UpdateDateColumn,
     ManyToOne,
     JoinColumn,
-    PrimaryColumn,
+    PrimaryGeneratedColumn,
 } from 'typeorm';
 import { PostEntity } from './post.entity';
 
 @Entity('post_image')
 export class PostImageEntity {
-    @PrimaryColumn('uuid')
+    @PrimaryGeneratedColumn('uuid')
     imageId!: string;
 
     @Column({ unique: true })
     url!: string;
 
     @Column()
-    postId!: number;
+    postId!: string;
 
     @ManyToOne(() => PostEntity, (post) => post.images)
     @JoinColumn({ name: 'postId' })

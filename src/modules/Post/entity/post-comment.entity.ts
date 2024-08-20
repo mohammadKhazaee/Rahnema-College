@@ -3,10 +3,10 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
-    PrimaryColumn,
     ManyToOne,
     JoinColumn,
     OneToMany,
+    PrimaryGeneratedColumn,
 } from 'typeorm';
 import { PostEntity } from './post.entity';
 import { UserEntity } from '../../User/entity/user.entity';
@@ -14,7 +14,7 @@ import { CommentLikeEntity } from './comment-Likes.entity';
 
 @Entity('post_comments')
 export class PostCommentEntity {
-    @PrimaryColumn('uuid')
+    @PrimaryGeneratedColumn('uuid')
     commentId!: string;
 
     @Column()

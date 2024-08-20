@@ -14,6 +14,8 @@ export class PostRepository {
     }
 
     create(createPostObject: CreatePost) {
+        console.log(createPostObject);
+
         return this.postRepo.save(createPostObject);
     }
 
@@ -21,7 +23,7 @@ export class PostRepository {
         return this.postRepo.save(post);
     }
 
-    async findPostById(postId: string): Promise<PostEntity | null> {
+    async findPostById(postId: string): Promise<Post | null> {
         return await this.postRepo.findOne({
             where: { postId },
             relations: ['tags', 'images', 'mentions'],

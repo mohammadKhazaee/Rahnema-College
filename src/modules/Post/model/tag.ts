@@ -3,6 +3,6 @@ export interface CreateTag {
 }
 
 export interface Tag {
-    tagId: number;
+    tagId: string;
     name: string;
 }

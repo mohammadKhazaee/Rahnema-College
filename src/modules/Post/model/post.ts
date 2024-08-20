@@ -28,7 +28,7 @@ export interface CreatePost {
 }
 
 export interface UpdatePost {
-    postId: number;
+    postId: string;
     caption?: string;
     tags?: CreateTag[];
     mentions?: User[];

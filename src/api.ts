@@ -42,15 +42,9 @@ export const appFactory = (dataSource: DataSource) => {
     const userRepo = new UserRepository(dataSource);
     const userService = new UserService(userRepo);
     const postRepo = new PostRepository(dataSource);
-    const postImageRepo = new PostImageRepository(dataSource);
+    // const postImageRepo = new PostImageRepository(dataSource);
     const tagRepo = new TagRepository(dataSource);
-    const postService = new PostService(
-        postRepo,
-        postImageRepo,
-        tagRepo,
-        userService,
-        fileParser
-    );
+    const postService = new PostService(postRepo, tagRepo, userService);
     const authService = new AuthService(userService, new GmailHandler());
 
     app.use('/auth', authRouter(authService));

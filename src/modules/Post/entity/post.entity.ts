@@ -9,7 +9,6 @@ import {
     OneToMany,
     ManyToMany,
     JoinTable,
-    PrimaryColumn,
 } from 'typeorm';
 import { UserEntity } from '../../User/entity/user.entity';
 import { PostImageEntity } from './post-image.entity';
@@ -20,7 +19,7 @@ import { BookmarkEntity } from './bookmark.entity';
 
 @Entity('posts')
 export class PostEntity {
-    @PrimaryColumn('uuid')
+    @PrimaryGeneratedColumn('uuid')
     postId!: string;
 
     @Column()

@@ -3,11 +3,11 @@ export interface CreateRelatedPostImage {
 }
 export interface CreatePostImage {
     url: string;
-    postId: number;
+    postId: string;
 }
 
 export interface PostImage {
-    imageId: number;
+    imageId: string;
     url: string;
-    postId: number;
+    postId: string;
 }

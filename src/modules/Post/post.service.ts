@@ -1,5 +1,4 @@
 import { HttpError, NotFoundError } from '../../utility/errors';
-import { FileParser, IFile } from '../../utility/file-parser';
 import { imageUrlPath } from '../../utility/path-adjuster';
 import { User } from '../User/model/user';
 import { UserService } from '../User/user.service';
@@ -8,21 +7,17 @@ import { CreatePost, Post } from './model/post';
 import { CreateTag, Tag } from './model/tag';
 import { PostRepository } from './post.repository';
 import { EditPostDto } from './dto/edit-post-dto';
-import { PostImageRepository } from './image.repository';
 import { TagRepository } from './tag.repository';
 import { CreateRelatedPostImage } from './model/image';
-import { PostImageEntity } from './entity/post-image.entity';
 
 export class PostService {
     constructor(
         private postRepo: PostRepository,
-        private imageRepo: PostImageRepository,
         private tagRepo: TagRepository,
-        private userService: UserService,
-        private fileHandler: FileParser
+        private userService: UserService
     ) {}
 
-    async getPostById(postId: number): Promise<Post> {
+    async getPostById(postId: string): Promise<Post> {
         const post = await this.postRepo.findPostById(postId);
 
         if (!post) throw new HttpError(404, 'Post not found');
