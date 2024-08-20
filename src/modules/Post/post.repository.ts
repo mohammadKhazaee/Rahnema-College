@@ -18,9 +18,6 @@ export class PostRepository {
     }
 
     update(post: UpdatePost) {
-        console.log('post=======================');
-        console.log(post);
-
         return this.postRepo.save(post);
     }
 

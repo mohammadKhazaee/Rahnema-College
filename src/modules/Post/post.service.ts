@@ -46,22 +46,21 @@ export class PostService {
         if (mentions)
             mentionedUsers = await this.verifyMentionedExists(mentions);
 
-        let newImageEntities: PostImageEntity[] = [];
+        // let newImageEntities: PostImageEntity[] = [];
         // if (images) newImageEntities = await this.saveNewImages(images, postId);
-        if (images)
-            newImageEntities = images.map((i) => {
-                const image = new PostImageEntity();
-                image.url = imageUrlPath(i.path);
-                image.postId = postId;
-                return image;
-            });
-
-        post.images = [
-            ...post.images.filter(
-                (i) => !deletedImages.find((di) => di.imageId === i.imageId)
-            ),
-            ...newImageEntities,
-        ];
+        // if (images)
+        //     newImageEntities = images.map((i) => {
+        //         const image = new PostImageEntity();
+        //         image.url = imageUrlPath(i.path);
+        //         image.postId = postId;
+        //         return image;
+        //     });
+        // post.images = [
+        //     ...post.images.filter(
+        //         (i) => !deletedImages.find((di) => di.imageId === i.imageId)
+        //     ),
+        //     ...newImageEntities,
+        // ];
 
         if (caption) post.caption = caption;
         if (tags) post.tags = tags;
@@ -69,22 +68,9 @@ export class PostService {
 
         await this.postRepo.update(post);
 
-        await this.fileHandler.deleteFiles(deletedImages.map((i) => i.url));
+        // await this.fileHandler.deleteFiles(deletedImages.map((i) => i.url));
 
         return 'post updated successfully';
-    }
-
-    private async makeCreateTags(caption: string) {
-        const tags = this.extractTags(caption);
-        const existingTags = await this.tagRepo.findTagsByNames(tags);
-
-        let newTags: CreateTag[] = [];
-        for (const tag of tags) {
-            if (!existingTags.find((t) => t.name === tag))
-                newTags.push({ name: tag });
-        }
-
-        return [...newTags, ...existingTags];
     }
 
     async createPost(
@@ -114,6 +100,19 @@ export class PostService {
         return 'post created successfully';
     }
 
+    private async makeCreateTags(caption: string) {
+        const tags = this.extractTags(caption);
+        const existingTags = await this.tagRepo.findTagsByNames(tags);
+
+        let newTags: CreateTag[] = [];
+        for (const tag of tags) {
+            if (!existingTags.find((t) => t.name === tag))
+                newTags.push({ name: tag });
+        }
+
+        return [...newTags, ...existingTags];
+    }
+
     private async makeUpdateTags(caption: string) {
         const tags = this.extractTags(caption);
         const existingTags = await this.tagRepo.findTagsByNames(tags);
@@ -126,14 +125,6 @@ export class PostService {
         const newTagEntities: Tag[] = await this.tagRepo.saveBulk(newTags);
 
         return [...newTagEntities, ...existingTags];
-    }
-
-    private saveNewImages(images: IFile[], postId: number) {
-        const preparedImageUrls = images.map((i) => ({
-            url: imageUrlPath(i.path),
-            postId,
-        }));
-        return this.imageRepo.saveBulk(preparedImageUrls);
     }
 
     private extractTags(caption: string): string[] {
