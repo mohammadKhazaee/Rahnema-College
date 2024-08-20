@@ -3,7 +3,7 @@ import { imageUrlPath } from '../../utility/path-adjuster';
 import { User } from '../User/model/user';
 import { UserService } from '../User/user.service';
 import { CreatePostDto } from './dto/create-post-dto';
-import { CreatePost, GetPostsDao, Post } from './model/post';
+import { CreatePost, GetPostDao, GetPostsDao, Post } from './model/post';
 import { CreateTag, Tag } from './model/tag';
 import { PostRepository } from './post.repository';
 import { EditPostDto } from './dto/edit-post-dto';
@@ -21,12 +21,13 @@ export class PostService {
         private userService: UserService
     ) {}
 
-    async getPostById(postId: string): Promise<Post> {
+    async getPostById(postId: string): Promise<GetPostDao> {
         const post = await this.postRepo.findPostById(postId);
 
         if (!post) throw new HttpError(404, 'Post not found');
+        const postCount = await this.postRepo.countLikesForPost(postId);
 
-        return post;
+        return { ...post, postCount };
     }
 
     async updatePost({
@@ -167,5 +168,9 @@ export class PostService {
             content,
             postId,
         });
+    }
+
+    async getPostLikesCount(postId: string): Promise<number> {
+        return this.postRepo.countLikesForPost(postId);
     }
 }

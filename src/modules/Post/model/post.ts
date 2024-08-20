@@ -10,6 +10,18 @@ export interface Post {
     tags?: Tag[];
     images?: PostImage[];
     mentions?: User[];
+
+}
+export interface GetPostDao {
+    postId: string;
+    caption: string;
+    creatorId: string;
+    creator: User;
+    tags?: Tag[];
+    images?: PostImage[];
+    mentions?: User[];
+    postCount : number;
+    
 }
 
 export interface PostWithImages {

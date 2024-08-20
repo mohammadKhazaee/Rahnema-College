@@ -30,4 +30,11 @@ export class PostRepository {
             relations: ['tags', 'images', 'mentions'],
         });
     }
+    async countLikesForPost(postId:string):Promise<number>{
+        return await this.postRepo
+        .createQueryBuilder('post')
+        .leftJoinAndSelect('post.likes', 'like')
+        .where('post.id = :postId', { postId })
+        .getCount();
+    }
 }
