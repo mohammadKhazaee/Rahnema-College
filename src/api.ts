@@ -7,6 +7,7 @@ import { DataSource } from 'typeorm';
 import { UserRepository } from './modules/User/user.repository';
 import helmet from 'helmet';
 import compression from 'compression';
+import morgan from 'morgan';
 import { GmailHandler } from './utility/gmail-handler';
 import { UserService } from './modules/User/user.service';
 import { profileRouter } from './routes/profile.route';
@@ -15,7 +16,6 @@ import { PostRepository } from './modules/Post/post.repository';
 import { PostService } from './modules/Post/post.service';
 import { FileParser } from './utility/file-parser';
 import { followRouter } from './routes/follow-unfollow.route';
-import { PostImageRepository } from './modules/Post/image.repository';
 import { TagRepository } from './modules/Post/tag.repository';
 
 export const appFactory = (dataSource: DataSource) => {
@@ -23,6 +23,7 @@ export const appFactory = (dataSource: DataSource) => {
     app.use(express.json());
     app.use(helmet());
     app.use(compression());
+    app.use(morgan('tiny'));
 
     app.use((req, res, next) => {
         res.setHeader('Access-Control-Allow-Origin', '*');
