@@ -9,10 +9,14 @@ import { PostRepository } from './post.repository';
 import { EditPostDto } from './dto/edit-post-dto';
 import { TagRepository } from './tag.repository';
 import { CreateRelatedPostImage } from './model/image';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { PostCommentRepository } from './post-comment.repository';
+import { PostCommentWithReplays } from './model/post-comment';
 
 export class PostService {
     constructor(
         private postRepo: PostRepository,
+        private postCommentRepo: PostCommentRepository,
         private tagRepo: TagRepository,
         private userService: UserService
     ) {}
@@ -152,5 +156,16 @@ export class PostService {
         }));
 
         return resultPosts;
+    }
+
+    async createComment(
+        { postId, content }: CreateCommentDto,
+        commentor: string
+    ): Promise<PostCommentWithReplays> {
+        return this.postCommentRepo.save({
+            commenterId: commentor,
+            content,
+            postId,
+        });
     }
 }

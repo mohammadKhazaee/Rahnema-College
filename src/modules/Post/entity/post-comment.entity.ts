@@ -34,16 +34,16 @@ export class PostCommentEntity {
     @JoinColumn({ name: 'postId' })
     post!: PostEntity;
 
-    @Column()
+    @Column({ default: null })
     parentId!: string;
 
-    @ManyToOne(() => PostCommentEntity, (parent) => parent.children)
+    @ManyToOne(() => PostCommentEntity, (parent) => parent.replays)
     @JoinColumn({ name: 'parentId' })
     parent!: PostCommentEntity;
 
     @OneToMany(() => PostCommentEntity, (child) => child.parent)
     @JoinColumn({ name: 'parentId' })
-    children!: PostCommentEntity[];
+    replays!: PostCommentEntity[];
 
     @OneToMany(() => CommentLikeEntity, (like) => like.comment, {
         cascade: true,

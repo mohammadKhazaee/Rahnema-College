@@ -7,6 +7,7 @@ import { FileParser } from '../utility/file-parser';
 import { UserService } from '../modules/User/user.service';
 import { z } from 'zod';
 import { editPostDto } from '../modules/Post/dto/edit-post-dto';
+import { createCommentDto } from '../modules/Post/dto/create-comment.dto';
 
 export const postRouter = (
     postService: PostService,
@@ -56,6 +57,21 @@ export const postRouter = (
             posts: await postService.getUserPosts(req.params.username),
         }));
     });
+
+    app.post(
+        '/:postId/comments',
+        isAuthenticated(userService),
+        (req, res, next) => {
+            const dto = createCommentDto.parse({
+                ...req.body,
+                postId: req.params.postId,
+                commentId: req.params.commentId,
+            });
+            handleExpress(res, 201, next, () =>
+                postService.createComment(dto, req.username)
+            );
+        }
+    );
 
     return app;
 };

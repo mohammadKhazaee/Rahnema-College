@@ -19,6 +19,7 @@ import { FollowRepository } from './modules/Follow/follow.repository';
 import { FollowService } from './modules/Follow/follow.service';
 
 import { TagRepository } from './modules/Post/tag.repository';
+import { PostCommentRepository } from './modules/Post/post-comment.repository';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -66,8 +67,14 @@ export const appFactory = (dataSource: DataSource) => {
     const userService = new UserService(userRepo, followService)
     const postRepo = new PostRepository(dataSource);
     // const postImageRepo = new PostImageRepository(dataSource);
+    const postCommentRepo = new PostCommentRepository(dataSource);
     const tagRepo = new TagRepository(dataSource);
-    const postService = new PostService(postRepo, tagRepo, userService);
+    const postService = new PostService(
+        postRepo,
+        postCommentRepo,
+        tagRepo,
+        userService
+    );
     const authService = new AuthService(userService, new GmailHandler());
 
     app.use('/auth', authRouter(authService));

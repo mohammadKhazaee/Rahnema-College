@@ -28,13 +28,6 @@ export interface GetPostsDao {
     };
 }
 
-export interface PostTag {
-    tagId: string;
-    tag: Tag;
-    postId: string;
-    post: Post;
-}
-
 export interface CreatePost {
     caption: string;
     creatorId: string;
