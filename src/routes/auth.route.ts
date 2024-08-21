@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { isAuthenticated } from '../login-middleware';
 import { AuthService } from '../modules/Auth/auth.service';
 import { confirmpassworddto } from '../modules/Auth/dto/confrimpassword-dto';
 import { logindto } from '../modules/Auth/dto/logindto';
@@ -26,7 +25,12 @@ export const authRouter = (authService: AuthService) => {
 
     app.post('/send-reset', (req, res, next) => {
         const dto = resetPasswordDto.parse(req.body);
-        handleExpress(res, 200, next, async () => await authService.resetPassword(dto));
+        handleExpress(
+            res,
+            200,
+            next,
+            async () => await authService.resetPassword(dto)
+        );
     });
 
     app.post('/reset-pass/:resetToken', async (req, res, next) => {

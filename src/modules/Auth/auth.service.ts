@@ -32,9 +32,14 @@ export class AuthService {
     }
 
     async signup(dto: CreateUser) {
-        const user = await this.userService.doesUserExists(dto);
+        const userWithEmail = await this.userService.doesUserExists({
+            email: dto.email,
+        });
+        const userWithUsername = await this.userService.doesUserExists({
+            username: dto.username,
+        });
 
-        if (user)
+        if (userWithEmail || userWithUsername)
             throw new HttpError(
                 409,
                 'account with this credential already exists'
