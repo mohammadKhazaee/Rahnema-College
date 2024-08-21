@@ -19,5 +19,35 @@ export const profileRouter = (userService: UserService) => {
         }));
     });
 
+    app.patch(
+        '/follow/:username',
+        isAuthenticated(userService),
+        (req, res, next) => {
+            const followerName = req.username;
+            const followedUserName = req.params.username;
+            handleExpress(res, 200, next, async () => ({
+                message: await userService.followUser(
+                    followerName,
+                    followedUserName
+                ),
+            }));
+        }
+    );
+
+    app.patch(
+        '/unfollow/:username',
+        isAuthenticated(userService),
+        (req, res, next) => {
+            const followerName = req.username;
+            const followedUserName = req.params.username;
+            handleExpress(res, 200, next, async () => ({
+                message: await userService.unfollowUser(
+                    followerName,
+                    followedUserName
+                ),
+            }));
+        }
+    );
+
     return app;
 };

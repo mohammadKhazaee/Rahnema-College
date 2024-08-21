@@ -1,6 +1,7 @@
+import { Following } from '../../Follow/model/follow';
 import { PostEntity } from '../../Post/entity/post.entity';
 import { Mention } from '../../Post/model/mention';
-import { Following } from './follow';
+
 
 export interface User {
     username: string;
@@ -36,8 +37,8 @@ export interface CreateUser {
 
 export type userIdentifier =
     | {
-          email: string;
-      }
+        email: string;
+    }
     | {
-          username: string;
-      };
+        username: string;
+    };

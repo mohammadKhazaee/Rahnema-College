@@ -1,30 +1,26 @@
 import { Repository } from 'typeorm';
 import { ForbiddenError, HttpError, NotFoundError } from '../../utility/errors';
 import { EditProfileDto } from './dto/edit-profile-dto';
-import { FollowingEntity } from './entity/following.entity';
-import { Following } from './model/follow';
 import { UpdateUser, userIdentifier, User, CreateUser } from './model/user';
 import { UserRepository } from './user.repository';
 import { AppDataSource } from '../../data-source';
 import { PostEntity } from '../Post/entity/post.entity';
+import { FollowService } from '../Follow/follow.service';
 
 export class UserService {
-    private followingRepo: Repository<FollowingEntity>;
     private postRepo: Repository<PostEntity>;
-
-    constructor(private userRepo: UserRepository) {
-        this.followingRepo = AppDataSource.getRepository(FollowingEntity);
+    private SALT_ROUNDS = 10;
+    constructor(private userRepo: UserRepository, private followService: FollowService) {
         this.postRepo = AppDataSource.getRepository(PostEntity);
     }
 
     async getUserInfo(username: string) {
         const user = await this.fetchUser({ username });
+        if (!user) throw new HttpError(404, 'Not Found');
 
-        if (!user) throw new HttpError(404, 'User was Not Found');
-
-        const followers = await this.getFollowersCount(username);
+        const followers = await this.followService.getFollowersCount(username);
         const postCount = await this.getPostCount(username);
-        const following = await this.getFollowingsCount(username);
+        const following = await this.followService.getFollowingsCount(username);
 
         const returnUser = {
             email: user.email,
@@ -115,16 +111,9 @@ export class UserService {
         const followed = await this.fetchUser({ username: followedUsername });
         if (!follower || !followed) throw new NotFoundError();
 
-        const following = this.createFollowing(follower, followed);
-        const fetchedfollowing = await this.fetchFollowing(following);
-
-        if (fetchedfollowing)
-            throw new ForbiddenError('already following the user');
-
-        await this.followingRepo.save(following);
-        console.log('follower: ', follower);
-        console.log('followed: ', followed);
+        await this.followService.followUser(follower, followed)
         return `success`;
+
     }
 
     async unfollowUser(followerName: string, followedUsername: string) {
@@ -135,38 +124,8 @@ export class UserService {
         const followed = await this.fetchUser({ username: followedUsername });
         if (!follower || !followed) throw new NotFoundError();
 
-        const following = this.createFollowing(follower, followed);
-        const fetchedfollowing = await this.fetchFollowing(following);
-        if (!fetchedfollowing)
-            throw new ForbiddenError(
-                "user can't unfallow another user if didn't follow them first"
-            );
-
-        await this.followingRepo.delete({
-            followerId: follower.username,
-            followedId: followed.username,
-        });
-        console.log('follower: ', follower);
-        console.log('followed: ', followed);
+        await this.followService.unfollowUser(follower, followed)
         return 'success';
-    }
-
-    private async getFollowersCount(username: string) {
-        const followers = await this.followingRepo.count({
-            where: {
-                followedId: username,
-            },
-        });
-        return followers;
-    }
-
-    private async getFollowingsCount(username: string) {
-        const followers = await this.followingRepo.count({
-            where: {
-                followerId: username,
-            },
-        });
-        return followers;
     }
 
     private async getPostCount(username: string) {
@@ -176,26 +135,6 @@ export class UserService {
             },
         });
         return posts;
-    }
-
-    async fetchFollowing(following: Following) {
-        const data = await this.followingRepo.findOne({
-            where: {
-                followerId: following.followerId,
-                followedId: following.followedId,
-            },
-        });
-        return data;
-    }
-
-    createFollowing(follower: User, followed: User) {
-        const following: Following = {
-            followerId: follower.username,
-            follower,
-            followedId: followed.username,
-            followed,
-        };
-        return following;
     }
 
     updateUser(dto: UpdateUser) {

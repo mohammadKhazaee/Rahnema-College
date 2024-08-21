@@ -1,4 +1,5 @@
-import { User } from "./user";
+import { User } from "../../User/model/user";
+
 
 export interface Following {
     followerId: string,

@@ -15,7 +15,9 @@ import { postRouter } from './routes/post.route';
 import { PostRepository } from './modules/Post/post.repository';
 import { PostService } from './modules/Post/post.service';
 import { FileParser } from './utility/file-parser';
-import { followRouter } from './routes/follow-unfollow.route';
+import { FollowRepository } from './modules/Follow/follow.repository';
+import { FollowService } from './modules/Follow/follow.service';
+
 import { TagRepository } from './modules/Post/tag.repository';
 
 export const appFactory = (dataSource: DataSource) => {
@@ -37,9 +39,9 @@ export const appFactory = (dataSource: DataSource) => {
     app.use(
         morgan(
             '[:date] ' +
-                ':method::url :status ' +
-                'length::res[content-length] - :response-time[1] ms ' +
-                'authHeader::authHeader'
+            ':method::url :status ' +
+            'length::res[content-length] - :response-time[1] ms ' +
+            'authHeader::authHeader'
         )
     );
 
@@ -59,7 +61,9 @@ export const appFactory = (dataSource: DataSource) => {
     const fileParser = new FileParser();
 
     const userRepo = new UserRepository(dataSource);
-    const userService = new UserService(userRepo);
+    const followRepo = new FollowRepository(dataSource)
+    const followService = new FollowService(followRepo)
+    const userService = new UserService(userRepo, followService)
     const postRepo = new PostRepository(dataSource);
     // const postImageRepo = new PostImageRepository(dataSource);
     const tagRepo = new TagRepository(dataSource);
@@ -69,7 +73,6 @@ export const appFactory = (dataSource: DataSource) => {
     app.use('/auth', authRouter(authService));
     app.use('/posts', postRouter(postService, userService, fileParser));
     app.use(profileRouter(userService));
-    app.use(followRouter(userService));
 
     app.use((req, res) => {
         res.status(404).send({ message: 'Not Found' });

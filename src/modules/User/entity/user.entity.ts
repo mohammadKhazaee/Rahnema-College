@@ -8,10 +8,10 @@ import {
     ManyToMany,
 } from 'typeorm';
 import { PostEntity } from '../../Post/entity/post.entity';
-import { FollowingEntity } from './following.entity';
 import { PostCommentEntity } from '../../Post/entity/post-comment.entity';
 import { PostLikeEntity } from '../../Post/entity/post-Likes.entity';
 import { BookmarkEntity } from '../../Post/entity/bookmark.entity';
+import { FollowingEntity } from '../../Follow/entity/following.entity';
 
 @Entity('users')
 export class UserEntity {

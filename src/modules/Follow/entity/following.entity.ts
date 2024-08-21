@@ -6,7 +6,8 @@ import {
     JoinColumn,
     PrimaryColumn,
 } from 'typeorm';
-import { UserEntity } from './user.entity';
+import { UserEntity } from '../../User/entity/user.entity';
+
 
 @Entity('followings')
 export class FollowingEntity {
