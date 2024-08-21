@@ -1,15 +1,16 @@
+version: '3'
 services:
-    # reverse-proxy:
-    #   image: nginx
-    #     #container_name: nginx_reverse_proxy
-    #   depends_on:
-    #     - backend
-    #     - frontend
-    #   volumes:
-    #     - images:/app/images
-    #     - ./reverse_proxy/nginx.conf:/etc/nginx/nginx.conf
-    #   posts:
-    #     - 80:80
+    reverse-proxy:
+        image: nginx
+        container_name: nginx_reverse_proxy
+        depends_on:
+            - backend
+            - frontend
+        volumes:
+            - images:/app/images
+            - ./reverse_proxy/nginx.conf:/etc/nginx/nginx.conf
+        ports:
+            - 80:80
     main_db:
         image: hub.hamdocker.ir/mysql
         restart: always
@@ -24,7 +25,8 @@ services:
             timeout: 12s
             retries: 10
     backend:
-        build: .
+        build:
+            context: .
         ports:
             - 3000:3000
         environment:
@@ -45,10 +47,10 @@ services:
         restart: on-failure
 
     frontend:
-        build: ../collegegram-frontend2
+        build:
+            context: ../collegegram-frontend2
         ports:
-            - 8080:3000
-        #environment:
+            - 80:80
         depends_on:
             - backend
         restart: on-failure
