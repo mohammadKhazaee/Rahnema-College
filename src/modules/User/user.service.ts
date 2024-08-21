@@ -10,8 +10,11 @@ import { FollowingEntity } from '../Follow/entity/following.entity';
 
 export class UserService {
     private postRepo: Repository<PostEntity>;
-    private SALT_ROUNDS = 10;
-    constructor(private userRepo: UserRepository, private followService: FollowService) {
+
+    constructor(
+        private userRepo: UserRepository,
+        private followService: FollowService
+    ) {
         this.postRepo = AppDataSource.getRepository(PostEntity);
     }
 
@@ -112,9 +115,8 @@ export class UserService {
         const followed = await this.fetchUser({ username: followedUsername });
         if (!follower || !followed) throw new NotFoundError();
 
-        await this.followService.followUser(follower, followed)
+        await this.followService.followUser(follower, followed);
         return `success`;
-
     }
 
     async unfollowUser(followerName: string, followedUsername: string) {
@@ -125,7 +127,7 @@ export class UserService {
         const followed = await this.fetchUser({ username: followedUsername });
         if (!follower || !followed) throw new NotFoundError();
 
-        await this.followService.unfollowUser(follower, followed)
+        await this.followService.unfollowUser(follower, followed);
         return 'success';
     }
 

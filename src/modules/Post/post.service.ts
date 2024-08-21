@@ -1,4 +1,4 @@
-import { HttpError, NotFoundError } from '../../utility/errors';
+import { HttpError } from '../../utility/errors';
 import { imageUrlPath } from '../../utility/path-adjuster';
 import { User } from '../User/model/user';
 import { UserService } from '../User/user.service';
@@ -161,13 +161,25 @@ export class PostService {
     }
 
     async createComment(
-        { postId, content }: CreateCommentDto,
+        dto: CreateCommentDto,
         commentor: string
     ): Promise<PostCommentWithReplays> {
+        if (!this.postRepo.doesPostExist(dto.postId))
+            throw new HttpError(404, 'Post was not found');
+        if (
+            dto.type === 'replay' &&
+            !this.postCommentRepo.doesCommentExist(dto.parentId)
+        )
+            throw new HttpError(
+                404,
+                'Comment targeted to replay was not found'
+            );
+
+        const { type, ...createCommentData } = dto;
+
         return this.postCommentRepo.save({
             commenterId: commentor,
-            content,
-            postId,
+            ...createCommentData,
         });
     }
 }

@@ -13,6 +13,11 @@ export class PostCommentRepository {
         this.commentRepo = dataSource.getRepository(PostCommentEntity);
     }
 
+    async doesCommentExist(commentId: string): Promise<boolean> {
+        const commentCount = await this.commentRepo.countBy({ commentId });
+        return commentCount > 0;
+    }
+
     save(commentData: CreatePostComment): Promise<PostCommentWithReplays> {
         return this.commentRepo.save(commentData);
     }

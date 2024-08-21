@@ -24,16 +24,19 @@ export class PostRepository {
         return this.postRepo.save(post);
     }
 
-    async findPostById(postId: string): Promise<Post | null> {
-        return await this.postRepo.findOne({
+    async doesPostExist(postId: string): Promise<boolean> {
+        const postCount = await this.postRepo.countBy({ postId });
+        return postCount > 0;
+    }
+
+    findPostById(postId: string): Promise<Post | null> {
+        return this.postRepo.findOne({
             where: { postId },
             relations: ['tags', 'images', 'mentions'],
         });
     }
-    async countLikesForPost(postId: string): Promise<number> {
-        console.log(postId);
-
-        return await this.postRepo
+    countLikesForPost(postId: string): Promise<number> {
+        return this.postRepo
             .createQueryBuilder('post')
             .leftJoinAndSelect('post.likes', 'like')
             .where('like.postId = :postId', { postId })
