@@ -23,7 +23,25 @@ export const appFactory = (dataSource: DataSource) => {
     app.use(express.json());
     app.use(helmet());
     app.use(compression());
-    app.use(morgan('tiny'));
+
+    morgan.token('date', function () {
+        var p = new Date()
+            .toString()
+            .replace(/[A-Z]{3}\+/, '+')
+            .split(/ /);
+        return p[2] + '/' + p[1] + '/' + p[3] + ':' + p[4] + ' ' + p[5];
+    });
+    morgan.token('authHeader', (req, res) =>
+        req.headers['authorization'] ? 'true' : 'false'
+    );
+    app.use(
+        morgan(
+            '[:date] ' +
+                ':method::url :status ' +
+                'length::res[content-length] - :response-time[1] ms ' +
+                'authHeader::authHeader'
+        )
+    );
 
     app.use((req, res, next) => {
         res.setHeader('Access-Control-Allow-Origin', '*');

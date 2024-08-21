@@ -6,9 +6,9 @@ import { UserService } from '../modules/User/user.service';
 
 export const profileRouter = (userService: UserService) => {
     const app = Router();
-    app.get('/:username', isAuthenticated(userService), (req, res, next) => {
+    app.get('/:username', (req, res, next) => {
         handleExpress(res, 200, next, () =>
-            userService.getProfileInfo(req.params.username)
+            userService.getUserInfo(req.params.username)
         );
     });
 

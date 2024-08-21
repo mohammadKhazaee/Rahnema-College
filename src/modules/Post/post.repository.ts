@@ -1,5 +1,5 @@
 import { Repository, DataSource } from 'typeorm';
-import { CreatePost, Post, UpdatePost } from './model/post';
+import { CreatePost, Post, PostWithImages, UpdatePost } from './model/post';
 import { PostEntity } from './entity/post.entity';
 
 export class PostRepository {
@@ -9,13 +9,14 @@ export class PostRepository {
         this.postRepo = dataSource.getRepository(PostEntity);
     }
 
-    getPosts(username: string): Promise<Post[]> {
-        return this.postRepo.findBy({ creatorId: username });
+    getPosts(username: string): Promise<PostWithImages[]> {
+        return this.postRepo.find({
+            where: { creatorId: username },
+            relations: ['images'],
+        });
     }
 
-    create(createPostObject: CreatePost) {
-        console.log(createPostObject);
-
+    create(createPostObject: CreatePost): Promise<Post> {
         return this.postRepo.save(createPostObject);
     }
 

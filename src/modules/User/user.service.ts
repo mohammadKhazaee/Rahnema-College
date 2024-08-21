@@ -17,10 +17,10 @@ export class UserService {
         this.postRepo = AppDataSource.getRepository(PostEntity);
     }
 
-    async getProfileInfo(username: string) {
+    async getUserInfo(username: string) {
         const user = await this.fetchUser({ username });
 
-        if (!user) throw new HttpError(401, 'Not authenticated');
+        if (!user) throw new HttpError(404, 'User was Not Found');
 
         const followers = await this.getFollowersCount(username);
         const postCount = await this.getPostCount(username);
@@ -34,8 +34,8 @@ export class UserService {
             lName: user.lName,
             isPrivate: user.isPrivate,
             bio: user.bio,
-            followers,
-            following,
+            followersCount: followers,
+            followingsCount: following,
             postCount,
         };
 

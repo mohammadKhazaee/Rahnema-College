@@ -3,7 +3,7 @@ import { handleExpress } from '../utility/handle-express';
 import { isAuthenticated } from '../login-middleware';
 import { PostService } from '../modules/Post/post.service';
 import { createPostDto } from '../modules/Post/dto/create-post-dto';
-import { FileParser, IFile } from '../utility/file-parser';
+import { FileParser } from '../utility/file-parser';
 import { UserService } from '../modules/User/user.service';
 import { z } from 'zod';
 import { editPostDto } from '../modules/Post/dto/edit-post-dto';
@@ -22,7 +22,8 @@ export const postRouter = (
         (req, res, next) => {
             const dto = createPostDto.parse({ ...req.body, images: req.files });
             handleExpress(res, 201, next, async () => ({
-                message: await postService.createPost(dto, req.username),
+                message: 'post created successfully',
+                createdPost: await postService.createPost(dto, req.username),
             }));
         }
     );
@@ -39,18 +40,21 @@ export const postRouter = (
             });
 
             handleExpress(res, 200, next, async () => ({
-                message: await postService.updatePost(dto),
+                message: 'post updated successfully',
+                updatedPost: await postService.updatePost(dto),
             }));
         }
     );
+
     app.get('/:postId', (req, res, next) => {
         const postId = z.string().parse(req.params.postId);
         handleExpress(res, 200, next, () => postService.getPostById(postId));
     });
 
-    app.get('/', isAuthenticated(userService), (req, res, next) => {
-        const name = req.username;
-        handleExpress(res, 200, next, () => postService.getUserPosts(name));
+    app.get('/user/:username', (req, res, next) => {
+        handleExpress(res, 200, next, async () => ({
+            posts: await postService.getUserPosts(req.params.username),
+        }));
     });
 
     return app;

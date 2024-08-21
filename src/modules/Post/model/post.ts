@@ -12,6 +12,22 @@ export interface Post {
     mentions?: User[];
 }
 
+export interface PostWithImages {
+    postId: string;
+    caption: string;
+    creatorId: string;
+    creator: User;
+    images: PostImage[];
+}
+
+export interface GetPostsDao {
+    postId: string;
+    imageInfo: {
+        url: string;
+        imageId: string;
+    };
+}
+
 export interface PostTag {
     tagId: string;
     tag: Tag;

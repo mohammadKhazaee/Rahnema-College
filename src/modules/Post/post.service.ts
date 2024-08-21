@@ -3,7 +3,7 @@ import { imageUrlPath } from '../../utility/path-adjuster';
 import { User } from '../User/model/user';
 import { UserService } from '../User/user.service';
 import { CreatePostDto } from './dto/create-post-dto';
-import { CreatePost, Post } from './model/post';
+import { CreatePost, GetPostsDao, Post } from './model/post';
 import { CreateTag, Tag } from './model/tag';
 import { PostRepository } from './post.repository';
 import { EditPostDto } from './dto/edit-post-dto';
@@ -61,11 +61,11 @@ export class PostService {
         if (tags) post.tags = tags;
         if (mentionedUsers) post.mentions = mentionedUsers;
 
-        await this.postRepo.update(post);
+        const updatedPost = await this.postRepo.update(post);
 
         // await this.fileHandler.deleteFiles(deletedImages.map((i) => i.url));
 
-        return 'post updated successfully';
+        return updatedPost;
     }
 
     async createPost(
@@ -90,9 +90,7 @@ export class PostService {
             mentions: mentionedUsers,
         };
 
-        await this.postRepo.create(newPost);
-
-        return 'post created successfully';
+        return this.postRepo.create(newPost);
     }
 
     private async makeCreateTags(caption: string) {
@@ -145,10 +143,14 @@ export class PostService {
         return mentionedUsers;
     }
 
-    async getUserPosts(username: string): Promise<Post[] | null> {
+    async getUserPosts(username: string): Promise<GetPostsDao[]> {
         const posts = await this.postRepo.getPosts(username);
-        if (!posts) throw new NotFoundError("This user doesn't have a post");
 
-        return posts;
+        const resultPosts: GetPostsDao[] = posts.map((p) => ({
+            postId: p.postId,
+            imageInfo: { imageId: p.images[0].imageId, url: p.images[0].url },
+        }));
+
+        return resultPosts;
     }
 }
