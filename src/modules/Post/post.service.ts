@@ -26,8 +26,9 @@ export class PostService {
 
         if (!post) throw new HttpError(404, 'Post not found');
         const likeCount = await this.postRepo.countLikesForPost(postId);
+        const commentCount=await this.postRepo.countCommentsForPost(postId);
 
-        return { ...post, likeCount};
+        return { ...post, likeCount,commentCount};
     }
 
     async updatePost({
@@ -172,5 +173,8 @@ export class PostService {
 
     async getPostLikesCount(postId: string): Promise<number> {
         return this.postRepo.countLikesForPost(postId);
+    }
+    async getPostCommentsCount(postId:string):Promise<number>{
+        return this.postRepo.countCommentsForPost(postId);
     }
 }

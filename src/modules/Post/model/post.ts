@@ -21,6 +21,7 @@ export interface GetPostDao {
     images?: PostImage[];
     mentions?: User[];
     likeCount : number;
+    commentCount:number;
     
 }
 

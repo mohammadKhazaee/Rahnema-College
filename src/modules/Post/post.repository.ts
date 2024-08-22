@@ -39,4 +39,14 @@ export class PostRepository {
             .where('like.postId = :postId', { postId })
             .getCount();
     }
+
+    async countCommentsForPost(postId:string):Promise<number>{
+        console.log(postId);
+       
+        return await this.postRepo
+            .createQueryBuilder('post')
+            .leftJoinAndSelect('post.comments', 'comment')
+            .where('comment.postId = :postId', { postId })
+            .getCount();
+    }
 }
