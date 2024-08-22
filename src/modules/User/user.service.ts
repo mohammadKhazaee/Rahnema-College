@@ -7,6 +7,7 @@ import { AppDataSource } from '../../data-source';
 import { PostEntity } from '../Post/entity/post.entity';
 import { FollowService } from '../Follow/follow.service';
 import { FollowingEntity } from '../Follow/entity/following.entity';
+import { FollowListDto } from '../Follow/dto/Lists-dto';
 
 export class UserService {
     private postRepo: Repository<PostEntity>;
@@ -131,14 +132,23 @@ export class UserService {
         return 'success';
     }
 
-    async getFollowers(username: string): Promise<FollowingEntity[]> {
+    async getFollowers(username: string, dto: FollowListDto): Promise<FollowingEntity[]> {
+        const skip = dto.p * 5
         const user = await this.fetchUser({ username, })
         if (!user) throw new NotFoundError()
-        const followersList = await this.followService.getFollowersList(username)
+
+        const followersList = await this.followService.getFollowersList(username, dto.c, skip)
         return followersList
     }
 
+    async getFollowings(username: string, dto: FollowListDto): Promise<FollowingEntity[]> {
+        const skip = dto.p * 5
+        const user = await this.fetchUser({ username, })
+        if (!user) throw new NotFoundError()
 
+        const followingsList = await this.followService.getFollowingsList(username, dto.c, skip)
+        return followingsList
+    }
 
     private async getPostCount(username: string) {
         const posts = await this.postRepo.count({

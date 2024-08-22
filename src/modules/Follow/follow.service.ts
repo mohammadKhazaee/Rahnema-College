@@ -59,9 +59,16 @@ export class FollowService {
         return followingsCount
     }
 
-    async getFollowersList(username: string): Promise<FollowingEntity[]> {
-        const followers = await this.followRepo.getFollowers(username)
+    async getFollowersList(username: string, count: number, skipCount: number): Promise<FollowingEntity[]> {
+        const followers = await this.followRepo.getFollowers(username, count, skipCount)
         if (followers.length === 0) throw new NotFoundError('This user has no followers')
         return followers
     }
+
+    async getFollowingsList(username: string, count: number, skipCount: number): Promise<FollowingEntity[]> {
+        const followings = await this.followRepo.getFollowings(username, count, skipCount)
+        if (followings.length === 0) throw new NotFoundError('This user has no followings')
+        return followings
+    }
+
 }

@@ -3,6 +3,7 @@ import { handleExpress } from '../utility/handle-express';
 import { isAuthenticated } from '../login-middleware';
 import { editProfileDto } from '../modules/User/dto/edit-profile-dto';
 import { UserService } from '../modules/User/user.service';
+import { followListDto } from '../modules/Follow/dto/Lists-dto';
 
 export const profileRouter = (userService: UserService) => {
     const app = Router();
@@ -52,12 +53,28 @@ export const profileRouter = (userService: UserService) => {
     app.get(
         '/:username/followers',
         (req, res, next) => {
+            const dto = followListDto.parse(req.query)
             handleExpress(res, 200, next, async () =>
                 await userService.getFollowers(
                     req.params.username,
+                    dto,
                 ))
         }
     )
+
+    app.get(
+        '/:username/followings',
+        (req, res, next) => {
+            const dto = followListDto.parse(req.query)
+            handleExpress(res, 200, next, async () =>
+                await userService.getFollowings(
+                    req.params.username,
+                    dto
+                )
+            )
+        }
+    )
+
 
     return app;
 };
