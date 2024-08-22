@@ -2,10 +2,10 @@ POST http://localhost:3000/auth/signup
 Content-Type: application/json
 
 {
-    "username": "ehsan",
-    "email": "ehsunhagh86@gmail.com",
-    "password": "ehsunhaq86",
-    "confirmPassword": "ehsunhaq86"
+    "username": "test5",
+    "email": "testepanjom@gmail.com",
+    "password": "12345678905",
+    "confirmPassword": "12345678905"
 }
 
 ###
@@ -13,17 +13,20 @@ POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-    "username": "mohammad12",
-    "password": "12345678",
+    "username": "test5",
+    "password": "12345678905",
     "rememberMe" : true
 }
 ###
 PATCH http://localhost:3000/follow/ehsan
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vaGFtbWFkMTIiLCJlbWFpbCI6Im0ua2hhemFlZS5wMTJAZ21haWwuY29tIiwiaWF0IjoxNzI0MjI2ODE3LCJleHAiOjE3MjY4MTg4MTd9.3cMYXipPgatqlQvB4uNvsPO_C8XDVO14EaSt2C5QH0U
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3Q1IiwiZW1haWwiOiJ0ZXN0ZXBhbmpvbUBnbWFpbC5jb20iLCJpYXQiOjE3MjQyNTkwODQsImV4cCI6MTcyNjg1MTA4NH0.qgNAyTAu54uWdm-Z77U_5olpk-kO80guGDPbx7N5Bvw
 
 ###
 PATCH http://localhost:3000/unfollow/ehsan
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vaGFtbWFkMTIiLCJlbWFpbCI6Im0ua2hhemFlZS5wMTJAZ21haWwuY29tIiwiaWF0IjoxNzI0MjI2ODE3LCJleHAiOjE3MjY4MTg4MTd9.3cMYXipPgatqlQvB4uNvsPO_C8XDVO14EaSt2C5QH0U
+
+###
+GET http://localhost:3000/ehsan/followers
 
 ###
 GET http://localhost:3000/ehsan

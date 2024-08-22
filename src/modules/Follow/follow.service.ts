@@ -1,6 +1,7 @@
 import { ForbiddenError, NotFoundError } from "../../utility/errors";
 import { User } from "../User/model/user";
 import { UserService } from "../User/user.service";
+import { FollowingEntity } from "./entity/following.entity";
 import { FollowRepository } from "./follow.repository";
 import { Following } from "./model/follow";
 
@@ -58,4 +59,9 @@ export class FollowService {
         return followingsCount
     }
 
+    async getFollowersList(username: string): Promise<FollowingEntity[]> {
+        const followers = await this.followRepo.getFollowers(username)
+        if (followers.length === 0) throw new NotFoundError('This user has no followers')
+        return followers
+    }
 }

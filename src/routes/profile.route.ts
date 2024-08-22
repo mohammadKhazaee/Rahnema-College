@@ -49,5 +49,15 @@ export const profileRouter = (userService: UserService) => {
         }
     );
 
+    app.get(
+        '/:username/followers',
+        (req, res, next) => {
+            handleExpress(res, 200, next, async () =>
+                await userService.getFollowers(
+                    req.params.username,
+                ))
+        }
+    )
+
     return app;
 };

@@ -36,4 +36,7 @@ export class FollowRepository {
         return this.followRepo.findOne({ where: { followerId: following.followerId, followedId: following.followedId, }, });
     }
 
+    getFollowers(username: string) {
+        return this.followRepo.find({ where: { followedId: username }, take: 5 })
+    }
 }

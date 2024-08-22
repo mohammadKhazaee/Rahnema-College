@@ -6,6 +6,7 @@ import { UserRepository } from './user.repository';
 import { AppDataSource } from '../../data-source';
 import { PostEntity } from '../Post/entity/post.entity';
 import { FollowService } from '../Follow/follow.service';
+import { FollowingEntity } from '../Follow/entity/following.entity';
 
 export class UserService {
     private postRepo: Repository<PostEntity>;
@@ -127,6 +128,15 @@ export class UserService {
         await this.followService.unfollowUser(follower, followed)
         return 'success';
     }
+
+    async getFollowers(username: string): Promise<FollowingEntity[]> {
+        const user = await this.fetchUser({ username, })
+        if (!user) throw new NotFoundError()
+        const followersList = await this.followService.getFollowersList(username)
+        return followersList
+    }
+
+
 
     private async getPostCount(username: string) {
         const posts = await this.postRepo.count({
