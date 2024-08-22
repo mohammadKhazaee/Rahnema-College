@@ -20,7 +20,7 @@ export interface GetPostDao {
     tags?: Tag[];
     images?: PostImage[];
     mentions?: User[];
-    postCount : number;
+    likeCount : number;
     
 }
 

@@ -25,9 +25,9 @@ export class PostService {
         const post = await this.postRepo.findPostById(postId);
 
         if (!post) throw new HttpError(404, 'Post not found');
-        const postCount = await this.postRepo.countLikesForPost(postId);
+        const likeCount = await this.postRepo.countLikesForPost(postId);
 
-        return { ...post, postCount };
+        return { ...post, likeCount};
     }
 
     async updatePost({
