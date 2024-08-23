@@ -25,9 +25,8 @@ export class UserService {
             bio: dto.bio || '',
             isPrivate: dto.isPrivate,
         };
-        if ('password' in dto)
+        if ('password' in dto && dto.password)
             createUser.password = await bcrypt.hash(dto.password, 12);
-        
 
         await this.userRepo.upadte(createUser);
 
