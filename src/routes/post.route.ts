@@ -86,5 +86,18 @@ export const postRouter = (
         }
     );
 
+    app.post(
+        '/comments/:commentId/like',
+        isAuthenticated(userService),
+        (req, res, next) => {
+            handleExpress(res, 201, next, async () => ({
+                message: await postService.toggleCommentLike({
+                    commentId: req.params.commentId,
+                    userId: req.username,
+                }),
+            }));
+        }
+    );
+
     return app;
 };

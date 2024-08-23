@@ -14,11 +14,14 @@ import { PostCommentRepository } from './post-comment.repository';
 import { PostCommentWithReplays } from './model/post-comment';
 import { PostLikeRepository } from './post-like.repository';
 import { PostLikeId } from './model/post-like';
+import { CommentLikeId } from './model/post-comment-like';
+import { CommentLikeRepository } from './comment-like.repository';
 
 export class PostService {
     constructor(
         private postRepo: PostRepository,
         private postCommentRepo: PostCommentRepository,
+        private commentLikeRepo: CommentLikeRepository,
         private postLikeRepo: PostLikeRepository,
         private tagRepo: TagRepository,
         private userService: UserService
@@ -219,5 +222,18 @@ export class PostService {
 
         await this.postLikeRepo.save(likeId);
         return 'liked post';
+    }
+
+    async toggleCommentLike(commentLikeId: CommentLikeId): Promise<string> {
+        if (!this.postCommentRepo.doesCommentExist(commentLikeId.commentId))
+            throw new HttpError(404, 'Comment was not found');
+
+        if (await this.commentLikeRepo.doesLikeExists(commentLikeId)) {
+            await this.commentLikeRepo.delete(commentLikeId);
+            return 'unliked comment';
+        }
+
+        await this.commentLikeRepo.save(commentLikeId);
+        return 'liked comment';
     }
 }
