@@ -73,5 +73,18 @@ export const postRouter = (
         }
     );
 
+    app.post(
+        '/:postId/like',
+        isAuthenticated(userService),
+        (req, res, next) => {
+            handleExpress(res, 201, next, async () => ({
+                message: await postService.togglePostLike({
+                    postId: req.params.postId,
+                    userId: req.username,
+                }),
+            }));
+        }
+    );
+
     return app;
 };

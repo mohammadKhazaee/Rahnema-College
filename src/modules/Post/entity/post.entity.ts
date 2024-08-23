@@ -33,7 +33,7 @@ export class PostEntity {
     creator!: UserEntity;
 
     @ManyToMany(() => TagEntity, (t) => t.posts, {
-        cascade: true,
+        cascade: ['insert', 'update'],
     })
     @JoinTable({
         name: 'posts_taged',
@@ -49,17 +49,17 @@ export class PostEntity {
     tags!: TagEntity[];
 
     @OneToMany(() => PostImageEntity, (image) => image.post, {
-        cascade: true,
+        cascade: ['insert', 'update'],
     })
     images!: PostImageEntity[];
 
     @OneToMany(() => PostCommentEntity, (comment) => comment.post, {
-        cascade: true,
+        cascade: ['insert', 'update'],
     })
     comments!: PostCommentEntity[];
 
     @ManyToMany(() => UserEntity, (m) => m.mentions, {
-        cascade: true,
+        cascade: ['insert', 'update'],
     })
     @JoinTable({
         name: 'mentions',
@@ -75,12 +75,12 @@ export class PostEntity {
     mentions!: UserEntity[];
 
     @OneToMany(() => PostLikeEntity, (like) => like.post, {
-        cascade: true,
+        cascade: ['insert', 'update'],
     })
     likes!: PostLikeEntity[];
 
     @OneToMany(() => BookmarkEntity, (bookmark) => bookmark.post, {
-        cascade: true,
+        cascade: ['insert', 'update'],
     })
     bookmarks!: BookmarkEntity[];
 

@@ -13,6 +13,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { PostCommentRepository } from './post-comment.repository';
 import { PostCommentWithReplays } from './model/post-comment';
 import { PostLikeRepository } from './post-like.repository';
+import { PostLikeId } from './model/post-like';
 
 export class PostService {
     constructor(
@@ -205,5 +206,18 @@ export class PostService {
             commenterId: commentor,
             ...createCommentData,
         });
+    }
+
+    async togglePostLike(likeId: PostLikeId): Promise<string> {
+        if (!this.postRepo.doesPostExist(likeId.postId))
+            throw new HttpError(404, 'Post was not found');
+
+        if (await this.postLikeRepo.doesLikeExists(likeId)) {
+            await this.postLikeRepo.delete(likeId);
+            return 'unliked post';
+        }
+
+        await this.postLikeRepo.save(likeId);
+        return 'liked post';
     }
 }

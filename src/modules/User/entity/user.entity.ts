@@ -52,17 +52,17 @@ export class UserEntity {
     mentions!: PostEntity[];
 
     @OneToMany(() => PostCommentEntity, (comment) => comment.post, {
-        cascade: true,
+        cascade: ['insert', 'update'],
     })
     comments!: PostCommentEntity[];
 
     @OneToMany(() => PostLikeEntity, (like) => like.post, {
-        cascade: true,
+        cascade: ['insert', 'update'],
     })
     likes!: PostLikeEntity[];
 
     @OneToMany(() => BookmarkEntity, (bookmark) => bookmark.post, {
-        cascade: true,
+        cascade: ['insert', 'update'],
     })
     bookmarks!: BookmarkEntity[];
 

@@ -46,7 +46,7 @@ export class PostCommentEntity {
     replays!: PostCommentEntity[];
 
     @OneToMany(() => CommentLikeEntity, (like) => like.comment, {
-        cascade: true,
+        cascade: ['insert', 'update'],
     })
     likes!: CommentLikeEntity[];
 
