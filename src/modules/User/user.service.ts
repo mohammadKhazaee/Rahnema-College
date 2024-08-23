@@ -2,6 +2,7 @@ import { HttpError } from '../../utility/errors';
 import { EditProfileDto } from './dto/edit-profile-dto';
 import { UpdateUser, userIdentifier, User, CreateUser } from './model/user';
 import { UserRepository } from './user.repository';
+import * as bcrypt from 'bcrypt';
 
 export class UserService {
     constructor(private userRepo: UserRepository) {}
@@ -24,7 +25,9 @@ export class UserService {
             bio: dto.bio || '',
             isPrivate: dto.isPrivate,
         };
-        if ('password' in dto) createUser.password = dto.password;
+        if ('password' in dto)
+            createUser.password = await bcrypt.hash(dto.password, 12);
+        
 
         await this.userRepo.upadte(createUser);
 
