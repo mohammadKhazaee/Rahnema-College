@@ -58,32 +58,24 @@ export const profileRouter = (
 
     app.get('/:username/followers', (req, res, next) => {
         const dto = followListDto.parse(req.query);
-        handleExpress(
-            res,
-            200,
-            next,
-            async () =>
-                await followService.getFollowersList(
-                    req.params.username,
-                    dto.p,
-                    dto.c
-                )
-        );
+        handleExpress(res, 200, next, async () => ({
+            followers: await followService.getFollowersList(
+                req.params.username,
+                dto.p,
+                dto.c
+            ),
+        }));
     });
 
     app.get('/:username/followings', (req, res, next) => {
         const dto = followListDto.parse(req.query);
-        handleExpress(
-            res,
-            200,
-            next,
-            async () =>
-                await followService.getFollowingsList(
-                    req.params.username,
-                    dto.p,
-                    dto.c
-                )
-        );
+        handleExpress(res, 200, next, async () => ({
+            followings: await followService.getFollowingsList(
+                req.params.username,
+                dto.p,
+                dto.c
+            ),
+        }));
     });
 
     return app;

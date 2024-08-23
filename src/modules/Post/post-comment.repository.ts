@@ -2,7 +2,6 @@ import { Repository, DataSource } from 'typeorm';
 import { PostCommentEntity } from './entity/post-comment.entity';
 import {
     CreatePostComment,
-    PostComment,
     PostCommentWithReplays,
 } from './model/post-comment';
 
@@ -20,5 +19,9 @@ export class PostCommentRepository {
 
     save(commentData: CreatePostComment): Promise<PostCommentWithReplays> {
         return this.commentRepo.save(commentData);
+    }
+
+    countCommentsForPost(postId: string): Promise<number> {
+        return this.commentRepo.countBy({ postId });
     }
 }

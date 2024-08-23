@@ -32,7 +32,12 @@ export class PostRepository {
     findPostById(postId: string): Promise<Post | null> {
         return this.postRepo.findOne({
             where: { postId },
-            relations: ['tags', 'images', 'mentions'],
+            relations: {
+                images: true,
+                tags: true,
+                mentions: true,
+                creator: true,
+            },
         });
     }
 
@@ -41,14 +46,6 @@ export class PostRepository {
             .createQueryBuilder('post')
             .leftJoinAndSelect('post.likes', 'like')
             .where('like.postId = :postId', { postId })
-            .getCount();
-    }
-
-    countCommentsForPost(postId: string): Promise<number> {
-        return this.postRepo
-            .createQueryBuilder('post')
-            .leftJoinAndSelect('post.comments', 'comment')
-            .where('comment.postId = :postId', { postId })
             .getCount();
     }
 

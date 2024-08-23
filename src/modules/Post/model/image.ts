@@ -11,3 +11,8 @@ export interface PostImage {
     url: string;
     postId: string;
 }
+
+export interface ImageInfoDao {
+    url: string;
+    imageId: string;
+}

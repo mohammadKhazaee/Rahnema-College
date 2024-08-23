@@ -21,6 +21,7 @@ import { FollowService } from './modules/Follow/follow.service';
 import { TagRepository } from './modules/Post/tag.repository';
 import { PostCommentRepository } from './modules/Post/post-comment.repository';
 import { SocialService } from './services/social.service';
+import { PostLikeRepository } from './modules/Post/post-like.repository';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -68,6 +69,7 @@ export const appFactory = (dataSource: DataSource) => {
     const followRepo = new FollowRepository(dataSource);
     const postRepo = new PostRepository(dataSource);
     const postCommentRepo = new PostCommentRepository(dataSource);
+    const postLikeRepo = new PostLikeRepository(dataSource);
     const tagRepo = new TagRepository(dataSource);
 
     // initializing services
@@ -78,6 +80,7 @@ export const appFactory = (dataSource: DataSource) => {
     const postService = new PostService(
         postRepo,
         postCommentRepo,
+        postLikeRepo,
         tagRepo,
         userService
     );

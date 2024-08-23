@@ -33,7 +33,7 @@ export class FollowRepository {
         return this.followRepo.find({
             select: {
                 followed: {},
-                follower: { username: true, imageUrl: true },
+                follower: { imageUrl: true },
             },
             where: { followedId: username },
             take: count,
@@ -46,7 +46,7 @@ export class FollowRepository {
     getFollowings(username: string, count: number, skipCount: number) {
         return this.followRepo.find({
             select: {
-                followed: { username: true, imageUrl: true },
+                followed: { imageUrl: true },
                 follower: {},
             },
             where: { followerId: username },

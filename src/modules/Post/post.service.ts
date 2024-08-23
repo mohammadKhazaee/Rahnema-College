@@ -12,11 +12,13 @@ import { CreateRelatedPostImage } from './model/image';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { PostCommentRepository } from './post-comment.repository';
 import { PostCommentWithReplays } from './model/post-comment';
+import { PostLikeRepository } from './post-like.repository';
 
 export class PostService {
     constructor(
         private postRepo: PostRepository,
         private postCommentRepo: PostCommentRepository,
+        private postLikeRepo: PostLikeRepository,
         private tagRepo: TagRepository,
         private userService: UserService
     ) {}
@@ -25,12 +27,27 @@ export class PostService {
         const post = await this.postRepo.findPostById(postId);
         if (!post) throw new HttpError(404, 'Post not found');
 
+        const formatedPost = {
+            postId: post.postId,
+            caption: post.caption,
+            createdAt: post.createdAt,
+            creator: {
+                username: post.creator.username,
+                imageUrl: post.creator.imageUrl,
+            },
+            imageInfos: post.images.map((i) => ({
+                url: i.url,
+                imageId: i.imageId,
+            })),
+            tags: post.tags.map((t) => t.name),
+        };
+
         const [likeCount, commentsCount] = await Promise.all([
-            this.postRepo.countLikesForPost(postId),
-            this.postRepo.countCommentsForPost(postId),
+            this.postLikeRepo.countLikesForPost(postId),
+            this.postCommentRepo.countCommentsForPost(postId),
         ]);
 
-        return { ...post, likeCount, commentsCount };
+        return { ...formatedPost, likeCount, commentsCount, bookMarkCount: 0 };
     }
 
     async updatePost({
@@ -40,7 +57,8 @@ export class PostService {
         deletedImages,
         images,
     }: EditPostDto) {
-        const post: Post = await this.getPostById(postId);
+        const post = await this.postRepo.findPostById(postId);
+        if (!post) throw new HttpError(404, 'Post not found');
 
         let tags: Tag[] | undefined;
         if (caption) tags = await this.makeUpdateTags(caption);

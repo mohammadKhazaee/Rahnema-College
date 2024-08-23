@@ -29,6 +29,11 @@ export interface UserProfileDao {
     postCount: number;
 }
 
+export interface UserLinkDao {
+    username: string;
+    imageUrl: string;
+}
+
 export interface UpdateUser {
     username: string;
     email?: string;

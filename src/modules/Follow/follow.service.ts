@@ -2,7 +2,11 @@ import { ForbiddenError, NotFoundError } from '../../utility/errors';
 import { UserService } from '../User/user.service';
 import { FollowingEntity } from './entity/following.entity';
 import { FollowRepository } from './follow.repository';
-import { FindFollowing } from './model/follow';
+import {
+    FindFollowing,
+    GetFollowersDao,
+    GetFollowingsDao,
+} from './model/follow';
 
 export class FollowService {
     constructor(
@@ -81,7 +85,7 @@ export class FollowService {
         username: string,
         page: number,
         count: number
-    ): Promise<FollowingEntity[]> {
+    ): Promise<GetFollowersDao[]> {
         const user = await this.userService.doesUserExists({ username });
         if (!user) throw new NotFoundError();
 
@@ -92,23 +96,38 @@ export class FollowService {
             skip
         );
 
-        return followersList;
+        return Promise.all(
+            followersList.map(async (f) => ({
+                username: f.followerId,
+                imageUrl: f.follower.imageUrl,
+                followersCount: await this.followRepo.followersCount(
+                    f.followerId
+                ),
+            }))
+        );
     }
 
     async getFollowingsList(
         username: string,
         page: number,
         count: number
-    ): Promise<FollowingEntity[]> {
+    ): Promise<GetFollowingsDao[]> {
         const user = await this.userService.doesUserExists({ username });
         if (!user) throw new NotFoundError();
 
         const skip = (page - 1) * count;
-        const followingsList = await this.followRepo.getFollowings(
-            username,
-            count,
-            skip
+        const [followingsList, followingsCount] = await Promise.all([
+            this.followRepo.getFollowings(username, count, skip),
+            this.followRepo.followingsCount(username),
+        ]);
+        return Promise.all(
+            followingsList.map(async (f) => ({
+                username: f.followedId,
+                imageUrl: f.followed.imageUrl,
+                followingsCount: await this.followRepo.followingsCount(
+                    f.followedId
+                ),
+            }))
         );
-        return followingsList;
     }
 }

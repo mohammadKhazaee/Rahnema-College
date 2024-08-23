@@ -1,5 +1,5 @@
-import { User } from '../../User/model/user';
-import { CreateRelatedPostImage, PostImage } from './image';
+import { User, UserLinkDao } from '../../User/model/user';
+import { CreateRelatedPostImage, ImageInfoDao, PostImage } from './image';
 import { CreateTag, Tag } from './tag';
 
 export interface Post {
@@ -7,22 +7,22 @@ export interface Post {
     caption: string;
     creatorId: string;
     creator: User;
-    tags?: Tag[];
-    images?: PostImage[];
-    mentions?: User[];
-
+    tags: Tag[];
+    images: PostImage[];
+    mentions: User[];
+    createdAt: Date;
+    updatedAt: Date;
 }
+
 export interface GetPostDao {
     postId: string;
+    creator: UserLinkDao;
+    imageInfos: ImageInfoDao[];
     caption: string;
-    creatorId: string;
-    creator: User;
-    tags?: Tag[];
-    images?: PostImage[];
-    mentions?: User[];
-    likeCount : number;
-    commentsCount:number;
-    
+    tags: string[];
+    likeCount: number;
+    commentsCount: number;
+    bookMarkCount: number;
 }
 
 export interface PostWithImages {
