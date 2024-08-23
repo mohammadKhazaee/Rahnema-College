@@ -12,14 +12,8 @@ export interface FindFollowing {
     followedId: string;
 }
 
-export interface GetFollowersDao {
+export interface GetFollowListDao {
     username: string;
     imageUrl: string;
     followersCount: number;
-}
-
-export interface GetFollowingsDao {
-    username: string;
-    imageUrl: string;
-    followingsCount: number;
 }

@@ -1,12 +1,7 @@
 import { ForbiddenError, NotFoundError } from '../../utility/errors';
 import { UserService } from '../User/user.service';
-import { FollowingEntity } from './entity/following.entity';
 import { FollowRepository } from './follow.repository';
-import {
-    FindFollowing,
-    GetFollowersDao,
-    GetFollowingsDao,
-} from './model/follow';
+import { FindFollowing, GetFollowListDao } from './model/follow';
 
 export class FollowService {
     constructor(
@@ -85,7 +80,7 @@ export class FollowService {
         username: string,
         page: number,
         count: number
-    ): Promise<GetFollowersDao[]> {
+    ): Promise<GetFollowListDao[]> {
         const user = await this.userService.doesUserExists({ username });
         if (!user) throw new NotFoundError();
 
@@ -111,7 +106,7 @@ export class FollowService {
         username: string,
         page: number,
         count: number
-    ): Promise<GetFollowingsDao[]> {
+    ): Promise<GetFollowListDao[]> {
         const user = await this.userService.doesUserExists({ username });
         if (!user) throw new NotFoundError();
 
@@ -124,7 +119,7 @@ export class FollowService {
             followingsList.map(async (f) => ({
                 username: f.followedId,
                 imageUrl: f.followed.imageUrl,
-                followingsCount: await this.followRepo.followingsCount(
+                followersCount: await this.followRepo.followersCount(
                     f.followedId
                 ),
             }))
