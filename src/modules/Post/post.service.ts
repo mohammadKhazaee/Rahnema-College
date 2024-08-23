@@ -14,8 +14,10 @@ import { PostCommentRepository } from './post-comment.repository';
 import { PostCommentWithReplays } from './model/post-comment';
 import { PostLikeRepository } from './post-like.repository';
 import { PostLikeId } from './model/post-like';
+import { BookmarkRepository } from './bookmark.repository'
 import { CommentLikeId } from './model/post-comment-like';
 import { CommentLikeRepository } from './comment-like.repository';
+import { BookmarkRepository } from './bookmark.repository'
 
 export class PostService {
     constructor(
@@ -24,7 +26,8 @@ export class PostService {
         private commentLikeRepo: CommentLikeRepository,
         private postLikeRepo: PostLikeRepository,
         private tagRepo: TagRepository,
-        private userService: UserService
+        private userService: UserService,
+        private bookmarkRepo: BookmarkRepository,
     ) {}
 
     async getPostById(postId: string): Promise<GetPostDao> {
@@ -46,12 +49,24 @@ export class PostService {
             tags: post.tags.map((t) => t.name),
         };
 
-        const [likeCount, commentsCount] = await Promise.all([
+        const [likeCount, commentsCount,bookMarkCount] = await Promise.all([
             this.postLikeRepo.countLikesForPost(postId),
             this.postCommentRepo.countCommentsForPost(postId),
+            this.bookmarkRepo.countBookmarksForPost(postId),
         ]);
+        return { ...formatedPost, likeCount, commentsCount, bookMarkCount };
 
-        return { ...formatedPost, likeCount, commentsCount, bookMarkCount: 0 };
+    }
+    async togglePostBookmark(userId: string, postId: string): Promise<string> {
+        const bookmark = await this.bookmarkRepo.findBookmark(userId, postId);
+
+        if (bookmark) {
+            await this.bookmarkRepo.removeBookmark(bookmark);
+            return 'Bookmark removed';
+        } else {
+            await this.bookmarkRepo.saveBookmark(userId, postId);
+            return 'Bookmark added';
+        }
     }
 
     async updatePost({
