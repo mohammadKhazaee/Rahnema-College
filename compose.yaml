@@ -1,16 +1,5 @@
 version: '3'
 services:
-    reverse-proxy:
-        image: nginx
-        container_name: nginx_reverse_proxy
-        depends_on:
-            - backend
-            - frontend
-        volumes:
-            - images:/app/images
-            - ./reverse_proxy/nginx.conf:/etc/nginx/nginx.conf
-        ports:
-            - 80:80
     main_db:
         image: hub.hamdocker.ir/mysql
         restart: always
@@ -39,8 +28,6 @@ services:
             GMAIL_PASSWORD: 'joky uish rnts tmcg'
             FRONTEND_DOMAIN: http://37.32.5.72
             JWT_SECRET: 'super long secret'
-        volumes:
-            - images:/app/src/images
         depends_on:
             main_db:
                 condition: service_healthy
@@ -51,10 +38,11 @@ services:
             context: ../collegegram-frontend2
         ports:
             - 80:80
+        volumes:
+            - ./src/images:/usr/share/nginx/html/images
         depends_on:
             - backend
         restart: on-failure
 
 volumes:
-    images:
     db_storage:
