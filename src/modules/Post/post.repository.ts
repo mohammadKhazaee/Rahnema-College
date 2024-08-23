@@ -9,9 +9,15 @@ export class PostRepository {
         this.postRepo = dataSource.getRepository(PostEntity);
     }
 
-    getPosts(username: string): Promise<PostWithImages[]> {
+    getPosts(
+        username: string,
+        take: number,
+        skip: number
+    ): Promise<PostWithImages[]> {
         return this.postRepo.find({
             where: { creatorId: username },
+            take,
+            skip,
             relations: ['images'],
         });
     }

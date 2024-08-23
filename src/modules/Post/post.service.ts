@@ -11,12 +11,13 @@ import { TagRepository } from './tag.repository';
 import { CreateRelatedPostImage } from './model/image';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { PostCommentRepository } from './post-comment.repository';
-import { PostCommentWithReplays } from './model/post-comment';
+import { GetCommentsDao, PostCommentWithReplays } from './model/post-comment';
 import { PostLikeRepository } from './post-like.repository';
 import { PostLikeId } from './model/post-like';
 import { CommentLikeId } from './model/post-comment-like';
 import { CommentLikeRepository } from './comment-like.repository';
 import { BookmarkRepository } from './bookmark.repository';
+import { PaginationDto } from './dto/get-posts-dto';
 
 export class PostService {
     constructor(
@@ -186,8 +187,12 @@ export class PostService {
         return mentionedUsers;
     }
 
-    async getUserPosts(username: string): Promise<GetPostsDao[]> {
-        const posts = await this.postRepo.getPosts(username);
+    async getUserPosts(
+        username: string,
+        { p: page, c: count }: PaginationDto
+    ): Promise<GetPostsDao[]> {
+        const skip = (page - 1) * count;
+        const posts = await this.postRepo.getPosts(username, count, skip);
 
         const resultPosts: GetPostsDao[] = posts.map((p) => ({
             postId: p.postId,
@@ -222,6 +227,53 @@ export class PostService {
             commenterId: commentor,
             ...createCommentData,
         });
+    }
+
+    async getComments(
+        postId: string,
+        { p: page, c: count }: PaginationDto
+    ): Promise<GetCommentsDao[]> {
+        if (!this.postRepo.doesPostExist(postId))
+            throw new HttpError(404, 'Post was not found');
+
+        const skip = (page - 1) * count;
+        const comments = await this.postCommentRepo.getComments(
+            postId,
+            count,
+            skip
+        );
+
+        const resultComments: GetCommentsDao[] = await Promise.all(
+            comments.map(async (c) => ({
+                commentId: c.commentId,
+                commentor: {
+                    username: c.commenter.username,
+                    imageUrl: c.commenter.imageUrl,
+                },
+                likeCount: await this.commentLikeRepo.countLikesForComment(
+                    c.commentId
+                ),
+                content: c.content,
+                createDate: c.createdAt,
+                replays: await Promise.all(
+                    c.replays.map(async (r) => ({
+                        commentId: r.commentId,
+                        commentor: {
+                            username: r.commenter.username,
+                            imageUrl: r.commenter.imageUrl,
+                        },
+                        content: r.content,
+                        createDate: r.createdAt,
+                        likeCount:
+                            await this.commentLikeRepo.countLikesForComment(
+                                r.commentId
+                            ),
+                    }))
+                ),
+            }))
+        );
+
+        return resultComments;
     }
 
     async togglePostLike(likeId: PostLikeId): Promise<string> {

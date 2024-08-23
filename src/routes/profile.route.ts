@@ -61,8 +61,7 @@ export const profileRouter = (
         handleExpress(res, 200, next, async () => ({
             followers: await followService.getFollowersList(
                 req.params.username,
-                dto.p,
-                dto.c
+                dto
             ),
         }));
     });
@@ -72,8 +71,7 @@ export const profileRouter = (
         handleExpress(res, 200, next, async () => ({
             followings: await followService.getFollowingsList(
                 req.params.username,
-                dto.p,
-                dto.c
+                dto
             ),
         }));
     });

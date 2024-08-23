@@ -1,5 +1,6 @@
 import { ForbiddenError, NotFoundError } from '../../utility/errors';
 import { UserService } from '../User/user.service';
+import { FollowListDto } from './dto/Lists-dto';
 import { FollowRepository } from './follow.repository';
 import { FindFollowing, GetFollowListDao } from './model/follow';
 
@@ -78,8 +79,7 @@ export class FollowService {
 
     async getFollowersList(
         username: string,
-        page: number,
-        count: number
+        { p: page, c: count }: FollowListDto
     ): Promise<GetFollowListDao[]> {
         const user = await this.userService.doesUserExists({ username });
         if (!user) throw new NotFoundError();
@@ -104,8 +104,7 @@ export class FollowService {
 
     async getFollowingsList(
         username: string,
-        page: number,
-        count: number
+        { p: page, c: count }: FollowListDto
     ): Promise<GetFollowListDao[]> {
         const user = await this.userService.doesUserExists({ username });
         if (!user) throw new NotFoundError();

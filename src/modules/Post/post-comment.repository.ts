@@ -12,6 +12,24 @@ export class PostCommentRepository {
         this.commentRepo = dataSource.getRepository(PostCommentEntity);
     }
 
+    getComments(
+        postId: string,
+        take: number,
+        skip: number
+    ): Promise<PostCommentEntity[]> {
+        return this.commentRepo.find({
+            where: { postId },
+            take,
+            skip,
+            relations: {
+                commenter: true,
+                replays: {
+                    commenter: true,
+                },
+            },
+        });
+    }
+
     async doesCommentExist(commentId: string): Promise<boolean> {
         const commentCount = await this.commentRepo.countBy({ commentId });
         return commentCount > 0;
