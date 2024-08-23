@@ -111,10 +111,11 @@ export class FollowService {
         if (!user) throw new NotFoundError();
 
         const skip = (page - 1) * count;
-        const [followingsList, followingsCount] = await Promise.all([
-            this.followRepo.getFollowings(username, count, skip),
-            this.followRepo.followingsCount(username),
-        ]);
+        const followingsList = await this.followRepo.getFollowings(
+            username,
+            count,
+            skip
+        );
         return Promise.all(
             followingsList.map(async (f) => ({
                 username: f.followedId,
