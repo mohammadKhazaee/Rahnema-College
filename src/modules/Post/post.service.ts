@@ -23,12 +23,14 @@ export class PostService {
 
     async getPostById(postId: string): Promise<GetPostDao> {
         const post = await this.postRepo.findPostById(postId);
-
         if (!post) throw new HttpError(404, 'Post not found');
-        const likeCount = await this.postRepo.countLikesForPost(postId);
-        const commentsCount=await this.postRepo.countCommentsForPost(postId);
 
-        return { ...post, likeCount,commentsCount};
+        const [likeCount, commentsCount] = await Promise.all([
+            this.postRepo.countLikesForPost(postId),
+            this.postRepo.countCommentsForPost(postId),
+        ]);
+
+        return { ...post, likeCount, commentsCount };
     }
 
     async updatePost({
@@ -158,6 +160,10 @@ export class PostService {
         }));
 
         return resultPosts;
+    }
+
+    async getPostCount(username: string): Promise<number> {
+        return this.postRepo.countPostsByUsername(username);
     }
 
     async createComment(

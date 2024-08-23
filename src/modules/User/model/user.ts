@@ -1,7 +1,5 @@
 import { Following } from '../../Follow/model/follow';
 import { PostEntity } from '../../Post/entity/post.entity';
-import { Mention } from '../../Post/model/mention';
-
 
 export interface User {
     username: string;
@@ -16,6 +14,19 @@ export interface User {
     followings?: Following[];
     followers?: Following[];
     mentions?: PostEntity[];
+}
+
+export interface UserProfileDao {
+    username: string;
+    email: string;
+    imageUrl: string;
+    fName: string;
+    lName: string;
+    isPrivate: boolean;
+    bio: string;
+    followersCount: number;
+    followingsCount: number;
+    postCount: number;
 }
 
 export interface UpdateUser {
@@ -37,8 +48,8 @@ export interface CreateUser {
 
 export type userIdentifier =
     | {
-        email: string;
-    }
+          email: string;
+      }
     | {
-        username: string;
-    };
+          username: string;
+      };

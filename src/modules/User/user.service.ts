@@ -1,47 +1,10 @@
-import { Repository } from 'typeorm';
-import { ForbiddenError, HttpError, NotFoundError } from '../../utility/errors';
+import { HttpError } from '../../utility/errors';
 import { EditProfileDto } from './dto/edit-profile-dto';
 import { UpdateUser, userIdentifier, User, CreateUser } from './model/user';
 import { UserRepository } from './user.repository';
-import { AppDataSource } from '../../data-source';
-import { PostEntity } from '../Post/entity/post.entity';
-import { FollowService } from '../Follow/follow.service';
-import { FollowingEntity } from '../Follow/entity/following.entity';
-import { FollowListDto } from '../Follow/dto/Lists-dto';
 
 export class UserService {
-    private postRepo: Repository<PostEntity>;
-
-    constructor(
-        private userRepo: UserRepository,
-        private followService: FollowService
-    ) {
-        this.postRepo = AppDataSource.getRepository(PostEntity);
-    }
-
-    async getUserInfo(username: string) {
-        const user = await this.fetchUser({ username });
-        if (!user) throw new HttpError(404, 'Not Found');
-
-        const followers = await this.followService.getFollowersCount(username);
-        const postCount = await this.getPostCount(username);
-        const following = await this.followService.getFollowingsCount(username);
-
-        const returnUser = {
-            email: user.email,
-            username,
-            imageUrl: user.imageUrl,
-            fName: user.fName,
-            lName: user.lName,
-            isPrivate: user.isPrivate,
-            bio: user.bio,
-            followersCount: followers,
-            followingsCount: following,
-            postCount,
-        };
-
-        return returnUser;
-    }
+    constructor(private userRepo: UserRepository) {}
 
     async editUser(
         username: string,
@@ -106,57 +69,6 @@ export class UserService {
         };
 
         return this.userRepo.create(createUser);
-    }
-
-    async followUser(mainUsername: string, followedUsername: string) {
-        if (mainUsername === followedUsername)
-            throw new ForbiddenError('user cant follow themself');
-
-        const follower = await this.fetchUser({ username: mainUsername });
-        const followed = await this.fetchUser({ username: followedUsername });
-        if (!follower || !followed) throw new NotFoundError();
-
-        await this.followService.followUser(follower, followed);
-        return `success`;
-    }
-
-    async unfollowUser(followerName: string, followedUsername: string) {
-        if (followerName === followedUsername)
-            throw new ForbiddenError('user cant unfollow themself');
-
-        const follower = await this.fetchUser({ username: followerName });
-        const followed = await this.fetchUser({ username: followedUsername });
-        if (!follower || !followed) throw new NotFoundError();
-
-        await this.followService.unfollowUser(follower, followed);
-        return 'success';
-    }
-
-    async getFollowers(username: string, dto: FollowListDto): Promise<FollowingEntity[]> {
-        const skip = dto.p * 5
-        const user = await this.fetchUser({ username, })
-        if (!user) throw new NotFoundError()
-
-        const followersList = await this.followService.getFollowersList(username, dto.c, skip)
-        return followersList
-    }
-
-    async getFollowings(username: string, dto: FollowListDto): Promise<FollowingEntity[]> {
-        const skip = dto.p * 5
-        const user = await this.fetchUser({ username, })
-        if (!user) throw new NotFoundError()
-
-        const followingsList = await this.followService.getFollowingsList(username, dto.c, skip)
-        return followingsList
-    }
-
-    private async getPostCount(username: string) {
-        const posts = await this.postRepo.count({
-            where: {
-                creatorId: username,
-            },
-        });
-        return posts;
     }
 
     updateUser(dto: UpdateUser) {

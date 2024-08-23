@@ -20,6 +20,7 @@ import { FollowService } from './modules/Follow/follow.service';
 
 import { TagRepository } from './modules/Post/tag.repository';
 import { PostCommentRepository } from './modules/Post/post-comment.repository';
+import { SocialService } from './services/social.service';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -40,9 +41,9 @@ export const appFactory = (dataSource: DataSource) => {
     app.use(
         morgan(
             '[:date] ' +
-            ':method::url :status ' +
-            'length::res[content-length] - :response-time[1] ms ' +
-            'authHeader::authHeader'
+                ':method::url :status ' +
+                'length::res[content-length] - :response-time[1] ms ' +
+                'authHeader::authHeader'
         )
     );
 
@@ -61,25 +62,35 @@ export const appFactory = (dataSource: DataSource) => {
 
     const fileParser = new FileParser();
 
-    const userRepo = new UserRepository(dataSource);
-    const followRepo = new FollowRepository(dataSource)
-    const followService = new FollowService(followRepo)
-    const userService = new UserService(userRepo, followService)
-    const postRepo = new PostRepository(dataSource);
+    // initializing repositories
     // const postImageRepo = new PostImageRepository(dataSource);
+    const userRepo = new UserRepository(dataSource);
+    const followRepo = new FollowRepository(dataSource);
+    const postRepo = new PostRepository(dataSource);
     const postCommentRepo = new PostCommentRepository(dataSource);
     const tagRepo = new TagRepository(dataSource);
+
+    // initializing services
+    const userService = new UserService(userRepo);
+    const authService = new AuthService(userService, new GmailHandler());
+    const followService = new FollowService(followRepo, userService);
+
     const postService = new PostService(
         postRepo,
         postCommentRepo,
         tagRepo,
         userService
     );
-    const authService = new AuthService(userService, new GmailHandler());
+
+    const socialService = new SocialService(
+        userService,
+        followService,
+        postService
+    );
 
     app.use('/auth', authRouter(authService));
     app.use('/posts', postRouter(postService, userService, fileParser));
-    app.use(profileRouter(userService));
+    app.use(profileRouter(userService, socialService, followService));
 
     app.use((req, res) => {
         res.status(404).send({ message: 'Not Found' });

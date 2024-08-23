@@ -35,6 +35,7 @@ export class PostRepository {
             relations: ['tags', 'images', 'mentions'],
         });
     }
+
     countLikesForPost(postId: string): Promise<number> {
         return this.postRepo
             .createQueryBuilder('post')
@@ -43,13 +44,15 @@ export class PostRepository {
             .getCount();
     }
 
-    async countCommentsForPost(postId:string):Promise<number>{
-        console.log(postId);
-       
-        return await this.postRepo
+    countCommentsForPost(postId: string): Promise<number> {
+        return this.postRepo
             .createQueryBuilder('post')
             .leftJoinAndSelect('post.comments', 'comment')
             .where('comment.postId = :postId', { postId })
             .getCount();
+    }
+
+    countPostsByUsername(username: string): Promise<number> {
+        return this.postRepo.count({ where: { creatorId: username } });
     }
 }
