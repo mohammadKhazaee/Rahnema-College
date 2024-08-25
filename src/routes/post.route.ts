@@ -20,7 +20,7 @@ export const postRouter = (
     app.post(
         '/',
         isAuthenticated(userService),
-        fileParser.fileParser().array('imageUrls'),
+        fileParser.fileParser().array('images'),
         (req, res, next) => {
             const dto = createPostDto.parse({ ...req.body, images: req.files });
             handleExpress(res, 201, next, async () => ({
@@ -43,7 +43,7 @@ export const postRouter = (
 
             handleExpress(res, 200, next, async () => ({
                 message: 'post updated successfully',
-                updatedPost: await postService.updatePost(dto),
+                updatedPost: await postService.updatePost(dto, fileParser),
             }));
         }
     );

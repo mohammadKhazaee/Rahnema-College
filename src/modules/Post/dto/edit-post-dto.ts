@@ -8,8 +8,8 @@ const editImagesDto = z.preprocess(
 
 export const editPostDto = z.object({
     postId: z.string(),
-    caption: z.string().optional(),
-    mentions: z.array(z.string().min(3).regex(/^\w+$/)).optional(),
+    caption: z.string(),
+    mentions: z.array(z.string().min(3).regex(/^\w+$/)),
     deletedImages: z.array(editImagesDto).optional().default([]),
     images: z.array(zodFileSchema).optional(),
 });

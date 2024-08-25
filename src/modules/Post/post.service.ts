@@ -18,6 +18,9 @@ import { CommentLikeId } from './model/post-comment-like';
 import { CommentLikeRepository } from './comment-like.repository';
 import { BookmarkRepository } from './bookmark.repository';
 import { PaginationDto } from './dto/get-posts-dto';
+import { PostImageEntity } from './entity/post-image.entity';
+import { FileParser } from '../../utility/file-parser';
+import { PostImageRepository } from './image.repository';
 
 export class PostService {
     constructor(
@@ -27,7 +30,8 @@ export class PostService {
         private postLikeRepo: PostLikeRepository,
         private tagRepo: TagRepository,
         private userService: UserService,
-        private bookmarkRepo: BookmarkRepository
+        private bookmarkRepo: BookmarkRepository,
+        private imageRepo: PostImageRepository
     ) {}
 
     async getPostById(postId: string): Promise<GetPostDao> {
@@ -68,13 +72,10 @@ export class PostService {
         }
     }
 
-    async updatePost({
-        postId,
-        mentions,
-        caption,
-        deletedImages,
-        images,
-    }: EditPostDto) {
+    async updatePost(
+        { postId, mentions, caption, deletedImages, images }: EditPostDto,
+        fileHandler: FileParser
+    ) {
         const post = await this.postRepo.findPostById(postId);
         if (!post) throw new HttpError(404, 'Post not found');
 
@@ -85,21 +86,16 @@ export class PostService {
         if (mentions)
             mentionedUsers = await this.verifyMentionedExists(mentions);
 
-        // let newImageEntities: PostImageEntity[] = [];
-        // if (images) newImageEntities = await this.saveNewImages(images, postId);
-        // if (images)
-        //     newImageEntities = images.map((i) => {
-        //         const image = new PostImageEntity();
-        //         image.url = imageUrlPath(i.path);
-        //         image.postId = postId;
-        //         return image;
-        //     });
-        // post.images = [
-        //     ...post.images.filter(
-        //         (i) => !deletedImages.find((di) => di.imageId === i.imageId)
-        //     ),
-        //     ...newImageEntities,
-        // ];
+        let newImageEntities: PostImageEntity[] = [];
+        if (images) {
+            newImageEntities = images.map((i) => {
+                const image = new PostImageEntity();
+                image.url = imageUrlPath(i.path);
+                image.postId = postId;
+                return image;
+            });
+            post.images = [...post.images, ...newImageEntities];
+        }
 
         if (caption) post.caption = caption;
         if (tags) post.tags = tags;
@@ -107,7 +103,12 @@ export class PostService {
 
         const updatedPost = await this.postRepo.update(post);
 
-        // await this.fileHandler.deleteFiles(deletedImages.map((i) => i.url));
+        await this.imageRepo.deleteBulkById(
+            deletedImages.map((i) => i.imageId)
+        );
+
+        if (deletedImages.length > 0)
+            await fileHandler.deleteFiles(deletedImages.map((i) => i.url));
 
         return updatedPost;
     }

@@ -24,6 +24,7 @@ import { SocialService } from './services/social.service';
 import { PostLikeRepository } from './modules/Post/post-like.repository';
 import { CommentLikeRepository } from './modules/Post/comment-like.repository';
 import { BookmarkRepository } from './modules/Post/bookmark.repository';
+import { PostImageRepository } from './modules/Post/image.repository';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -66,7 +67,7 @@ export const appFactory = (dataSource: DataSource) => {
     const fileParser = new FileParser();
 
     // initializing repositories
-    // const postImageRepo = new PostImageRepository(dataSource);
+    const postImageRepo = new PostImageRepository(dataSource);
     const userRepo = new UserRepository(dataSource);
     const followRepo = new FollowRepository(dataSource);
     const postRepo = new PostRepository(dataSource);
@@ -88,7 +89,8 @@ export const appFactory = (dataSource: DataSource) => {
         postLikeRepo,
         tagRepo,
         userService,
-        bookmarkRepo
+        bookmarkRepo,
+        postImageRepo
     );
 
     const socialService = new SocialService(

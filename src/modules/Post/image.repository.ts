@@ -16,4 +16,13 @@ export class PostImageRepository {
     saveBulk(images: CreatePostImage[]): Promise<PostImageEntity[]> {
         return this.imageRepo.save(images);
     }
+
+    deleteBulkById(imageIds: string[]) {
+        return this.imageRepo
+            .createQueryBuilder()
+            .delete()
+            .from(PostImageEntity)
+            .where('imageId IN (:ids)', { ids: imageIds })
+            .execute();
+    }
 }
