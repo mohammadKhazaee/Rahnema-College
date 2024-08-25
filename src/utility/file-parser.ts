@@ -40,7 +40,7 @@ export class FileParser {
                 cb(null, 'src/images');
             },
             filename: (req, file, cb) => {
-                cb(null, `${v4()} - ${file.originalname}`);
+                cb(null, `${v4()}.${file.mimetype.replace('image/', '')}`);
             },
         });
     }
@@ -77,9 +77,10 @@ export class FileParser {
     private deleteFile(path: string) {
         return new Promise((resolve, reject) => {
             fs.unlink(path, (err) => {
-                console.log(err);
-
-                if (err) return reject(err);
+                if (err) {
+                    console.log(err);
+                    return reject(err);
+                }
                 resolve('image deleted');
             });
         });

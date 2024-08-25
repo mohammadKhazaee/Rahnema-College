@@ -1,4 +1,6 @@
 import { HttpError } from '../../utility/errors';
+import { FileParser } from '../../utility/file-parser';
+import { imageUrlPath } from '../../utility/path-adjuster';
 import { EditProfileDto } from './dto/edit-profile-dto';
 import { UpdateUser, userIdentifier, User, CreateUser } from './model/user';
 import { UserRepository } from './user.repository';
@@ -9,26 +11,34 @@ export class UserService {
 
     async editUser(
         username: string,
-        dto: EditProfileDto
+        dto: EditProfileDto,
+        fileHandler: FileParser
     ): Promise<string> | never {
-        const dupEmail = await this.userRepo.findByEmail(dto.email);
+        const dupUser = await this.userRepo.findByEmail(dto.email);
 
-        if (dupEmail && dupEmail.username !== username)
+        if (dupUser && dupUser.username !== username)
             throw new HttpError(409, 'the new email is already in use');
 
-        const createUser: UpdateUser = {
+        const user = await this.getUser({ username });
+
+        const updateData: UpdateUser = {
             username,
             email: dto.email,
-            fName: dto.fName || '',
-            lName: dto.lName || '',
-            imageUrl: dto.imageUrl || '',
-            bio: dto.bio || '',
+            fName: dto.fName,
+            lName: dto.lName,
+            bio: dto.bio,
             isPrivate: dto.isPrivate,
         };
-        if ('password' in dto && dto.password)
-            createUser.password = await bcrypt.hash(dto.password, 12);
+        if ('image' in dto && dto.image)
+            updateData.imageUrl = imageUrlPath(dto.image.path);
 
-        await this.userRepo.upadte(createUser);
+        if ('password' in dto && dto.password)
+            updateData.password = await bcrypt.hash(dto.password, 12);
+
+        await this.userRepo.upadte(updateData);
+
+        if ('image' in dto && dto.image)
+            await fileHandler.deleteFiles([user.imageUrl]);
 
         return 'Profile Updated';
     }

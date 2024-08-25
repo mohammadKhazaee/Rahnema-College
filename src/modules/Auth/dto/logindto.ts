@@ -2,7 +2,7 @@ import z from 'zod';
 
 export const logindto = z
     .object({
-        username: z.string().regex(/^[a-zA-Z0-9]{4,}/),
+        username: z.string().min(3).regex(/^\w+$/),
         password: z.string().min(8, 'Please enter a valid password'),
         rememberMe: z.boolean(),
     })

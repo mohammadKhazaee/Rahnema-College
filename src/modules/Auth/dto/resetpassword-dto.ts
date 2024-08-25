@@ -2,7 +2,7 @@ import z from 'zod';
 
 export const resetPasswordDto = z
     .object({
-        username: z.string().regex(/[a-zA-Z0-9_]{4,}/),
+        username: z.string().min(3).regex(/^\w+$/),
     })
     .or(
         z.object({

@@ -99,7 +99,9 @@ export const appFactory = (dataSource: DataSource) => {
 
     app.use('/auth', authRouter(authService));
     app.use('/posts', postRouter(postService, userService, fileParser));
-    app.use(profileRouter(userService, socialService, followService));
+    app.use(
+        profileRouter(userService, socialService, followService, fileParser)
+    );
 
     app.use((req, res) => {
         res.status(404).send({ message: 'Not Found' });

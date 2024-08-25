@@ -6,11 +6,13 @@ import { UserService } from '../modules/User/user.service';
 import { SocialService } from '../services/social.service';
 import { FollowService } from '../modules/Follow/follow.service';
 import { followListDto } from '../modules/Follow/dto/Lists-dto';
+import { FileParser } from '../utility/file-parser';
 
 export const profileRouter = (
     userService: UserService,
     socialService: SocialService,
-    followService: FollowService
+    followService: FollowService,
+    fileParser: FileParser
 ) => {
     const app = Router();
     app.get('/:username', (req, res, next) => {
@@ -19,12 +21,21 @@ export const profileRouter = (
         );
     });
 
-    app.put('/edit-profile', isAuthenticated(userService), (req, res, next) => {
-        const dto = editProfileDto.parse(req.body);
-        handleExpress(res, 200, next, async () => ({
-            message: await userService.editUser(req.username, dto),
-        }));
-    });
+    app.put(
+        '/edit-profile',
+        isAuthenticated(userService),
+        fileParser.fileParser().single('image'),
+        (req, res, next) => {
+            const dto = editProfileDto.parse({ ...req.body, image: req.file });
+            handleExpress(res, 200, next, async () => ({
+                message: await userService.editUser(
+                    req.username,
+                    dto,
+                    fileParser
+                ),
+            }));
+        }
+    );
 
     app.patch(
         '/follow/:username',
