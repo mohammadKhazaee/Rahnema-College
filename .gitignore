@@ -130,6 +130,5 @@ dist
 .pnp.*
 
 src/images/*
-!src/images/sample.png
 
 !*/**/.gitkeep
