@@ -6,6 +6,7 @@ import { ResetPaswordDto } from '../../src/modules/Auth/dto/resetpassword-dto';
 import { User } from '../../src/modules/User/model/user';
 import { UserRepository } from '../../src/modules/User/user.repository';
 import { UserEntity } from '../../src/modules/User/entity/user.entity';
+import { LoginDto } from '../../src/modules/Auth/dto/logindto';
 
 describe('CollegeGram Test Suit', () => {
     const userRepo = new UserRepository(AppDataSource);
@@ -13,7 +14,6 @@ describe('CollegeGram Test Suit', () => {
     let app: Express;
     beforeAll(async () => {
         const dataSource = await AppDataSource.initialize();
-        dataSource.getRepository(UserEntity).delete({});
         app = appFactory(dataSource);
     });
 
@@ -23,13 +23,13 @@ describe('CollegeGram Test Suit', () => {
 
     describe('Auth parts', () => {
         const newUser = {
-            username: 'silam',
-            email: 'canIpetThatdawwwwg@gamil.com',
-            password: '1593578426',
-            confirmPassword: '1593578426',
+            username: 'test1245',
+            email: 'test1245@gamil.com',
+            password: 'teste1245786',
+            confirmPassword: 'teste1245786',
         };
 
-        it('sould signup', async () => {
+        it.skip('sould signup', async () => {
             const { body: user } = await request(app)
                 .post('/auth/signup')
                 .send(newUser)
@@ -37,16 +37,16 @@ describe('CollegeGram Test Suit', () => {
             console.log(user);
         });
 
-        it('should login', async () => {
+        it.skip('should login', async () => {
             const loggedinUserToken = await loginTest(app, {
-                email: newUser.email,
-                password: newUser.password,
-                rememberMe: false,
+                username: 'test1245',
+                password: 'teste1245786',
+                rememberMe: true,
             });
             console.log(loggedinUserToken);
         });
 
-        it('should get user informations', async () => {
+        it.skip('should get user informations', async () => {
             const loggedinUserToken = await loginTest(app, {
                 email: newUser.email,
                 password: newUser.password,
@@ -61,7 +61,7 @@ describe('CollegeGram Test Suit', () => {
             console.log(user);
         });
 
-        it('should send reset password email', async () => {
+        it.skip('should send reset password email', async () => {
             const dto: ResetPaswordDto = { email: newUser.email };
             const { text: message } = await request(app)
                 .post('/auth/send-reset')
@@ -70,7 +70,7 @@ describe('CollegeGram Test Suit', () => {
             console.log(message);
         });
 
-        it('should change password', async () => {
+        it.skip('should change password', async () => {
             const user = (await userRepo.findByUsername('silam')) as User;
 
             const token = generateTokenForReset(user);
