@@ -1,6 +1,6 @@
 import { ForbiddenError, NotFoundError } from '../../utility/errors';
 import { UserService } from '../User/user.service';
-import { FollowListDto } from './dto/Lists-dto';
+import { FollowListDto } from './dto/follow-list-dto';
 import { FollowRepository } from './follow.repository';
 import { FindFollowing, GetFollowListDao } from './model/follow';
 

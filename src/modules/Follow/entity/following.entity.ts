@@ -5,12 +5,13 @@ import {
     ManyToOne,
     JoinColumn,
     PrimaryColumn,
+    Column,
 } from 'typeorm';
 import { UserEntity } from '../../User/entity/user.entity';
+import { userRelationStatus, UserRelationStatus } from '../model/follow';
 
-
-@Entity('followings')
-export class FollowingEntity {
+@Entity('user_relations')
+export class UserRelationEntity {
     @PrimaryColumn()
     followerId!: string;
 
@@ -24,6 +25,9 @@ export class FollowingEntity {
     @ManyToOne(() => UserEntity, (followed) => followed.followers)
     @JoinColumn({ name: 'followedId' })
     followed!: UserEntity;
+
+    @Column({ default: userRelationStatus.requestedFollow })
+    status!: UserRelationStatus;
 
     @CreateDateColumn()
     createdAt!: Date;

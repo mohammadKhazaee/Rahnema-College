@@ -1,12 +1,12 @@
 import { DataSource, Repository } from 'typeorm';
-import { FollowingEntity } from './entity/following.entity';
 import { FindFollowing } from './model/follow';
+import { UserRelationEntity } from './entity/following.entity';
 
 export class FollowRepository {
-    private followRepo: Repository<FollowingEntity>;
+    private followRepo: Repository<UserRelationEntity>;
 
     constructor(dataSource: DataSource) {
-        this.followRepo = dataSource.getRepository(FollowingEntity);
+        this.followRepo = dataSource.getRepository(UserRelationEntity);
     }
 
     create(following: FindFollowing) {

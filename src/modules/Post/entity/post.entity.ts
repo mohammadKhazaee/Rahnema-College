@@ -25,6 +25,9 @@ export class PostEntity {
     @Column()
     caption!: string;
 
+    @Column({ default: false })
+    isCloseFriend!: boolean;
+
     @Column()
     creatorId!: string;
 

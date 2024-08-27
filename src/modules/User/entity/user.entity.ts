@@ -11,7 +11,8 @@ import { PostEntity } from '../../Post/entity/post.entity';
 import { PostCommentEntity } from '../../Post/entity/post-comment.entity';
 import { PostLikeEntity } from '../../Post/entity/post-Likes.entity';
 import { BookmarkEntity } from '../../Post/entity/bookmark.entity';
-import { FollowingEntity } from '../../Follow/entity/following.entity';
+import { UserRelationEntity } from '../../Follow/entity/following.entity';
+import { NotificationEntity } from '../../Notification/entity/notification.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -42,11 +43,17 @@ export class UserEntity {
     @OneToMany(() => PostEntity, (post) => post.creator)
     posts!: PostEntity[];
 
-    @OneToMany(() => FollowingEntity, (f) => f.follower)
-    followings!: FollowingEntity[];
+    @OneToMany(() => UserRelationEntity, (f) => f.follower)
+    followings!: UserRelationEntity[];
 
-    @OneToMany(() => FollowingEntity, (f) => f.followed)
-    followers!: FollowingEntity[];
+    @OneToMany(() => UserRelationEntity, (f) => f.followed)
+    followers!: UserRelationEntity[];
+
+    @OneToMany(() => NotificationEntity, (notif) => notif.emiter)
+    emitedNotifs!: NotificationEntity[];
+
+    @OneToMany(() => NotificationEntity, (notif) => notif.receiver)
+    receivedNotifs!: NotificationEntity[];
 
     @ManyToMany(() => PostEntity, (m) => m.mentions)
     mentions!: PostEntity[];

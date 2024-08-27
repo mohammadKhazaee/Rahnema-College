@@ -5,7 +5,7 @@ import { editProfileDto } from '../modules/User/dto/edit-profile-dto';
 import { UserService } from '../modules/User/user.service';
 import { SocialService } from '../services/social.service';
 import { FollowService } from '../modules/Follow/follow.service';
-import { followListDto } from '../modules/Follow/dto/Lists-dto';
+import { followListDto } from '../modules/Follow/dto/follow-list-dto';
 import { FileParser } from '../utility/file-parser';
 
 export const profileRouter = (
@@ -15,6 +15,7 @@ export const profileRouter = (
     fileParser: FileParser
 ) => {
     const app = Router();
+
     app.get('/:username', (req, res, next) => {
         handleExpress(res, 200, next, () =>
             socialService.getUserInfo(req.params.username)

@@ -1,5 +1,14 @@
 import { User } from '../../User/model/user';
 
+export const userRelationStatus = {
+    blocked: 'blocked',
+    requestedFollow: 'requestedFollow',
+    follow: 'follow',
+    friend: 'friend',
+} as const;
+
+export type UserRelationStatus = keyof typeof userRelationStatus;
+
 export interface Following {
     followerId: string;
     follower: User;
