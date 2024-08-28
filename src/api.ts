@@ -1,13 +1,15 @@
 import express, { ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
-import { authRouter } from './routes/auth.route';
-import { HttpError } from './utility/errors';
-import { AuthService } from './modules/Auth/auth.service';
 import { DataSource } from 'typeorm';
-import { UserRepository } from './modules/User/user.repository';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
+import * as path from 'path';
+
+import { authRouter } from './routes/auth.route';
+import { HttpError } from './utility/errors';
+import { AuthService } from './modules/Auth/auth.service';
+import { UserRepository } from './modules/User/user.repository';
 import { GmailHandler } from './utility/gmail-handler';
 import { UserService } from './modules/User/user.service';
 import { profileRouter } from './routes/profile.route';
@@ -17,7 +19,6 @@ import { PostService } from './modules/Post/post.service';
 import { FileParser } from './utility/file-parser';
 import { FollowRepository } from './modules/Follow/follow.repository';
 import { FollowService } from './modules/Follow/follow.service';
-
 import { TagRepository } from './modules/Post/tag.repository';
 import { PostCommentRepository } from './modules/Post/post-comment.repository';
 import { SocialService } from './services/social.service';
@@ -28,6 +29,9 @@ import { PostImageRepository } from './modules/Post/image.repository';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
+
+    if (process.env.SERVE_IMAGE_LOCALY)
+        app.use('/images', express.static(path.join(__dirname, 'images')));
     app.use(express.json());
     app.use(helmet());
     app.use(compression());
