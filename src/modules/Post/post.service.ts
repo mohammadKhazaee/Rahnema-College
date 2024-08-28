@@ -80,7 +80,7 @@ export class PostService {
         if (!post) throw new HttpError(404, 'Post not found');
 
         let tags: Tag[] | undefined;
-        if (caption) tags = await this.makeUpdateTags(caption);
+        if (caption !== undefined) tags = await this.makeUpdateTags(caption);
 
         let mentionedUsers: User[] | undefined;
         if (mentions)
@@ -97,7 +97,7 @@ export class PostService {
             post.images = [...post.images, ...newImageEntities];
         }
 
-        if (caption) post.caption = caption;
+        if (caption !== undefined) post.caption = caption;
         if (tags) post.tags = tags;
         if (mentionedUsers) post.mentions = mentionedUsers;
 

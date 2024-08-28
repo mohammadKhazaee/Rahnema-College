@@ -1,4 +1,4 @@
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, IsNull } from 'typeorm';
 import { PostCommentEntity } from './entity/post-comment.entity';
 import {
     CreatePostComment,
@@ -18,7 +18,7 @@ export class PostCommentRepository {
         skip: number
     ): Promise<PostCommentEntity[]> {
         return this.commentRepo.find({
-            where: { postId },
+            where: { postId, parentId: IsNull() },
             take,
             skip,
             relations: {
@@ -27,6 +27,7 @@ export class PostCommentRepository {
                     commenter: true,
                 },
             },
+            order: { createdAt: 'ASC' },
         });
     }
 
