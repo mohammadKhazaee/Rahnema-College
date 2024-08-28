@@ -14,14 +14,18 @@ export class PostLikeEntity {
     @PrimaryColumn()
     userId!: string;
 
-    @ManyToOne(() => UserEntity, (user) => user.likes)
+    @ManyToOne(() => UserEntity, (user) => user.likes, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'userId' })
     user!: UserEntity;
 
     @PrimaryColumn()
     postId!: string;
 
-    @ManyToOne(() => PostEntity, (post) => post.likes)
+    @ManyToOne(() => PostEntity, (post) => post.likes, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'postId' })
     post!: PostEntity;
 

@@ -31,7 +31,9 @@ export class PostEntity {
     @Column()
     creatorId!: string;
 
-    @ManyToOne(() => UserEntity, (user) => user.posts)
+    @ManyToOne(() => UserEntity, (user) => user.posts, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'creatorId' })
     creator!: UserEntity;
 
@@ -79,6 +81,7 @@ export class PostEntity {
 
     @OneToMany(() => PostLikeEntity, (like) => like.post, {
         cascade: ['insert', 'update'],
+        onDelete: 'CASCADE',
     })
     likes!: PostLikeEntity[];
 

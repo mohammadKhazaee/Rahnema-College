@@ -65,6 +65,7 @@ export class UserEntity {
 
     @OneToMany(() => PostLikeEntity, (like) => like.post, {
         cascade: ['insert', 'update'],
+        onDelete: 'CASCADE',
     })
     likes!: PostLikeEntity[];
 

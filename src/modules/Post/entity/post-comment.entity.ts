@@ -23,21 +23,27 @@ export class PostCommentEntity {
     @Column()
     commenterId!: string;
 
-    @ManyToOne(() => UserEntity, (commenter) => commenter.comments)
+    @ManyToOne(() => UserEntity, (commenter) => commenter.comments, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'commenterId' })
     commenter!: UserEntity;
 
     @Column()
     postId!: string;
 
-    @ManyToOne(() => PostEntity, (post) => post.comments)
+    @ManyToOne(() => PostEntity, (post) => post.comments, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'postId' })
     post!: PostEntity;
 
-    @Column({ default: null })
+    @Column({ default: null, nullable: true })
     parentId!: string;
 
-    @ManyToOne(() => PostCommentEntity, (parent) => parent.replays)
+    @ManyToOne(() => PostCommentEntity, (parent) => parent.replays, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'parentId' })
     parent!: PostCommentEntity;
 
@@ -47,6 +53,7 @@ export class PostCommentEntity {
 
     @OneToMany(() => CommentLikeEntity, (like) => like.comment, {
         cascade: ['insert', 'update'],
+        onDelete: 'CASCADE',
     })
     likes!: CommentLikeEntity[];
 

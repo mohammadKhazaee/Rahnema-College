@@ -14,14 +14,18 @@ export class CommentLikeEntity {
     @PrimaryColumn()
     userId!: string;
 
-    @ManyToOne(() => UserEntity, (user) => user.likes)
+    @ManyToOne(() => UserEntity, (user) => user.likes, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'userId' })
     user!: UserEntity;
 
     @PrimaryColumn()
     commentId!: string;
 
-    @ManyToOne(() => PostCommentEntity, (comment) => comment.likes)
+    @ManyToOne(() => PostCommentEntity, (comment) => comment.likes, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'commentId' })
     comment!: PostCommentEntity;
 

@@ -34,7 +34,6 @@ describe('CollegeGram Test Suit', () => {
                 .post('/auth/signup')
                 .send(newUser)
                 .expect(201);
-            console.log(user);
         });
 
         it.skip('should login', async () => {
@@ -43,7 +42,6 @@ describe('CollegeGram Test Suit', () => {
                 password: 'teste1245786',
                 rememberMe: true,
             });
-            console.log(loggedinUserToken);
         });
 
         it.skip('should get user informations', async () => {
@@ -52,13 +50,11 @@ describe('CollegeGram Test Suit', () => {
                 password: newUser.password,
                 rememberMe: false,
             });
-            console.log(loggedinUserToken);
 
             const { body: user } = await request(app)
-                .get('/user-info')
+                .get(`/${newUser.username}`)
                 .set('Authorization', 'Bearer ' + loggedinUserToken)
                 .expect(200);
-            console.log(user);
         });
 
         it.skip('should send reset password email', async () => {
@@ -67,7 +63,6 @@ describe('CollegeGram Test Suit', () => {
                 .post('/auth/send-reset')
                 .send(dto)
                 .expect(200);
-            console.log(message);
         });
 
         it.skip('should change password', async () => {
@@ -84,7 +79,6 @@ describe('CollegeGram Test Suit', () => {
                     confirmPassword,
                 })
                 .expect(200);
-            console.log(item);
         });
     });
 });

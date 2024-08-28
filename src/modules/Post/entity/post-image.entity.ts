@@ -20,7 +20,9 @@ export class PostImageEntity {
     @Column()
     postId!: string;
 
-    @ManyToOne(() => PostEntity, (post) => post.images)
+    @ManyToOne(() => PostEntity, (post) => post.images, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'postId' })
     post!: PostEntity;
 
