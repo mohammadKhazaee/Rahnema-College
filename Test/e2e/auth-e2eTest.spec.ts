@@ -23,10 +23,10 @@ describe('CollegeGram Test Suit', () => {
 
     describe('Auth parts', () => {
         const newUser = {
-            username: 'test1245',
-            email: 'test1245@gamil.com',
-            password: 'teste1245786',
-            confirmPassword: 'teste1245786',
+            username: 'ehsAnhAq86',
+            email: 'ehsunhaq86@gamil.com',
+            password: 'ehsunhaq1386',
+            confirmPassword: 'ehsunhaq1386',
         };
 
         it.skip('sould signup', async () => {

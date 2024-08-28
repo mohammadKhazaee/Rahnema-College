@@ -1,5 +1,5 @@
 import { DataSource, Repository } from 'typeorm';
-import { FindFollowing } from './model/follow';
+import { FindFollowing, Following } from './model/follow';
 import { UserRelationEntity } from './entity/following.entity';
 
 export class FollowRepository {
@@ -13,16 +13,20 @@ export class FollowRepository {
         return this.followRepo.save(following);
     }
 
+    upadte(following: FindFollowing) {
+        return this.followRepo.save(following);
+    }
+
     delete({ followedId, followerId }: FindFollowing) {
         return this.followRepo.delete({ followedId, followerId });
     }
 
     followersCount(username: string) {
-        return this.followRepo.count({ where: { followedId: username } });
+        return this.followRepo.count({ where: { followedId: username, status: 'follow' } });
     }
 
     followingsCount(username: string) {
-        return this.followRepo.count({ where: { followerId: username } });
+        return this.followRepo.count({ where: { followerId: username, status: 'follow' } });
     }
 
     fetchFollowing({ followedId, followerId }: FindFollowing) {
@@ -35,7 +39,7 @@ export class FollowRepository {
                 followed: {},
                 follower: { imageUrl: true },
             },
-            where: { followedId: username },
+            where: { followedId: username, status: 'follow' },
             take: count,
             skip: skipCount,
             order: { createdAt: 'DESC' },
@@ -49,7 +53,7 @@ export class FollowRepository {
                 followed: { imageUrl: true },
                 follower: {},
             },
-            where: { followerId: username },
+            where: { followerId: username, status: 'follow' },
             take: count,
             skip: skipCount,
             order: { createdAt: 'DESC' },

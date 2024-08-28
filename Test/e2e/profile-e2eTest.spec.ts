@@ -32,7 +32,7 @@ describe('Profile Route Test Suit', () => {
             const loggedinUserToken = await loginTest(app, loginUser)
             console.log(loggedinUserToken)
             const { body: item } = await request(app)
-                .patch('/follow/ehsAnhAq86')
+                .patch('/follow/test1245')
                 .set('Authorization', 'Bearer ' + loggedinUserToken)
                 .expect(200)
             console.log(item)
@@ -85,5 +85,13 @@ describe('Profile Route Test Suit', () => {
             console.log(followings.body)
         })
 
+        it('should block a user', async () => {
+            const loggedinUserToken = await loginTest(app, loginUser)
+            const blocked = await request(app)
+                .put('/ehsAnhAq86/block')
+                .set('Authorization', 'Bearer ' + loggedinUserToken)
+                .expect(200)
+            console.log(blocked.body)
+        })
     })
 })

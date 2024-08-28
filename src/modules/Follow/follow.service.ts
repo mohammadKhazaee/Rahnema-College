@@ -8,7 +8,7 @@ export class FollowService {
     constructor(
         private followRepo: FollowRepository,
         private userService: UserService
-    ) {}
+    ) { }
 
     async followUser(followerId: string, followedId: string) {
         if (followerId === followedId)
@@ -32,9 +32,9 @@ export class FollowService {
         if (fetchedfollowing)
             throw new ForbiddenError('already following the user');
 
-        await this.followRepo.create(followingIds);
-        console.log('follower: ', follower);
-        console.log('followed: ', followed);
+        const follow = await this.followRepo.create(followingIds);
+        follow.status = 'follow'
+        await this.followRepo.upadte(follow)
         return `success`;
     }
 
@@ -125,4 +125,46 @@ export class FollowService {
             }))
         );
     }
+
+    async blockUser(blockedName: string, blockerName: string) {
+        if (blockedName === blockerName) throw new ForbiddenError('user cant block themself');
+
+        const relation = await this.getRelations(blockerName, blockedName)
+        const secondRelation = await this.getRelations(blockedName, blockerName)
+
+        if (relation) {
+            if (relation.status === 'blocked') throw new ForbiddenError('You already blocked this user')
+
+            relation.status = 'blocked'
+            await this.followRepo.upadte(relation)
+            return 'Blocked'
+        }
+
+        if (secondRelation) {
+            secondRelation.status = 'blocked'
+            await this.followRepo.upadte(secondRelation)
+        }
+
+        if (!relation) {
+            const relationToAdd = await this.followRepo.create({
+                followerId: blockerName,
+                followedId: blockedName,
+            })
+
+            relationToAdd.status = 'blocked'
+            await this.followRepo.upadte(relationToAdd)
+            return 'Blocked'
+        }
+
+    }
+
+    async getRelations(mainName: string, relatedName: string) {
+        const relations = await this.followRepo.fetchFollowing({
+            followerId: mainName,
+            followedId: relatedName
+        })
+        return relations
+    }
+
+
 }

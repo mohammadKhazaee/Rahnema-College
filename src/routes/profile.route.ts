@@ -88,5 +88,13 @@ export const profileRouter = (
         }));
     });
 
+
+    app.put('/:username/block', isAuthenticated(userService), (req, res, next) => {
+        const related = req.params.username
+        handleExpress(res, 200, next, async () => ({
+            message: await followService.blockUser(related, req.username)
+        }))
+    })
+
     return app;
 };
