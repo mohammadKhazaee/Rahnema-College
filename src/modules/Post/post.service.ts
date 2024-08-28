@@ -13,7 +13,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { PostCommentRepository } from './post-comment.repository';
 import { GetCommentsDao, PostCommentWithReplays } from './model/post-comment';
 import { PostLikeRepository } from './post-like.repository';
-import { PostLikeId } from './model/post-like';
+import { LikeResultDao, PostLikeId } from './model/post-like';
 import { CommentLikeId } from './model/post-comment-like';
 import { CommentLikeRepository } from './comment-like.repository';
 import { BookmarkRepository } from './bookmark.repository';
@@ -277,29 +277,50 @@ export class PostService {
         return resultComments;
     }
 
-    async togglePostLike(likeId: PostLikeId): Promise<string> {
+    async togglePostLike(likeId: PostLikeId): Promise<LikeResultDao> {
         if (!this.postRepo.doesPostExist(likeId.postId))
             throw new HttpError(404, 'Post was not found');
 
         if (await this.postLikeRepo.doesLikeExists(likeId)) {
             await this.postLikeRepo.delete(likeId);
-            return 'unliked post';
+            return {
+                message: 'unliked post',
+                likeCount: await this.postLikeRepo.countLikesForPost(
+                    likeId.postId
+                ),
+            };
         }
 
         await this.postLikeRepo.save(likeId);
-        return 'liked post';
+        return {
+            message: 'liked post',
+            likeCount: await this.postLikeRepo.countLikesForPost(likeId.postId),
+        };
     }
 
-    async toggleCommentLike(commentLikeId: CommentLikeId): Promise<string> {
+    async toggleCommentLike(
+        commentLikeId: CommentLikeId
+    ): Promise<LikeResultDao> {
         if (!this.postCommentRepo.doesCommentExist(commentLikeId.commentId))
             throw new HttpError(404, 'Comment was not found');
 
         if (await this.commentLikeRepo.doesLikeExists(commentLikeId)) {
             await this.commentLikeRepo.delete(commentLikeId);
-            return 'unliked comment';
+            return {
+                message: 'unliked comment',
+                likeCount: await this.commentLikeRepo.countLikesForComment(
+                    commentLikeId.commentId
+                ),
+            };
         }
 
         await this.commentLikeRepo.save(commentLikeId);
-        return 'liked comment';
+
+        return {
+            message: 'liked comment',
+            likeCount: await this.commentLikeRepo.countLikesForComment(
+                commentLikeId.commentId
+            ),
+        };
     }
 }

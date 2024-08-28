@@ -86,12 +86,12 @@ export const postRouter = (
         '/:postId/like',
         isAuthenticated(userService),
         (req, res, next) => {
-            handleExpress(res, 201, next, async () => ({
-                message: await postService.togglePostLike({
+            handleExpress(res, 201, next, () =>
+                postService.togglePostLike({
                     postId: req.params.postId,
                     userId: req.username,
-                }),
-            }));
+                })
+            );
         }
     );
 
@@ -99,12 +99,12 @@ export const postRouter = (
         '/comments/:commentId/like',
         isAuthenticated(userService),
         (req, res, next) => {
-            handleExpress(res, 201, next, async () => ({
-                message: await postService.toggleCommentLike({
+            handleExpress(res, 201, next, () =>
+                postService.toggleCommentLike({
                     commentId: req.params.commentId,
                     userId: req.username,
-                }),
-            }));
+                })
+            );
         }
     );
 
