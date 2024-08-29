@@ -26,6 +26,9 @@ import { PostLikeRepository } from './modules/Post/post-like.repository';
 import { CommentLikeRepository } from './modules/Post/comment-like.repository';
 import { BookmarkRepository } from './modules/Post/bookmark.repository';
 import { PostImageRepository } from './modules/Post/image.repository';
+import { NotifService } from './modules/Notification/notif.service';
+import { NotifRepository } from './modules/Notification/notif.repository';
+import { PostNotifRepository } from './modules/Notification/post-notif.repository';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -80,9 +83,12 @@ export const appFactory = (dataSource: DataSource) => {
     const bookmarkRepo = new BookmarkRepository(dataSource);
     const postLikeRepo = new PostLikeRepository(dataSource);
     const tagRepo = new TagRepository(dataSource);
+    const notifRepo = new NotifRepository(dataSource);
+    const postNotifRepo = new PostNotifRepository(dataSource);
 
     // initializing services
     const userService = new UserService(userRepo);
+    const notifService = new NotifService(notifRepo, postNotifRepo);
     const authService = new AuthService(userService, new GmailHandler());
     const followService = new FollowService(followRepo, userService);
 
@@ -94,7 +100,8 @@ export const appFactory = (dataSource: DataSource) => {
         tagRepo,
         userService,
         bookmarkRepo,
-        postImageRepo
+        postImageRepo,
+        notifService
     );
 
     const socialService = new SocialService(

@@ -52,8 +52,8 @@ export class UserEntity {
     @OneToMany(() => NotificationEntity, (notif) => notif.emiter)
     emitedNotifs!: NotificationEntity[];
 
-    @OneToMany(() => NotificationEntity, (notif) => notif.receiver)
-    receivedNotifs!: NotificationEntity[];
+    // @OneToMany(() => NotificationEntity, (notif) => notif.receiver)
+    // receivedNotifs!: NotificationEntity[];
 
     @ManyToMany(() => PostEntity, (m) => m.mentions)
     mentions!: PostEntity[];

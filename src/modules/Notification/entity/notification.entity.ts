@@ -1,6 +1,5 @@
 import {
     Entity,
-    PrimaryColumn,
     ManyToOne,
     JoinColumn,
     CreateDateColumn,
@@ -19,15 +18,15 @@ export class NotificationEntity {
     @Column()
     type!: NotifType;
 
-    @Column()
+    @Column({ default: false })
     isSeen!: boolean;
 
-    @Column()
-    receiverId!: string;
+    // @Column()
+    // receiverId!: string;
 
-    @ManyToOne(() => UserEntity, (receiver) => receiver.receivedNotifs)
-    @JoinColumn({ name: 'receiverId' })
-    receiver!: UserEntity;
+    // @ManyToOne(() => UserEntity, (receiver) => receiver.receivedNotifs)
+    // @JoinColumn({ name: 'receiverId' })
+    // receiver!: UserEntity;
 
     @Column()
     emiterId!: string;

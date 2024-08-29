@@ -3,7 +3,7 @@ import { imageUrlPath } from '../../utility/path-adjuster';
 import { User } from '../User/model/user';
 import { UserService } from '../User/user.service';
 import { CreatePostDto } from './dto/create-post-dto';
-import { CreatePost, GetPostDao, GetPostsDao, Post } from './model/post';
+import { CreatePost, GetPostDao, GetPostsDao } from './model/post';
 import { CreateTag, Tag } from './model/tag';
 import { PostRepository } from './post.repository';
 import { EditPostDto } from './dto/edit-post-dto';
@@ -21,6 +21,7 @@ import { PaginationDto } from './dto/get-posts-dto';
 import { PostImageEntity } from './entity/post-image.entity';
 import { FileParser } from '../../utility/file-parser';
 import { PostImageRepository } from './image.repository';
+import { NotifService } from '../Notification/notif.service';
 
 export class PostService {
     constructor(
@@ -31,7 +32,8 @@ export class PostService {
         private tagRepo: TagRepository,
         private userService: UserService,
         private bookmarkRepo: BookmarkRepository,
-        private imageRepo: PostImageRepository
+        private imageRepo: PostImageRepository,
+        private notifRepo: NotifService
     ) {}
 
     async getPostById(postId: string): Promise<GetPostDao> {
@@ -60,6 +62,7 @@ export class PostService {
         ]);
         return { ...formatedPost, likeCount, commentsCount, bookMarkCount };
     }
+
     async togglePostBookmark(userId: string, postId: string): Promise<string> {
         const bookmark = await this.bookmarkRepo.findBookmark(userId, postId);
 
@@ -292,6 +295,12 @@ export class PostService {
         }
 
         await this.postLikeRepo.save(likeId);
+
+        await this.notifRepo.createLikeNotif({
+            emiterId: likeId.userId,
+            postId: likeId.postId,
+        });
+
         return {
             message: 'liked post',
             likeCount: await this.postLikeRepo.countLikesForPost(likeId.postId),

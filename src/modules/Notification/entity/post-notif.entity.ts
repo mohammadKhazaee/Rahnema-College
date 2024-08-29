@@ -6,6 +6,7 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     OneToOne,
+    Column,
 } from 'typeorm';
 import { PostEntity } from '../../Post/entity/post.entity';
 import { NotificationEntity } from './notification.entity';
@@ -19,7 +20,7 @@ export class PostNotifEntity {
     @JoinColumn({ name: 'notifId' })
     notif!: NotificationEntity;
 
-    @PrimaryColumn()
+    @Column()
     postId!: string;
 
     @ManyToOne(() => PostEntity)
