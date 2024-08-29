@@ -137,7 +137,6 @@ export class FollowService {
 
             relation.status = 'blocked'
             await this.followRepo.upadte(relation)
-            return 'Blocked'
         }
 
         if (secondRelation) {
@@ -153,9 +152,8 @@ export class FollowService {
 
             relationToAdd.status = 'blocked'
             await this.followRepo.upadte(relationToAdd)
-            return 'Blocked'
         }
-
+        return 'Targeted user is blocked'
     }
 
     async getRelations(mainName: string, relatedName: string) {

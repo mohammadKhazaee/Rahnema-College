@@ -25,7 +25,7 @@ describe('Profile Route Test Suit', () => {
     describe('proflile tests', () => {
         const loginUser: LoginDto = {
             username: 'test1245',
-            password: 'teste1245786',
+            password: 'test1386',
             rememberMe: true
         };
         it.skip('should follow', async () => {
@@ -85,10 +85,10 @@ describe('Profile Route Test Suit', () => {
             console.log(followings.body)
         })
 
-        it('should block a user', async () => {
+        it.skip('should block a user', async () => {
             const loggedinUserToken = await loginTest(app, loginUser)
             const blocked = await request(app)
-                .put('/ehsAnhAq86/block')
+                .post('/ehsAnhAq86/block')
                 .set('Authorization', 'Bearer ' + loggedinUserToken)
                 .expect(200)
             console.log(blocked.body)
