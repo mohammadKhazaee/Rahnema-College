@@ -1,5 +1,5 @@
 import { DataSource, Repository } from 'typeorm';
-import { FindFollowing, Following } from './model/follow';
+import { FindFollowing, Following, UserRelationStatus } from './model/follow';
 import { UserRelationEntity } from './entity/following.entity';
 
 export class FollowRepository {
@@ -47,7 +47,7 @@ export class FollowRepository {
         });
     }
 
-    getFollowings(username: string, count: number, skipCount: number) {
+    getFollowings(username: string, count: number, skipCount: number, closeFriend?: string) {
         return this.followRepo.find({
             select: {
                 followed: { imageUrl: true },
@@ -59,5 +59,8 @@ export class FollowRepository {
             order: { createdAt: 'DESC' },
             relations: ['followed', 'follower'],
         });
+    }
+    updateRelationStatus(followerId: string, followedId: string, status: UserRelationStatus) {
+        return this.followRepo.update({ followerId, followedId }, { status });
     }
 }

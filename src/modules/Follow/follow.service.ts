@@ -165,6 +165,31 @@ export class FollowService {
         })
         return relations
     }
+    async addToCloseFriends(username: string, friendUsername: string) {
+        if (username === friendUsername)
+            throw new ForbiddenError('User cannot add themselves as a close friend');
+
+        const friend = await this.userService.doesUserExists({ username: friendUsername });
+
+        if ( !friend) throw new NotFoundError(' Friend not found');
+
+        const relation = await this.followRepo.fetchFollowing({
+            followerId: username,
+            followedId: friendUsername,
+        });
 
 
+        if (relation && relation.status === 'friend')
+            throw new ForbiddenError('User is already a close friend');
+
+        if (!relation || relation.status !== 'follow')
+            throw new ForbiddenError('You can only add followers as close friends');
+
+        
+
+        relation.status = 'friend';
+        await this.followRepo.upadte(relation);
+        return 'Added to close friends';
+    }
 }
+

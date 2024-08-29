@@ -94,7 +94,21 @@ export const profileRouter = (
         handleExpress(res, 200, next, async () => ({
             message: await followService.blockUser(related, req.username)
         }))
-    })
+    });
+    app.post(
+        '/:username/friend',
+        isAuthenticated(userService),
+        (req, res, next) => {
+            const currentUser = req.username;
+            const friendUsername = req.params.username;
+            handleExpress(res, 200, next, async () => ({
+                message: await followService.addToCloseFriends(
+                    currentUser,
+                    friendUsername
+                ),
+            }));
+        }
+    );
 
     return app;
 };
