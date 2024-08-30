@@ -48,6 +48,17 @@ export class UserRelationRepository {
         return this.followRepo.findOne({ where });
     }
 
+    async doesRelationExist({ followedId, followerId, status = [] }: FindUserRelation) {
+        const where: FindOptionsWhere<UserRelationEntity> = {
+            followedId,
+            followerId,
+        };
+        if (status.length > 0) where.status = In(status);
+
+        const count = await this.followRepo.count({ where });
+        return count > 0;
+    }
+
     getFollowers(username: string, count: number, skipCount: number) {
         return this.followRepo.find({
             select: {
@@ -76,11 +87,7 @@ export class UserRelationRepository {
         });
     }
 
-    updateRelationStatus(
-        followerId: string,
-        followedId: string,
-        status: UserRelationStatus
-    ) {
+    updateRelationStatus(followerId: string, followedId: string, status: UserRelationStatus) {
         return this.followRepo.update({ followerId, followedId }, { status });
     }
 }

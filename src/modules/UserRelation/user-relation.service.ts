@@ -13,26 +13,34 @@ export class UserRelationService {
     ) {}
 
     async followRequest(followerId: string, followedId: string) {
-        if (followerId === followedId)
-            throw new ForbiddenError('user cant follow themself');
+        if (followerId === followedId) throw new ForbiddenError('user cant follow themself');
 
         const followed = await this.userService.doesUserExists({
             username: followedId,
         });
         if (!followed) throw new NotFoundError('Targeted user was not found');
 
+        if (
+            await this.followRepo.doesRelationExist({
+                followerId: followedId,
+                followedId: followerId,
+                status: ['blocked'],
+            })
+        )
+            throw new ForbiddenError('cant follow someone who has blocked you');
+
         const followingIds: FindUserRelation = {
             followerId,
             followedId,
-            status: ['follow', 'friend'],
         };
 
-        const fetchedfollowing = await this.followRepo.fetchRelation(
-            followingIds
-        );
+        const fetchedfollowing = await this.followRepo.fetchRelation(followingIds);
 
-        if (fetchedfollowing)
-            throw new ForbiddenError('already following the user');
+        if (fetchedfollowing && fetchedfollowing.status === 'blocked')
+            throw new ForbiddenError('cant follow a blokced user');
+        if (fetchedfollowing && fetchedfollowing.status === 'requestedFollow')
+            throw new ForbiddenError('already sent request');
+        if (fetchedfollowing) throw new ForbiddenError('already following the user');
 
         const follow = await this.followRepo.create({
             ...followingIds,
@@ -47,8 +55,7 @@ export class UserRelationService {
     }
 
     async unfollowUser(followerId: string, followedId: string) {
-        if (followerId === followedId)
-            throw new ForbiddenError('user cant unfollow themself');
+        if (followerId === followedId) throw new ForbiddenError('user cant unfollow themself');
 
         const [follower, followed] = await Promise.all([
             this.userService.doesUserExists({ username: followerId }),
@@ -62,9 +69,7 @@ export class UserRelationService {
             status: ['follow', 'friend'],
         };
 
-        const fetchedFollowing = await this.followRepo.fetchRelation(
-            followingIds
-        );
+        const fetchedFollowing = await this.followRepo.fetchRelation(followingIds);
         if (!fetchedFollowing)
             throw new ForbiddenError(
                 "user can't unfallow another user if didn't follow them first"
@@ -95,19 +100,13 @@ export class UserRelationService {
         if (!user) throw new NotFoundError();
 
         const skip = (page - 1) * count;
-        const followersList = await this.followRepo.getFollowers(
-            username,
-            count,
-            skip
-        );
+        const followersList = await this.followRepo.getFollowers(username, count, skip);
 
         return Promise.all(
             followersList.map(async (f) => ({
                 username: f.followerId,
                 imageUrl: f.follower.imageUrl,
-                followersCount: await this.followRepo.followersCount(
-                    f.followerId
-                ),
+                followersCount: await this.followRepo.followersCount(f.followerId),
             }))
         );
     }
@@ -120,25 +119,18 @@ export class UserRelationService {
         if (!user) throw new NotFoundError();
 
         const skip = (page - 1) * count;
-        const followingsList = await this.followRepo.getFollowings(
-            username,
-            count,
-            skip
-        );
+        const followingsList = await this.followRepo.getFollowings(username, count, skip);
         return Promise.all(
             followingsList.map(async (f) => ({
                 username: f.followedId,
                 imageUrl: f.followed.imageUrl,
-                followersCount: await this.followRepo.followersCount(
-                    f.followedId
-                ),
+                followersCount: await this.followRepo.followersCount(f.followedId),
             }))
         );
     }
 
     async blockUser(blockedName: string, blockerName: string) {
-        if (blockedName === blockerName)
-            throw new ForbiddenError('user cant block themself');
+        if (blockedName === blockerName) throw new ForbiddenError('user cant block themself');
 
         const relation = await this.followRepo.fetchRelation({
             followerId: blockerName,
@@ -174,9 +166,7 @@ export class UserRelationService {
 
     async addToCloseFriends(username: string, friendUsername: string) {
         if (username === friendUsername)
-            throw new ForbiddenError(
-                'User cannot add themselves as a close friend'
-            );
+            throw new ForbiddenError('User cannot add themselves as a close friend');
 
         const friend = await this.userService.doesUserExists({
             username: friendUsername,
@@ -193,9 +183,7 @@ export class UserRelationService {
             throw new ForbiddenError('User is already a close friend');
 
         if (!relation || relation.status !== 'follow')
-            throw new ForbiddenError(
-                'You can only add followers as close friends'
-            );
+            throw new ForbiddenError('You can only add followers as close friends');
 
         relation.status = 'friend';
         await this.followRepo.upadte(relation);
