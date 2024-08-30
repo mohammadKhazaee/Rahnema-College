@@ -17,8 +17,8 @@ import { postRouter } from './routes/post.route';
 import { PostRepository } from './modules/Post/post.repository';
 import { PostService } from './modules/Post/post.service';
 import { FileParser } from './utility/file-parser';
-import { FollowRepository } from './modules/Follow/follow.repository';
-import { FollowService } from './modules/Follow/follow.service';
+import { UserRelationRepository } from './modules/UserRelation/user-relation.repository';
+import { UserRelationService } from './modules/UserRelation/user-relation.service';
 import { TagRepository } from './modules/Post/tag.repository';
 import { PostCommentRepository } from './modules/Post/post-comment.repository';
 import { SocialService } from './services/social.service';
@@ -29,6 +29,7 @@ import { PostImageRepository } from './modules/Post/image.repository';
 import { NotifService } from './modules/Notification/notif.service';
 import { NotifRepository } from './modules/Notification/notif.repository';
 import { PostNotifRepository } from './modules/Notification/post-notif.repository';
+import { FollowNotifRepository } from './modules/Notification/follow-notif.repository';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -76,7 +77,7 @@ export const appFactory = (dataSource: DataSource) => {
     // initializing repositories
     const postImageRepo = new PostImageRepository(dataSource);
     const userRepo = new UserRepository(dataSource);
-    const followRepo = new FollowRepository(dataSource);
+    const followRepo = new UserRelationRepository(dataSource);
     const postRepo = new PostRepository(dataSource);
     const postCommentRepo = new PostCommentRepository(dataSource);
     const commentLikeRepo = new CommentLikeRepository(dataSource);
@@ -85,12 +86,21 @@ export const appFactory = (dataSource: DataSource) => {
     const tagRepo = new TagRepository(dataSource);
     const notifRepo = new NotifRepository(dataSource);
     const postNotifRepo = new PostNotifRepository(dataSource);
+    const followNotifRepo = new FollowNotifRepository(dataSource);
 
     // initializing services
     const userService = new UserService(userRepo);
-    const notifService = new NotifService(notifRepo, postNotifRepo);
+    const notifService = new NotifService(
+        notifRepo,
+        postNotifRepo,
+        followNotifRepo
+    );
     const authService = new AuthService(userService, new GmailHandler());
-    const followService = new FollowService(followRepo, userService);
+    const followService = new UserRelationService(
+        followRepo,
+        userService,
+        notifService
+    );
 
     const postService = new PostService(
         postRepo,

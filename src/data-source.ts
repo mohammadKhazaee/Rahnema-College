@@ -9,9 +9,10 @@ import { PostCommentEntity } from './modules/Post/entity/post-comment.entity';
 import { PostLikeEntity } from './modules/Post/entity/post-Likes.entity';
 import { BookmarkEntity } from './modules/Post/entity/bookmark.entity';
 import { CommentLikeEntity } from './modules/Post/entity/comment-Likes.entity';
-import { UserRelationEntity } from './modules/Follow/entity/following.entity';
+import { UserRelationEntity } from './modules/UserRelation/entity/user-relation.entity';
 import { NotificationEntity } from './modules/Notification/entity/notification.entity';
 import { PostNotifEntity } from './modules/Notification/entity/post-notif.entity';
+import { FollowNotifEntity } from './modules/Notification/entity/follow-notif.entity';
 dotenv.config();
 
 export const AppDataSource = new DataSource({
@@ -35,6 +36,7 @@ export const AppDataSource = new DataSource({
         CommentLikeEntity,
         NotificationEntity,
         PostNotifEntity,
+        FollowNotifEntity,
     ],
     migrations: [],
     subscribers: [],

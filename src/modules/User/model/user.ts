@@ -1,4 +1,4 @@
-import { Following } from '../../Follow/model/follow';
+import { UserRelation } from '../../UserRelation/model/user-relation';
 import { PostEntity } from '../../Post/entity/post.entity';
 
 export interface User {
@@ -11,8 +11,8 @@ export interface User {
     bio: string;
     isPrivate: boolean;
     posts?: PostEntity[];
-    followings?: Following[];
-    followers?: Following[];
+    followings?: UserRelation[];
+    followers?: UserRelation[];
     mentions?: PostEntity[];
 }
 

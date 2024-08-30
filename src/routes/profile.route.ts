@@ -4,14 +4,14 @@ import { isAuthenticated } from '../login-middleware';
 import { editProfileDto } from '../modules/User/dto/edit-profile-dto';
 import { UserService } from '../modules/User/user.service';
 import { SocialService } from '../services/social.service';
-import { FollowService } from '../modules/Follow/follow.service';
-import { followListDto } from '../modules/Follow/dto/follow-list-dto';
+import { UserRelationService } from '../modules/UserRelation/user-relation.service';
+import { followListDto } from '../modules/UserRelation/dto/follow-list-dto';
 import { FileParser } from '../utility/file-parser';
 
 export const profileRouter = (
     userService: UserService,
     socialService: SocialService,
-    followService: FollowService,
+    followService: UserRelationService,
     fileParser: FileParser
 ) => {
     const app = Router();
@@ -38,14 +38,14 @@ export const profileRouter = (
         }
     );
 
-    app.patch(
-        '/follow/:username',
+    app.post(
+        '/:username/follow/req',
         isAuthenticated(userService),
         (req, res, next) => {
             const followerName = req.username;
             const followedUserName = req.params.username;
             handleExpress(res, 200, next, async () => ({
-                message: await followService.followUser(
+                message: await followService.followRequest(
                     followerName,
                     followedUserName
                 ),
@@ -88,13 +88,16 @@ export const profileRouter = (
         }));
     });
 
-
-    app.post('/:username/block', isAuthenticated(userService), (req, res, next) => {
-        const related = req.params.username
-        handleExpress(res, 200, next, async () => ({
-            message: await followService.blockUser(related, req.username)
-        }))
-    });
+    app.post(
+        '/:username/block',
+        isAuthenticated(userService),
+        (req, res, next) => {
+            const related = req.params.username;
+            handleExpress(res, 200, next, async () => ({
+                message: await followService.blockUser(related, req.username),
+            }));
+        }
+    );
     app.post(
         '/:username/friend',
         isAuthenticated(userService),

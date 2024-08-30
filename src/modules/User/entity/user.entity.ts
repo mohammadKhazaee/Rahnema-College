@@ -11,7 +11,7 @@ import { PostEntity } from '../../Post/entity/post.entity';
 import { PostCommentEntity } from '../../Post/entity/post-comment.entity';
 import { PostLikeEntity } from '../../Post/entity/post-Likes.entity';
 import { BookmarkEntity } from '../../Post/entity/bookmark.entity';
-import { UserRelationEntity } from '../../Follow/entity/following.entity';
+import { UserRelationEntity } from '../../UserRelation/entity/user-relation.entity';
 import { NotificationEntity } from '../../Notification/entity/notification.entity';
 
 @Entity('users')

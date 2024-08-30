@@ -188,7 +188,7 @@ export class PostService {
         if (!mentionedUsers.every((u) => u !== null))
             throw new HttpError(404, 'couldnt find mentioned user');
 
-        return mentionedUsers;
+        return mentionedUsers as any;
     }
 
     async getUserPosts(

@@ -1,11 +1,11 @@
-import { FollowService } from '../modules/Follow/follow.service';
+import { UserRelationService } from '../modules/UserRelation/user-relation.service';
 import { PostService } from '../modules/Post/post.service';
 import { UserProfileDao } from '../modules/User/model/user';
 import { UserService } from '../modules/User/user.service';
 export class SocialService {
     constructor(
         private userService: UserService,
-        private followService: FollowService,
+        private followService: UserRelationService,
         private postService: PostService
     ) {}
 

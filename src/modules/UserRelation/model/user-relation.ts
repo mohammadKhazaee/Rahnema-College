@@ -9,16 +9,24 @@ export const userRelationStatus = {
 
 export type UserRelationStatus = keyof typeof userRelationStatus;
 
-export interface Following {
+export interface UserRelation {
     followerId: string;
     follower: User;
     followedId: string;
     followed: User;
 }
 
-export interface FindFollowing {
+export interface UserRelationId {
     followerId: string;
     followedId: string;
+}
+
+export interface CreateUserRelation extends UserRelationId {
+    status: UserRelationStatus;
+}
+
+export interface FindUserRelation extends UserRelationId {
+    status?: UserRelationStatus[];
 }
 
 export interface GetFollowListDao {

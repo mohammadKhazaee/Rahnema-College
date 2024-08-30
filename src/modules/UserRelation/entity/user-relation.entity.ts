@@ -4,22 +4,25 @@ import {
     UpdateDateColumn,
     ManyToOne,
     JoinColumn,
-    PrimaryColumn,
     Column,
+    PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserEntity } from '../../User/entity/user.entity';
-import { userRelationStatus, UserRelationStatus } from '../model/follow';
+import { userRelationStatus, UserRelationStatus } from '../model/user-relation';
 
 @Entity('user_relations')
 export class UserRelationEntity {
-    @PrimaryColumn()
+    @PrimaryGeneratedColumn('uuid')
+    relationId!: string;
+
+    @Column()
     followerId!: string;
 
     @ManyToOne(() => UserEntity, (follower) => follower.followings)
     @JoinColumn({ name: 'followerId' })
     follower!: UserEntity;
 
-    @PrimaryColumn()
+    @Column()
     followedId!: string;
 
     @ManyToOne(() => UserEntity, (followed) => followed.followers)
