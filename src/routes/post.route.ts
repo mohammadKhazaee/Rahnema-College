@@ -60,20 +60,14 @@ export const postRouter = (
         }));
     });
 
-    app.post(
-        '/:postId/comments',
-        isAuthenticated(userService),
-        (req, res, next) => {
-            const dto = createCommentDto.parse({
-                ...req.body,
-                postId: req.params.postId,
-                commentId: req.params.commentId,
-            });
-            handleExpress(res, 201, next, () =>
-                postService.createComment(dto, req.username)
-            );
-        }
-    );
+    app.post('/:postId/comments', isAuthenticated(userService), (req, res, next) => {
+        const dto = createCommentDto.parse({
+            ...req.body,
+            postId: req.params.postId,
+            commentId: req.params.commentId,
+        });
+        handleExpress(res, 201, next, () => postService.createComment(dto, req.username));
+    });
 
     app.get('/:postId/comments', (req, res, next) => {
         const dto = paginationDto.parse(req.query);
@@ -82,31 +76,32 @@ export const postRouter = (
         }));
     });
 
-    app.post(
-        '/:postId/like',
-        isAuthenticated(userService),
-        (req, res, next) => {
-            handleExpress(res, 201, next, () =>
-                postService.togglePostLike({
-                    postId: req.params.postId,
-                    userId: req.username,
-                })
-            );
-        }
-    );
+    app.post('/:postId/like', isAuthenticated(userService), (req, res, next) => {
+        handleExpress(res, 201, next, () =>
+            postService.togglePostLike({
+                postId: req.params.postId,
+                userId: req.username,
+            })
+        );
+    });
 
-    app.post(
-        '/comments/:commentId/like',
-        isAuthenticated(userService),
-        (req, res, next) => {
-            handleExpress(res, 201, next, () =>
-                postService.toggleCommentLike({
-                    commentId: req.params.commentId,
-                    userId: req.username,
-                })
-            );
-        }
-    );
+    app.post('/:postId/bookmark', isAuthenticated(userService), (req, res, next) => {
+        handleExpress(res, 201, next, () =>
+            postService.togglePostBookmark({
+                postId: req.params.postId,
+                userId: req.username,
+            })
+        );
+    });
+
+    app.post('/comments/:commentId/like', isAuthenticated(userService), (req, res, next) => {
+        handleExpress(res, 201, next, () =>
+            postService.toggleCommentLike({
+                commentId: req.params.commentId,
+                userId: req.username,
+            })
+        );
+    });
 
     return app;
 };
