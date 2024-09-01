@@ -53,13 +53,14 @@ export const appFactory = (dataSource: DataSource) => {
     app.use(
         morgan(
             '[:date] ' +
-                ':method::url :status ' +
-                'length::res[content-length] - :response-time[1] ms ' +
-                'authHeader::authHeader'
+            ':method::url :status ' +
+            'length::res[content-length] - :response-time[1] ms ' +
+            'authHeader::authHeader'
         )
     );
 
     app.use((req, res, next) => {
+        console.log(req.body)
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader(
             'Access-Control-Allow-Methods',
@@ -121,7 +122,7 @@ export const appFactory = (dataSource: DataSource) => {
     );
 
     app.use('/auth', authRouter(authService));
-    app.use('/posts', postRouter(postService, userService, fileParser));
+    app.use('/posts', postRouter(postService, userService, fileParser, socialService));
     app.use(
         profileRouter(userService, socialService, followService, fileParser)
     );

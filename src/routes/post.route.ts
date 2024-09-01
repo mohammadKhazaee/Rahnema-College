@@ -9,11 +9,13 @@ import { z } from 'zod';
 import { editPostDto } from '../modules/Post/dto/edit-post-dto';
 import { createCommentDto } from '../modules/Post/dto/create-comment.dto';
 import { paginationDto } from '../modules/Post/dto/get-posts-dto';
+import { SocialService } from '../services/social.service';
 
 export const postRouter = (
     postService: PostService,
     userService: UserService,
-    fileParser: FileParser
+    fileParser: FileParser,
+    socialService: SocialService
 ) => {
     const app = Router();
 
@@ -102,6 +104,15 @@ export const postRouter = (
             })
         );
     });
+
+    app.get('/explore/page', isAuthenticated(userService), (req, res, next) => {
+        const username = req.username
+        console.log(username)
+        handleExpress(res, 200, next, () =>
+            socialService.getSocialExplore(username)
+        )
+    })
+
 
     return app;
 };

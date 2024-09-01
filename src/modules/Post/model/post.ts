@@ -55,3 +55,34 @@ export interface UpdatePost {
     tags?: CreateTag[];
     mentions?: User[];
 }
+
+export interface explorePostsDto {
+    postId: string,
+    creator: {
+        imageUrl: string,
+        username: string,
+        followersCount: number,
+    },
+    postImage: string,
+    username: string,
+    commentCount: number,
+    isLiked: boolean,
+    likeCount: number,
+    isBookMarked: boolean,
+    bookmarkCount: number,
+}
+
+export interface postServiceExploreDto {
+    postId: string,
+    creator: {
+        imageUrl: string,
+        username: string,
+    },
+    postImage: string,
+    username: string,
+    commentCount: number,
+    isLiked: boolean,
+    likeCount: number,
+    isBookMarked: boolean,
+    bookmarkCount: number,
+}

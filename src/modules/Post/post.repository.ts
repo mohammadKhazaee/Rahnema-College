@@ -1,12 +1,13 @@
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, In } from 'typeorm';
 import { CreatePost, Post, PostWithImages, UpdatePost } from './model/post';
 import { PostEntity } from './entity/post.entity';
+import { UserRelationEntity } from '../UserRelation/entity/user-relation.entity';
 
 export class PostRepository {
     private postRepo: Repository<PostEntity>;
 
-    constructor(dataSource: DataSource) {
-        this.postRepo = dataSource.getRepository(PostEntity);
+    constructor(private dataSource: DataSource) {
+        this.postRepo = this.dataSource.getRepository(PostEntity);
     }
 
     getPosts(
@@ -57,5 +58,23 @@ export class PostRepository {
 
     countPostsByUsername(username: string): Promise<number> {
         return this.postRepo.count({ where: { creatorId: username } });
+    }
+
+    async explorePosts(mainName: string) {
+        const followings = (await this.dataSource.manager.find(UserRelationEntity, { where: { followerId: mainName }, select: ['followedId'] })).map(f => f.followedId)
+        console.log(followings)
+        const posts = await this.postRepo.find({
+            order: {
+                createdAt: 'DESC'
+            },
+            where: {
+                creatorId: In([...followings])
+            }, relations: {
+                creator: true,
+                images: true
+            }
+        })
+        console.log(posts)
+        return posts
     }
 }
