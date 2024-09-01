@@ -2,7 +2,7 @@ import { ForbiddenError, NotFoundError } from '../../utility/errors';
 import { UserService } from '../User/user.service';
 import { FollowListDto } from './dto/follow-list-dto';
 import { UserRelationRepository } from './user-relation.repository';
-import { FindUserRelation, GetFollowListDao } from './model/user-relation';
+import { FindUserRelation, GetFollowListDao, UserRelationId } from './model/user-relation';
 import { NotifService } from '../Notification/notif.service';
 
 export class UserRelationService {
@@ -12,7 +12,7 @@ export class UserRelationService {
         private notifService: NotifService
     ) {}
 
-    async followRequest(followerId: string, followedId: string) {
+    async followRequest({ followerId, followedId }: UserRelationId) {
         if (followerId === followedId) throw new ForbiddenError('user cant follow themself');
 
         const followed = await this.userService.doesUserExists({
@@ -46,12 +46,30 @@ export class UserRelationService {
             ...followingIds,
             status: 'requestedFollow',
         });
+
         await this.notifService.createFollowNotif({
             emiterId: followerId,
             followId: follow.relationId,
         });
 
         return `follow request sent`;
+    }
+
+    async followCancel({ followerId, followedId }: UserRelationId) {
+        if (followerId === followedId) throw new ForbiddenError();
+
+        const followingIds: FindUserRelation = {
+            followerId,
+            followedId,
+            status: ['requestedFollow'],
+        };
+
+        const existingFollowReq = await this.followRepo.fetchRelation(followingIds);
+        if (!existingFollowReq) throw new ForbiddenError('no follow request exist');
+
+        await this.followRepo.deleteRequestedFollow(followingIds);
+
+        return `follow request canceled`;
     }
 
     async unfollowUser(followerId: string, followedId: string) {

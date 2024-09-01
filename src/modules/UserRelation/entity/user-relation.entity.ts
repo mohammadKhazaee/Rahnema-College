@@ -18,14 +18,14 @@ export class UserRelationEntity {
     @Column()
     followerId!: string;
 
-    @ManyToOne(() => UserEntity, (follower) => follower.followings)
+    @ManyToOne(() => UserEntity, (follower) => follower.followings, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'followerId' })
     follower!: UserEntity;
 
     @Column()
     followedId!: string;
 
-    @ManyToOne(() => UserEntity, (followed) => followed.followers)
+    @ManyToOne(() => UserEntity, (followed) => followed.followers, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'followedId' })
     followed!: UserEntity;
 

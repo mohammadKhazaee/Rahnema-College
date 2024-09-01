@@ -15,14 +15,14 @@ export class FollowNotifEntity {
     @PrimaryColumn()
     notifId!: string;
 
-    @OneToOne(() => NotificationEntity)
+    @OneToOne(() => NotificationEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'notifId' })
     notif!: NotificationEntity;
 
     @Column()
     followId!: string;
 
-    @OneToOne(() => UserRelationEntity)
+    @OneToOne(() => UserRelationEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'followId' })
     follow!: UserRelationEntity;
 

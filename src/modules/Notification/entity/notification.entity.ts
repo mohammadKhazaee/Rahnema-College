@@ -21,17 +21,10 @@ export class NotificationEntity {
     @Column({ default: false })
     isSeen!: boolean;
 
-    // @Column()
-    // receiverId!: string;
-
-    // @ManyToOne(() => UserEntity, (receiver) => receiver.receivedNotifs)
-    // @JoinColumn({ name: 'receiverId' })
-    // receiver!: UserEntity;
-
     @Column()
     emiterId!: string;
 
-    @ManyToOne(() => UserEntity, (emiter) => emiter.emitedNotifs)
+    @ManyToOne(() => UserEntity, (emiter) => emiter.emitedNotifs, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'emiterId' })
     emiter!: UserEntity;
 

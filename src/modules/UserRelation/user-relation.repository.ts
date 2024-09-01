@@ -6,12 +6,14 @@ import {
     UserRelationId,
     UserRelationStatus,
 } from './model/user-relation';
+import { FollowNotifEntity } from '../Notification/entity/follow-notif.entity';
+import { NotificationEntity } from '../Notification/entity/notification.entity';
 
 export class UserRelationRepository {
     private followRepo: Repository<UserRelationEntity>;
 
-    constructor(dataSource: DataSource) {
-        this.followRepo = dataSource.getRepository(UserRelationEntity);
+    constructor(private dataSource: DataSource) {
+        this.followRepo = this.dataSource.getRepository(UserRelationEntity);
     }
 
     create(createRelationData: CreateUserRelation) {
@@ -24,6 +26,27 @@ export class UserRelationRepository {
 
     delete({ followedId, followerId }: UserRelationId) {
         return this.followRepo.delete({ followedId, followerId });
+    }
+
+    deleteRequestedFollow({ followedId, followerId }: UserRelationId): Promise<void> {
+        return this.dataSource.transaction(async (entityManager) => {
+            const relation = await entityManager.findOneBy(UserRelationEntity, {
+                followedId,
+                followerId,
+            });
+            if (!relation) throw new Error();
+
+            const deletedFollowNotif = await entityManager.findOneBy(FollowNotifEntity, {
+                followId: relation.relationId,
+            });
+            if (!deletedFollowNotif) throw new Error();
+
+            // delete pending follow & notif follow entity
+            await entityManager.remove(UserRelationEntity, relation);
+
+            // delete base notif entity
+            entityManager.delete(NotificationEntity, deletedFollowNotif.notifId);
+        });
     }
 
     followersCount(username: string) {
