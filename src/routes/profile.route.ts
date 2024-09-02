@@ -44,15 +44,23 @@ export const profileRouter = (
         const followerId = req.username;
         const followedId = req.params.username;
         handleExpress(res, 200, next, async () => ({
-            message: await followService.followCancel({ followerId, followedId }),
+            message: await followService.followCancel({ followerId, followedId }, 'cancel'),
         }));
     });
 
     app.post('/:username/follow/accept', isAuthenticated(userService), (req, res, next) => {
-        const followerId = req.username;
-        const followedId = req.params.username;
+        const followedId = req.username;
+        const followerId = req.params.username;
         handleExpress(res, 200, next, async () => ({
             message: await followService.followAccept({ followerId, followedId }),
+        }));
+    });
+
+    app.post('/:username/follow/reject', isAuthenticated(userService), (req, res, next) => {
+        const followedId = req.username;
+        const followerId = req.params.username;
+        handleExpress(res, 200, next, async () => ({
+            message: await followService.followCancel({ followerId, followedId }, 'reject'),
         }));
     });
 

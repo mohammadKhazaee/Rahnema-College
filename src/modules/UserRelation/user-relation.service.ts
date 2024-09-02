@@ -52,7 +52,7 @@ export class UserRelationService {
         return `follow request sent`;
     }
 
-    async followCancel({ followerId, followedId }: UserRelationId) {
+    async followCancel({ followerId, followedId }: UserRelationId, type: 'cancel' | 'reject') {
         if (followerId === followedId) throw new ForbiddenError();
 
         const followingIds: FindUserRelation = {
@@ -66,7 +66,7 @@ export class UserRelationService {
 
         await this.followRepo.deleteRequestedFollow(existingFollowReq);
 
-        return `follow request canceled`;
+        return `follow request ${type}ed`;
     }
 
     async followAccept({ followerId, followedId }: UserRelationId) {

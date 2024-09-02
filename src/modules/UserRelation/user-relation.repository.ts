@@ -64,9 +64,6 @@ export class UserRelationRepository {
                 status: 'follow',
             });
 
-            // notif follow entity
-            // await entityManager.update(FollowNotifEntity, relation);
-
             // delete base notif entity
             await entityManager.update(NotificationEntity, followNotif.notifId, {
                 type: 'acceptedFollow',
