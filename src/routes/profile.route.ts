@@ -83,6 +83,12 @@ export const profileRouter = (
             message: await followService.addToCloseFriends(currentUser, friendUsername),
         }));
     });
+    app.get('/:username/close-friends', isAuthenticated(userService), (req, res, next) => {
+        const username = req.username;
+        handleExpress(res, 200, next, async () => ({
+            friends: await followService.getCloseFriendsList(username),
+        }));
+    });
 
     return app;
 };

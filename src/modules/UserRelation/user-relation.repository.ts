@@ -113,4 +113,15 @@ export class UserRelationRepository {
     updateRelationStatus(followerId: string, followedId: string, status: UserRelationStatus) {
         return this.followRepo.update({ followerId, followedId }, { status });
     }
+    getCloseFriends(username: string) {
+        return this.followRepo.find({
+            select: {
+                followed: { imageUrl: true },
+                follower: {},
+            },
+            where: { followerId: username, status: 'friend' },
+            order: { createdAt: 'DESC' },
+            relations: ['followed', 'follower'],
+        });
+    }
 }

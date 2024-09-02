@@ -207,4 +207,14 @@ export class UserRelationService {
         await this.followRepo.upadte(relation);
         return 'Added to close friends';
     }
+    async getCloseFriendsList(username: string): Promise<GetFollowListDao[]> {
+        const closeFriends = await this.followRepo.getCloseFriends(username);
+        return Promise.all(
+            closeFriends.map(async (f) => ({
+                username: f.followedId,
+                imageUrl: f.followed.imageUrl,
+                followersCount: await this.followRepo.followersCount(f.followedId),
+            }))
+        );
+    }
 }
