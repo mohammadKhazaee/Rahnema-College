@@ -19,10 +19,7 @@ export const singupTest = async (
 
 //@ts-ignore
 export const loginTest = async (app: Express, dto: LoginDto) => {
-    const { body: userToken } = await request(app)
-        .post('/auth/login')
-        .send(dto)
-        .expect(200);
+    const { body: userToken } = await request(app).post('/auth/login').send(dto).expect(200);
     return userToken.token;
 };
 
@@ -38,10 +35,7 @@ export const createPostTest = async (
         .set('Authorization', 'Bearer ' + jwt)
         .field('caption', dto.caption)
         .attach('images', path.resolve(__dirname, '../files/test_image.png'))
-        .attach(
-            'images',
-            path.resolve(__dirname, '../', 'files', 'test_image3.png')
-        );
+        .attach('images', path.resolve(__dirname, '../', 'files', 'test_image3.png'));
     for (let i = 0; i < dto.mentions.length; i++) {
         partialRequest.field(`mentions[${i}]`, dto.mentions[i]);
     }
@@ -64,6 +58,19 @@ export const createCommentTest = async (
         .expect(statusCode);
 
     return createdComment;
+};
+
+export const followReqTest = (
+    //@ts-ignore
+    app: Express,
+    followedId: string,
+    followerToken: string,
+    statusCode: number
+) => {
+    return request(app)
+        .post(`/${followedId}/follow/req`)
+        .set('Authorization', 'Bearer ' + followerToken)
+        .expect(statusCode);
 };
 
 export const generateTokenForReset = (user: User) => {

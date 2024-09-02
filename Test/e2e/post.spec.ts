@@ -4,12 +4,7 @@ import request from 'supertest';
 
 import { AppDataSource } from '../../src/data-source';
 import { appFactory } from '../../src/api';
-import {
-    createCommentTest,
-    createPostTest,
-    loginTest,
-    singupTest,
-} from './utility';
+import { createCommentTest, createPostTest, loginTest, singupTest } from './utility';
 import { SignupDto } from '../../src/modules/Auth/dto/signup-dto';
 import { CreatePostDto } from '../../src/modules/Post/dto/create-post-dto';
 import { EditPostDto } from '../../src/modules/Post/dto/edit-post-dto';
@@ -37,7 +32,7 @@ describe('Post route test suite', () => {
         await AppDataSource.destroy();
     });
 
-    describe.skip('Create post', () => {
+    describe('Create post', () => {
         it('should create a post for right input', async () => {
             const dummyUser: SignupDto = {
                 username: 'test',
@@ -73,7 +68,7 @@ describe('Post route test suite', () => {
         });
     });
 
-    describe.skip('Update post', () => {
+    describe('Update post', () => {
         it('should update a post for right input', async () => {
             const dummyUser: SignupDto = {
                 username: 'test',
@@ -103,23 +98,16 @@ describe('Post route test suite', () => {
                 rememberMe: false,
             });
 
-            const { createdPost: resultPost } = await createPostTest(
-                app,
-                dummyPost,
-                token,
-                201
-            );
+            const { createdPost: resultPost } = await createPostTest(app, dummyPost, token, 201);
 
             const updatePostDto: EditPostDto = {
                 caption: '',
                 mentions: [dummyUser2.username],
                 postId: resultPost.postId,
-                deletedImages: resultPost.images.map(
-                    (i: { url: any; imageId: any }) => ({
-                        url: i.url,
-                        imageId: i.imageId,
-                    })
-                ),
+                deletedImages: resultPost.images.map((i: { url: any; imageId: any }) => ({
+                    url: i.url,
+                    imageId: i.imageId,
+                })),
             };
 
             const partialRequest = request(app)
@@ -127,10 +115,7 @@ describe('Post route test suite', () => {
                 .set('Authorization', 'Bearer ' + token)
                 .field('caption', updatePostDto.caption);
             for (let i = 0; i < updatePostDto.mentions.length; i++) {
-                partialRequest.field(
-                    `mentions[${i}]`,
-                    updatePostDto.mentions[i]
-                );
+                partialRequest.field(`mentions[${i}]`, updatePostDto.mentions[i]);
             }
             for (let i = 0; i < updatePostDto.deletedImages.length; i++) {
                 partialRequest.field(
@@ -148,7 +133,7 @@ describe('Post route test suite', () => {
         });
     });
 
-    describe.skip('Get a post', () => {
+    describe('Get a post', () => {
         it('should retrieve a post successfully', async () => {
             const dummyUser: SignupDto = {
                 username: 'test',
@@ -171,12 +156,7 @@ describe('Post route test suite', () => {
                 rememberMe: false,
             });
 
-            const { createdPost } = await createPostTest(
-                app,
-                dummyPost,
-                token,
-                201
-            );
+            const { createdPost } = await createPostTest(app, dummyPost, token, 201);
 
             const { body: post } = await request(app)
                 .get('/posts/' + createdPost.postId)
@@ -186,7 +166,7 @@ describe('Post route test suite', () => {
         });
     });
 
-    describe.skip('Get user posts', () => {
+    describe('Get user posts', () => {
         it('should retrieve a post successfully', async () => {
             const dummyUser: SignupDto = {
                 username: 'test',
@@ -220,7 +200,7 @@ describe('Post route test suite', () => {
         });
     });
 
-    describe.skip('Create comment or replay', () => {
+    describe('Create comment or replay', () => {
         it('should submit a comment for a post', async () => {
             const dummyUser: SignupDto = {
                 username: 'test',
@@ -243,12 +223,7 @@ describe('Post route test suite', () => {
                 rememberMe: false,
             });
 
-            const { createdPost } = await createPostTest(
-                app,
-                dummyPost,
-                token,
-                201
-            );
+            const { createdPost } = await createPostTest(app, dummyPost, token, 201);
 
             const dummyComment: CreateCommentDto = {
                 type: 'comment',
@@ -256,12 +231,7 @@ describe('Post route test suite', () => {
                 postId: createdPost.postId,
             };
 
-            const createdComment = await createCommentTest(
-                app,
-                dummyComment,
-                token,
-                201
-            );
+            const createdComment = await createCommentTest(app, dummyComment, token, 201);
 
             expect(createdComment.content).toBe(dummyComment.content);
             expect(createdComment.commenterId).toBe(dummyUser.username);
@@ -289,12 +259,7 @@ describe('Post route test suite', () => {
                 rememberMe: false,
             });
 
-            const { createdPost } = await createPostTest(
-                app,
-                dummyPost,
-                token,
-                201
-            );
+            const { createdPost } = await createPostTest(app, dummyPost, token, 201);
 
             const dummyComment: CreateCommentDto = {
                 type: 'comment',
@@ -302,12 +267,7 @@ describe('Post route test suite', () => {
                 postId: createdPost.postId,
             };
 
-            const createdComment = await createCommentTest(
-                app,
-                dummyComment,
-                token,
-                201
-            );
+            const createdComment = await createCommentTest(app, dummyComment, token, 201);
 
             const dummyReplay: CreateCommentDto = {
                 type: 'replay',
@@ -316,19 +276,14 @@ describe('Post route test suite', () => {
                 parentId: createdComment.commentId,
             };
 
-            const createdReplay = await createCommentTest(
-                app,
-                dummyReplay,
-                token,
-                201
-            );
+            const createdReplay = await createCommentTest(app, dummyReplay, token, 201);
 
             expect(createdReplay.content).toBe(dummyReplay.content);
             expect(createdReplay.commenterId).toBe(dummyUser.username);
         });
     });
 
-    describe.skip('Get post comments', () => {
+    describe('Get post comments', () => {
         it('should response with list of comments', async () => {
             const dummyUser: SignupDto = {
                 username: 'test',
@@ -351,12 +306,7 @@ describe('Post route test suite', () => {
                 rememberMe: false,
             });
 
-            const { createdPost } = await createPostTest(
-                app,
-                dummyPost,
-                token,
-                201
-            );
+            const { createdPost } = await createPostTest(app, dummyPost, token, 201);
 
             const dummyComment: CreateCommentDto = {
                 type: 'comment',
@@ -364,19 +314,9 @@ describe('Post route test suite', () => {
                 postId: createdPost.postId,
             };
 
-            const createdComment = await createCommentTest(
-                app,
-                dummyComment,
-                token,
-                201
-            );
+            const createdComment = await createCommentTest(app, dummyComment, token, 201);
 
-            const createdComment2 = await createCommentTest(
-                app,
-                dummyComment,
-                token,
-                201
-            );
+            const createdComment2 = await createCommentTest(app, dummyComment, token, 201);
 
             const dummyReplay: CreateCommentDto = {
                 type: 'replay',
@@ -385,25 +325,18 @@ describe('Post route test suite', () => {
                 parentId: createdComment.commentId,
             };
 
-            const createdReplay = await createCommentTest(
-                app,
-                dummyReplay,
-                token,
-                201
-            );
+            const createdReplay = await createCommentTest(app, dummyReplay, token, 201);
 
             const {
                 body: { comments },
-            } = await request(app).get(
-                '/posts/' + createdPost.postId + '/comments'
-            );
+            } = await request(app).get('/posts/' + createdPost.postId + '/comments');
 
             expect(comments).toHaveLength(2);
             expect(comments[0].replays).toHaveLength(1);
         });
     });
 
-    describe.skip('Like post', () => {
+    describe('Like post', () => {
         it('should like the post', async () => {
             const dummyUser: SignupDto = {
                 username: 'test',
@@ -426,12 +359,7 @@ describe('Post route test suite', () => {
                 rememberMe: false,
             });
 
-            const { createdPost } = await createPostTest(
-                app,
-                dummyPost,
-                token,
-                201
-            );
+            const { createdPost } = await createPostTest(app, dummyPost, token, 201);
 
             await request(app)
                 .post('/posts/' + createdPost.postId + '/like')
@@ -446,7 +374,7 @@ describe('Post route test suite', () => {
         });
     });
 
-    describe.skip('Like comment', () => {
+    describe('Like comment', () => {
         it('should like the comment', async () => {
             const dummyUser: SignupDto = {
                 username: 'test',
@@ -469,12 +397,7 @@ describe('Post route test suite', () => {
                 rememberMe: false,
             });
 
-            const { createdPost } = await createPostTest(
-                app,
-                dummyPost,
-                token,
-                201
-            );
+            const { createdPost } = await createPostTest(app, dummyPost, token, 201);
 
             const dummyComment: CreateCommentDto = {
                 type: 'comment',
@@ -482,12 +405,7 @@ describe('Post route test suite', () => {
                 postId: createdPost.postId,
             };
 
-            const createdComment = await createCommentTest(
-                app,
-                dummyComment,
-                token,
-                201
-            );
+            const createdComment = await createCommentTest(app, dummyComment, token, 201);
 
             const dummyReplay: CreateCommentDto = {
                 type: 'replay',
@@ -496,12 +414,7 @@ describe('Post route test suite', () => {
                 parentId: createdComment.commentId,
             };
 
-            const createdReplay = await createCommentTest(
-                app,
-                dummyReplay,
-                token,
-                201
-            );
+            const createdReplay = await createCommentTest(app, dummyReplay, token, 201);
 
             await request(app)
                 .post('/posts/comments/' + createdComment.commentId + '/like')
@@ -516,9 +429,7 @@ describe('Post route test suite', () => {
 
             const {
                 body: { comments },
-            } = await request(app).get(
-                '/posts/' + createdPost.postId + '/comments'
-            );
+            } = await request(app).get('/posts/' + createdPost.postId + '/comments');
             console.log(comments);
 
             expect(comments[0].likeCount).toBe(1);

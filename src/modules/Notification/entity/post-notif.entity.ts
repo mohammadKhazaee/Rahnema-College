@@ -16,14 +16,14 @@ export class PostNotifEntity {
     @PrimaryColumn()
     notifId!: string;
 
-    @OneToOne(() => NotificationEntity)
+    @OneToOne(() => NotificationEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'notifId' })
     notif!: NotificationEntity;
 
     @Column()
     postId!: string;
 
-    @ManyToOne(() => PostEntity)
+    @ManyToOne(() => PostEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'postId' })
     post!: PostEntity;
 
