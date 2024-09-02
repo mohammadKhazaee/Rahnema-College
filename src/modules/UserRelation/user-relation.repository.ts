@@ -3,6 +3,7 @@ import { UserRelationEntity } from './entity/user-relation.entity';
 import {
     CreateUserRelation,
     FindUserRelation,
+    UserRelation,
     UserRelationId,
     UserRelationStatus,
 } from './model/user-relation';
@@ -20,6 +21,10 @@ export class UserRelationRepository {
         return this.followRepo.save(createRelationData);
     }
 
+    createEntity(createRelationData: CreateUserRelation) {
+        return this.followRepo.create(createRelationData);
+    }
+
     upadte({ followedId, followerId }: UserRelationId) {
         return this.followRepo.save({ followedId, followerId });
     }
@@ -28,20 +33,50 @@ export class UserRelationRepository {
         return this.followRepo.delete({ followedId, followerId });
     }
 
-    deleteRequestedFollow({ followedId, followerId }: UserRelationId): Promise<void> {
+    createFollowRequest(relation: UserRelationEntity): Promise<void> {
         return this.dataSource.transaction(async (entityManager) => {
-            const relation = await entityManager.findOneBy(UserRelationEntity, {
-                followedId,
-                followerId,
-            });
-            if (!relation) throw new Error();
+            // insert follow request relation
+            await entityManager.insert(UserRelationEntity, relation);
 
+            // save base notif record
+            const createdNotif = await entityManager.save(NotificationEntity, {
+                type: 'incommingReq',
+                emiterId: relation.followerId,
+            });
+
+            // save follow notif
+            await entityManager.save(FollowNotifEntity, {
+                notifId: createdNotif.notifId,
+                followId: relation.relationId,
+            });
+        });
+    }
+
+    acceptRequestedFollow(relation: UserRelationEntity): Promise<void> {
+        return this.dataSource.transaction(async (entityManager) => {
             const deletedFollowNotif = await entityManager.findOneBy(FollowNotifEntity, {
                 followId: relation.relationId,
             });
             if (!deletedFollowNotif) throw new Error();
 
-            // delete pending follow & notif follow entity
+            // update relation status to follow
+            await entityManager.update(UserRelationEntity, relation, { status: 'follow' });
+
+            // notif follow entity
+
+            // delete base notif entity
+            entityManager.delete(NotificationEntity, deletedFollowNotif.notifId);
+        });
+    }
+
+    deleteRequestedFollow(relation: UserRelationEntity): Promise<void> {
+        return this.dataSource.transaction(async (entityManager) => {
+            const deletedFollowNotif = await entityManager.findOneBy(FollowNotifEntity, {
+                followId: relation.relationId,
+            });
+            if (!deletedFollowNotif) throw new Error();
+
+            // delete pending follow & notif follow entity with cascade
             await entityManager.remove(UserRelationEntity, relation);
 
             // delete base notif entity

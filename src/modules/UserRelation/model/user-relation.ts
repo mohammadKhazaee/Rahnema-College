@@ -10,10 +10,12 @@ export const userRelationStatus = {
 export type UserRelationStatus = keyof typeof userRelationStatus;
 
 export interface UserRelation {
+    relationId: string;
     followerId: string;
-    follower: User;
+    follower?: User;
     followedId: string;
-    followed: User;
+    followed?: User;
+    status: UserRelationStatus;
 }
 
 export interface UserRelationId {

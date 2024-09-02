@@ -48,6 +48,14 @@ export const profileRouter = (
         }));
     });
 
+    app.post('/:username/follow/accept', isAuthenticated(userService), (req, res, next) => {
+        const followerId = req.username;
+        const followedId = req.params.username;
+        handleExpress(res, 200, next, async () => ({
+            message: await followService.followAccept({ followerId, followedId }),
+        }));
+    });
+
     app.patch('/unfollow/:username', isAuthenticated(userService), (req, res, next) => {
         const followerName = req.username;
         const followedUserName = req.params.username;

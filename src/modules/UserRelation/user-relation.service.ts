@@ -42,15 +42,12 @@ export class UserRelationService {
             throw new ForbiddenError('already sent request');
         if (fetchedfollowing) throw new ForbiddenError('already following the user');
 
-        const follow = await this.followRepo.create({
+        const followEntity = this.followRepo.createEntity({
             ...followingIds,
             status: 'requestedFollow',
         });
 
-        await this.notifService.createFollowNotif({
-            emiterId: followerId,
-            followId: follow.relationId,
-        });
+        await this.followRepo.createFollowRequest(followEntity);
 
         return `follow request sent`;
     }
@@ -67,9 +64,26 @@ export class UserRelationService {
         const existingFollowReq = await this.followRepo.fetchRelation(followingIds);
         if (!existingFollowReq) throw new ForbiddenError('no follow request exist');
 
-        await this.followRepo.deleteRequestedFollow(followingIds);
+        await this.followRepo.deleteRequestedFollow(existingFollowReq);
 
         return `follow request canceled`;
+    }
+
+    async followAccept({ followerId, followedId }: UserRelationId) {
+        if (followerId === followedId) throw new ForbiddenError();
+
+        const followingIds: FindUserRelation = {
+            followerId,
+            followedId,
+            status: ['requestedFollow'],
+        };
+
+        const existingFollowReq = await this.followRepo.fetchRelation(followingIds);
+        if (!existingFollowReq) throw new ForbiddenError('no follow request exist');
+
+        // await this.followRepo.acceptRequestedFollow(followingIds);
+
+        return `follow request accepted`;
     }
 
     async unfollowUser(followerId: string, followedId: string) {
