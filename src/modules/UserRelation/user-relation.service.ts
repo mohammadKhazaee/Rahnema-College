@@ -81,7 +81,7 @@ export class UserRelationService {
         const existingFollowReq = await this.followRepo.fetchRelation(followingIds);
         if (!existingFollowReq) throw new ForbiddenError('no follow request exist');
 
-        // await this.followRepo.acceptRequestedFollow(followingIds);
+        await this.followRepo.acceptRequestedFollow(existingFollowReq);
 
         return `follow request accepted`;
     }

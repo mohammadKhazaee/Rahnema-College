@@ -54,18 +54,24 @@ export class UserRelationRepository {
 
     acceptRequestedFollow(relation: UserRelationEntity): Promise<void> {
         return this.dataSource.transaction(async (entityManager) => {
-            const deletedFollowNotif = await entityManager.findOneBy(FollowNotifEntity, {
+            const followNotif = await entityManager.findOneBy(FollowNotifEntity, {
                 followId: relation.relationId,
             });
-            if (!deletedFollowNotif) throw new Error();
+            if (!followNotif) throw new Error();
 
             // update relation status to follow
-            await entityManager.update(UserRelationEntity, relation, { status: 'follow' });
+            await entityManager.update(UserRelationEntity, relation.relationId, {
+                status: 'follow',
+            });
 
             // notif follow entity
+            // await entityManager.update(FollowNotifEntity, relation);
 
             // delete base notif entity
-            entityManager.delete(NotificationEntity, deletedFollowNotif.notifId);
+            await entityManager.update(NotificationEntity, followNotif.notifId, {
+                type: 'acceptedFollow',
+                emiterId: relation.followedId,
+            });
         });
     }
 
