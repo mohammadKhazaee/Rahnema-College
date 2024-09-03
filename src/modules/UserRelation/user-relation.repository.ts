@@ -3,11 +3,9 @@ import { UserRelationEntity } from './entity/user-relation.entity';
 import {
     CreateUserRelation,
     FindUserRelation,
-    UserRelation,
     UserRelationId,
     UserRelationStatus,
 } from './model/user-relation';
-import { FollowNotifEntity } from '../Notification/entity/follow-notif.entity';
 import { NotificationEntity } from '../Notification/entity/notification.entity';
 
 export class UserRelationRepository {
@@ -38,52 +36,56 @@ export class UserRelationRepository {
             // insert follow request relation
             await entityManager.insert(UserRelationEntity, relation);
 
-            // save base notif record
-            const createdNotif = await entityManager.save(NotificationEntity, {
+            // save notif record
+            await entityManager.save(NotificationEntity, {
                 type: 'incommingReq',
                 emiterId: relation.followerId,
-            });
-
-            // save follow notif
-            await entityManager.save(FollowNotifEntity, {
-                notifId: createdNotif.notifId,
-                followId: relation.relationId,
+                receiverId: relation.followedId,
             });
         });
     }
 
     acceptRequestedFollow(relation: UserRelationEntity): Promise<void> {
         return this.dataSource.transaction(async (entityManager) => {
-            const followNotif = await entityManager.findOneBy(FollowNotifEntity, {
-                followId: relation.relationId,
-            });
-            if (!followNotif) throw new Error();
-
             // update relation status to follow
             await entityManager.update(UserRelationEntity, relation.relationId, {
                 status: 'follow',
             });
 
-            // delete base notif entity
-            await entityManager.update(NotificationEntity, followNotif.notifId, {
+            const notifEntity = await entityManager.findOneBy(NotificationEntity, {
+                emiterId: relation.followerId,
+                receiverId: relation.followedId,
+            });
+            if (!notifEntity) throw new Error();
+
+            // upadte notif entity for follower
+            await entityManager.update(NotificationEntity, notifEntity.notifId, {
                 type: 'acceptedFollow',
                 emiterId: relation.followedId,
+                receiverId: relation.followerId,
+            });
+            // create notif entity for user
+            await entityManager.save(NotificationEntity, {
+                type: 'acceptedFollow',
+                emiterId: relation.followedId,
+                receiverId: relation.followedId,
             });
         });
     }
 
     deleteRequestedFollow(relation: UserRelationEntity): Promise<void> {
         return this.dataSource.transaction(async (entityManager) => {
-            const deletedFollowNotif = await entityManager.findOneBy(FollowNotifEntity, {
-                followId: relation.relationId,
-            });
-            if (!deletedFollowNotif) throw new Error();
-
             // delete pending follow & notif follow entity with cascade
             await entityManager.remove(UserRelationEntity, relation);
 
-            // delete base notif entity
-            entityManager.delete(NotificationEntity, deletedFollowNotif.notifId);
+            const targetedNotif = await entityManager.findOneBy(NotificationEntity, {
+                emiterId: relation.followerId,
+                receiverId: relation.followedId,
+            });
+            if (!targetedNotif) throw new Error();
+
+            // delete notif entity
+            entityManager.delete(NotificationEntity, targetedNotif.notifId);
         });
     }
 
@@ -151,6 +153,7 @@ export class UserRelationRepository {
     updateRelationStatus(followerId: string, followedId: string, status: UserRelationStatus) {
         return this.followRepo.update({ followerId, followedId }, { status });
     }
+
     getCloseFriends(username: string) {
         return this.followRepo.find({
             select: {

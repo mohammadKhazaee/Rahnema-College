@@ -47,6 +47,12 @@ export class FileParser {
 
     // @ts-ignore
     private fileFilter = () => (req, file, cb) => {
+        if (
+            file.originalname.split('.').includes('avif') &&
+            file.mimetype === 'application/octet-stream'
+        )
+            file.mimetype = 'image/avif';
+
         cb(
             null,
             file.mimetype === 'image/png' ||
@@ -65,9 +71,7 @@ export class FileParser {
 
     async deleteFiles(paths: string[]) {
         try {
-            await Promise.all(
-                convertToFsPaths(paths).map((p) => this.deleteFile(p))
-            );
+            await Promise.all(convertToFsPaths(paths).map((p) => this.deleteFile(p)));
         } catch (err) {
             console.log(err);
         }

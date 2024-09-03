@@ -7,17 +7,23 @@ import { SocialService } from '../services/social.service';
 import { UserRelationService } from '../modules/UserRelation/user-relation.service';
 import { followListDto } from '../modules/UserRelation/dto/follow-list-dto';
 import { FileParser } from '../utility/file-parser';
+import { NotifService } from '../modules/Notification/notif.service';
 
 export const profileRouter = (
     userService: UserService,
     socialService: SocialService,
     followService: UserRelationService,
+    notifService: NotifService,
     fileParser: FileParser
 ) => {
     const app = Router();
 
     app.get('/:username', (req, res, next) => {
         handleExpress(res, 200, next, () => socialService.getUserInfo(req.params.username));
+    });
+
+    app.get('/notif/followings', isAuthenticated(userService), (req, res, next) => {
+        handleExpress(res, 200, next, () => notifService.followingList(req.username));
     });
 
     app.put(
@@ -92,6 +98,7 @@ export const profileRouter = (
             message: await followService.blockUser(related, req.username),
         }));
     });
+
     app.post('/:username/friend', isAuthenticated(userService), (req, res, next) => {
         const currentUser = req.username;
         const friendUsername = req.params.username;
@@ -99,6 +106,7 @@ export const profileRouter = (
             message: await followService.addToCloseFriends(currentUser, friendUsername),
         }));
     });
+
     app.get('/:username/close-friends', isAuthenticated(userService), (req, res, next) => {
         const username = req.username;
         handleExpress(res, 200, next, async () => ({

@@ -29,7 +29,6 @@ import { PostImageRepository } from './modules/Post/image.repository';
 import { NotifService } from './modules/Notification/notif.service';
 import { NotifRepository } from './modules/Notification/notif.repository';
 import { PostNotifRepository } from './modules/Notification/post-notif.repository';
-import { FollowNotifRepository } from './modules/Notification/follow-notif.repository';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -47,29 +46,21 @@ export const appFactory = (dataSource: DataSource) => {
             .split(/ /);
         return p[2] + '/' + p[1] + '/' + p[3] + ':' + p[4] + ' ' + p[5];
     });
-    morgan.token('authHeader', (req, res) =>
-        req.headers['authorization'] ? 'true' : 'false'
-    );
+    morgan.token('authHeader', (req, res) => (req.headers['authorization'] ? 'true' : 'false'));
     app.use(
         morgan(
             '[:date] ' +
-            ':method::url :status ' +
-            'length::res[content-length] - :response-time[1] ms ' +
-            'authHeader::authHeader'
+                ':method::url :status ' +
+                'length::res[content-length] - :response-time[1] ms ' +
+                'authHeader::authHeader'
         )
     );
 
     app.use((req, res, next) => {
-        console.log(req.body)
+        console.log(req.body);
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader(
-            'Access-Control-Allow-Methods',
-            'OPTIONS, GET, POST, PUT, PATCH, DELETE'
-        );
-        res.setHeader(
-            'Access-Control-Allow-Headers',
-            'Content-Type, Authorization'
-        );
+        res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
         next();
     });
 
@@ -87,21 +78,12 @@ export const appFactory = (dataSource: DataSource) => {
     const tagRepo = new TagRepository(dataSource);
     const notifRepo = new NotifRepository(dataSource);
     const postNotifRepo = new PostNotifRepository(dataSource);
-    const followNotifRepo = new FollowNotifRepository(dataSource);
 
     // initializing services
     const userService = new UserService(userRepo);
-    const notifService = new NotifService(
-        notifRepo,
-        postNotifRepo,
-        followNotifRepo
-    );
+    const notifService = new NotifService(notifRepo, postNotifRepo);
     const authService = new AuthService(userService, new GmailHandler());
-    const followService = new UserRelationService(
-        followRepo,
-        userService,
-        notifService
-    );
+    const followService = new UserRelationService(followRepo, userService, notifService);
 
     const postService = new PostService(
         postRepo,
@@ -115,17 +97,11 @@ export const appFactory = (dataSource: DataSource) => {
         notifService
     );
 
-    const socialService = new SocialService(
-        userService,
-        followService,
-        postService
-    );
+    const socialService = new SocialService(userService, followService, postService);
 
     app.use('/auth', authRouter(authService));
     app.use('/posts', postRouter(postService, userService, fileParser, socialService));
-    app.use(
-        profileRouter(userService, socialService, followService, fileParser)
-    );
+    app.use(profileRouter(userService, socialService, followService, notifService, fileParser));
 
     app.use((req, res) => {
         res.status(404).send({ message: 'Not Found' });
@@ -133,8 +109,7 @@ export const appFactory = (dataSource: DataSource) => {
 
     const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
         console.log(err);
-        if (err instanceof ZodError)
-            return res.status(422).send({ message: err.format() });
+        if (err instanceof ZodError) return res.status(422).send({ message: err.format() });
         if (err instanceof HttpError)
             return res.status(err.statusCode).send({ message: err.message });
         res.status(500).send({ message: 'somethin went wrong' });

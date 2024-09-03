@@ -6,11 +6,13 @@ import {
     JoinColumn,
     Column,
     PrimaryGeneratedColumn,
+    Unique,
 } from 'typeorm';
 import { UserEntity } from '../../User/entity/user.entity';
 import { userRelationStatus, UserRelationStatus } from '../model/user-relation';
 
 @Entity('user_relations')
+@Unique(['followerId', 'followedId'])
 export class UserRelationEntity {
     @PrimaryGeneratedColumn('uuid')
     relationId!: string;

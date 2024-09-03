@@ -257,23 +257,18 @@ export class PostService {
     }
 
     async togglePostLike(likeId: PostLikeId): Promise<LikeResultDao> {
-        if (!this.postRepo.doesPostExist(likeId.postId))
-            throw new HttpError(404, 'Post was not found');
+        const post = await this.postRepo.findPostById(likeId.postId);
+        if (!post) throw new HttpError(404, 'Post was not found');
 
         if (await this.postLikeRepo.doesLikeExists(likeId)) {
-            await this.postLikeRepo.delete(likeId);
+            await this.postLikeRepo.delete(likeId, post.creatorId);
             return {
                 message: 'unliked post',
                 likeCount: await this.postLikeRepo.countLikesForPost(likeId.postId),
             };
         }
 
-        await this.postLikeRepo.save(likeId);
-
-        await this.notifRepo.createLikeNotif({
-            emiterId: likeId.userId,
-            postId: likeId.postId,
-        });
+        await this.postLikeRepo.save(likeId, post.creatorId);
 
         return {
             message: 'liked post',
