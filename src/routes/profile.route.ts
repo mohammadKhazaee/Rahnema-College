@@ -8,6 +8,7 @@ import { UserRelationService } from '../modules/UserRelation/user-relation.servi
 import { followListDto } from '../modules/UserRelation/dto/follow-list-dto';
 import { FileParser } from '../utility/file-parser';
 import { NotifService } from '../modules/Notification/notif.service';
+import { paginationDto } from '../modules/Post/dto/get-posts-dto';
 
 export const profileRouter = (
     userService: UserService,
@@ -23,7 +24,10 @@ export const profileRouter = (
     });
 
     app.get('/notif/followings', isAuthenticated(userService), (req, res, next) => {
-        handleExpress(res, 200, next, () => notifService.followingList(req.username));
+        const dto = paginationDto.parse(req.query);
+        handleExpress(res, 200, next, async () => ({
+            notifs: await notifService.followingList(req.username, dto),
+        }));
     });
 
     app.put(

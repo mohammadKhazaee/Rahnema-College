@@ -66,8 +66,8 @@ export class UserRelationRepository {
             });
             // create notif entity for user
             await entityManager.save(NotificationEntity, {
-                type: 'acceptedFollow',
-                emiterId: relation.followedId,
+                type: 'followedBy',
+                emiterId: relation.followerId,
                 receiverId: relation.followedId,
             });
         });

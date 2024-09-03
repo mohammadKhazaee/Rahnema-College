@@ -13,4 +13,11 @@ export class PostNotifRepository {
         const newNotif = this.postNotifRepo.create(createNotif);
         return this.postNotifRepo.insert(newNotif);
     }
+
+    findOneByNotifId(notifId: string) {
+        return this.postNotifRepo.findOne({
+            where: { notifId },
+            relations: { post: { images: true } },
+        });
+    }
 }

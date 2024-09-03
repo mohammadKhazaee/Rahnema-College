@@ -3,7 +3,7 @@ import { imageUrlPath } from '../../utility/path-adjuster';
 import { User } from '../User/model/user';
 import { UserService } from '../User/user.service';
 import { CreatePostDto } from './dto/create-post-dto';
-import { CreatePost, explorePostsDto, GetPostDao, GetPostsDao, postServiceExploreDto } from './model/post';
+import { CreatePost, GetPostDao, GetPostsDao, postServiceExploreDto } from './model/post';
 import { CreateTag, Tag } from './model/tag';
 import { PostRepository } from './post.repository';
 import { EditPostDto } from './dto/edit-post-dto';
@@ -21,9 +21,7 @@ import { PaginationDto } from './dto/get-posts-dto';
 import { PostImageEntity } from './entity/post-image.entity';
 import { FileParser } from '../../utility/file-parser';
 import { PostImageRepository } from './image.repository';
-import { NotifService } from '../Notification/notif.service';
 import { BookmarkResultDao, PostBookmarkId } from './model/post-bookmark';
-import { SocialService } from '../../services/social.service';
 
 export class PostService {
     constructor(
@@ -34,9 +32,8 @@ export class PostService {
         private tagRepo: TagRepository,
         private userService: UserService,
         private bookmarkRepo: BookmarkRepository,
-        private imageRepo: PostImageRepository,
-        private notifRepo: NotifService,
-    ) { }
+        private imageRepo: PostImageRepository
+    ) {}
 
     async getPostById(postId: string): Promise<GetPostDao> {
         const post = await this.postRepo.findPostById(postId);
@@ -297,12 +294,11 @@ export class PostService {
     }
 
     async exlorePosts(username: string) {
-        const user = await this.userService.doesUserExists({ username })
-        if (!user)
-            throw new NotFoundError('user not founded')
+        const user = await this.userService.doesUserExists({ username });
+        if (!user) throw new NotFoundError('user not founded');
 
-        const exploreposts = await this.postRepo.explorePosts(username)
-        console.log(exploreposts)
+        const exploreposts = await this.postRepo.explorePosts(username);
+        console.log(exploreposts);
         const retuenExplore: postServiceExploreDto[] = await Promise.all(
             exploreposts.map(async (p) => ({
                 postId: p.postId,
@@ -313,14 +309,18 @@ export class PostService {
                 postImage: p.images[0].url,
                 username,
                 commentCount: await this.postCommentRepo.countCommentsForPost(p.postId),
-                isLiked: await this.postLikeRepo.doesLikeExists({ postId: p.postId, userId: p.creatorId }),
+                isLiked: await this.postLikeRepo.doesLikeExists({
+                    postId: p.postId,
+                    userId: p.creatorId,
+                }),
                 likeCount: await this.postLikeRepo.countLikesForPost(p.postId),
-                isBookMarked: await this.bookmarkRepo.isItBookmarked({ postId: p.postId, userId: p.creatorId }),
+                isBookMarked: await this.bookmarkRepo.isItBookmarked({
+                    postId: p.postId,
+                    userId: p.creatorId,
+                }),
                 bookmarkCount: await this.bookmarkRepo.countBookmarksForPost(p.postId),
             }))
-        )
-        return retuenExplore
-
+        );
+        return retuenExplore;
     }
-
 }

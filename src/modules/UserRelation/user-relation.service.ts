@@ -3,14 +3,24 @@ import { UserService } from '../User/user.service';
 import { FollowListDto } from './dto/follow-list-dto';
 import { UserRelationRepository } from './user-relation.repository';
 import { FindUserRelation, GetFollowListDao, UserRelationId } from './model/user-relation';
-import { NotifService } from '../Notification/notif.service';
+import { FollowedByState } from '../Notification/model/notifications';
 
 export class UserRelationService {
     constructor(
         private followRepo: UserRelationRepository,
-        private userService: UserService,
-        private notifService: NotifService
+        private userService: UserService
     ) {}
+
+    async fetchRelationStatus({
+        followerId,
+        followedId,
+    }: UserRelationId): Promise<FollowedByState> {
+        const foundRelation = await this.followRepo.fetchRelation({ followerId, followedId });
+        if (!foundRelation) return 'notFollowed';
+        if (foundRelation.status === 'blocked') throw new Error();
+
+        return foundRelation.status === 'requestedFollow' ? 'requested' : 'followed';
+    }
 
     async followRequest({ followerId, followedId }: UserRelationId) {
         if (followerId === followedId) throw new ForbiddenError('user cant follow themself');
@@ -221,6 +231,7 @@ export class UserRelationService {
         await this.followRepo.upadte(relation);
         return 'Added to close friends';
     }
+
     async getCloseFriendsList(username: string): Promise<GetFollowListDao[]> {
         const closeFriends = await this.followRepo.getCloseFriends(username);
         return Promise.all(

@@ -6,13 +6,11 @@ import {
     UpdateDateColumn,
     Column,
     PrimaryGeneratedColumn,
-    Unique,
 } from 'typeorm';
 import { UserEntity } from '../../User/entity/user.entity';
 import { NotifType } from '../model/notifications';
 
 @Entity('notifications')
-@Unique(['receiverId', 'emiterId'])
 export class NotificationEntity {
     @PrimaryGeneratedColumn('uuid')
     notifId!: string;

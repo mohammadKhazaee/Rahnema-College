@@ -57,7 +57,7 @@ export const appFactory = (dataSource: DataSource) => {
     );
 
     app.use((req, res, next) => {
-        console.log(req.body);
+        console.log('body:', req.body);
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -69,7 +69,7 @@ export const appFactory = (dataSource: DataSource) => {
     // initializing repositories
     const postImageRepo = new PostImageRepository(dataSource);
     const userRepo = new UserRepository(dataSource);
-    const followRepo = new UserRelationRepository(dataSource);
+    const userRelationRepo = new UserRelationRepository(dataSource);
     const postRepo = new PostRepository(dataSource);
     const postCommentRepo = new PostCommentRepository(dataSource);
     const commentLikeRepo = new CommentLikeRepository(dataSource);
@@ -81,9 +81,9 @@ export const appFactory = (dataSource: DataSource) => {
 
     // initializing services
     const userService = new UserService(userRepo);
-    const notifService = new NotifService(notifRepo, postNotifRepo);
     const authService = new AuthService(userService, new GmailHandler());
-    const followService = new UserRelationService(followRepo, userService, notifService);
+    const userRelationService = new UserRelationService(userRelationRepo, userService);
+    const notifService = new NotifService(notifRepo, postNotifRepo, userRelationService);
 
     const postService = new PostService(
         postRepo,
@@ -93,15 +93,16 @@ export const appFactory = (dataSource: DataSource) => {
         tagRepo,
         userService,
         bookmarkRepo,
-        postImageRepo,
-        notifService
+        postImageRepo
     );
 
-    const socialService = new SocialService(userService, followService, postService);
+    const socialService = new SocialService(userService, userRelationService, postService);
 
     app.use('/auth', authRouter(authService));
     app.use('/posts', postRouter(postService, userService, fileParser, socialService));
-    app.use(profileRouter(userService, socialService, followService, notifService, fileParser));
+    app.use(
+        profileRouter(userService, socialService, userRelationService, notifService, fileParser)
+    );
 
     app.use((req, res) => {
         res.status(404).send({ message: 'Not Found' });
