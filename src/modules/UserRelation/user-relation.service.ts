@@ -53,7 +53,7 @@ export class UserRelationService {
     }
 
     async followCancel({ followerId, followedId }: UserRelationId, type: 'cancel' | 'reject') {
-        if (followerId === followedId) throw new ForbiddenError();
+        if (followerId === followedId) throw new ForbiddenError('user cant follow themself');
 
         const followingIds: FindUserRelation = {
             followerId,
