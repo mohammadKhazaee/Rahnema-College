@@ -22,6 +22,7 @@ import { PostImageEntity } from './entity/post-image.entity';
 import { FileParser } from '../../utility/file-parser';
 import { PostImageRepository } from './image.repository';
 import { BookmarkResultDao, PostBookmarkId } from './model/post-bookmark';
+import { string } from 'zod';
 
 export class PostService {
     constructor(
@@ -33,16 +34,20 @@ export class PostService {
         private userService: UserService,
         private bookmarkRepo: BookmarkRepository,
         private imageRepo: PostImageRepository
-    ) {}
+    ) { }
 
     async getPostById(postId: string): Promise<GetPostDao> {
-        const post = await this.postRepo.findPostById(postId);
+        const post = await this.postRepo.findPostById(postId)
         if (!post) throw new HttpError(404, 'Post not found');
 
         const formatedPost = {
             postId: post.postId,
-            caption: post.caption,
-            createdAt: post.createdAt,
+
+            mentions: [{
+                postId: post.postId,
+                mentionedId: post.mentions.map((m) => m.username).toString(),
+                image: post.creator.imageUrl,
+            }],
             creator: {
                 username: post.creator.username,
                 imageUrl: post.creator.imageUrl,
@@ -51,15 +56,22 @@ export class PostService {
                 url: i.url,
                 imageId: i.imageId,
             })),
+
+            caption: post.caption,
+
+
             tags: post.tags.map((t) => t.name),
         };
 
-        const [likeCount, commentsCount, bookMarkCount] = await Promise.all([
+        const [isLiked, likeCount, commentsCount, isBookMarked, bookMarkCount] = await Promise.all([
+            this.postLikeRepo.doesLikeExists({ postId, userId: post.creator.username }),
             this.postLikeRepo.countLikesForPost(postId),
             this.postCommentRepo.countCommentsForPost(postId),
+            this.bookmarkRepo.isItBookmarked({ postId, userId: post.creator.username }),
             this.bookmarkRepo.countBookmarksForPost(postId),
+
         ]);
-        return { ...formatedPost, likeCount, commentsCount, bookMarkCount };
+        return { ...formatedPost, isLiked, likeCount, commentsCount, isBookMarked, bookMarkCount };
     }
 
     async togglePostBookmark({ userId, postId }: PostBookmarkId): Promise<BookmarkResultDao> {

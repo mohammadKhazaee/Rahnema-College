@@ -2,10 +2,10 @@ POST http://localhost:3000/auth/signup
 Content-Type: application/json
 
 {
-    "username": "test6",
-    "email": "testesheshom@gmail.com",
-    "password": "12345678906",
-    "confirmPassword": "12345678906"
+    "username": "test4",
+    "email": "testecharom@gmail.com",
+    "password": "12345678904",
+    "confirmPassword": "12345678904"
 }
 
 ###
@@ -13,8 +13,8 @@ POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-    "username": "ehsan",
-    "password": "ehsunhaq86",
+    "username": "test4",
+    "password": "12345678904",
     "rememberMe" : true
 }
 ###
@@ -34,5 +34,15 @@ GET http://localhost:3000/ehsan/followings?p=1&c=4
 ###
 GET http://localhost:3000/ehsan
 
+###
+POST http://localhost:3000/posts/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3Q0IiwiZW1haWwiOiJ0ZXN0ZWNoYXJvbUBnbWFpbC5jb20iLCJpYXQiOjE3MjU0NTAyNTcsImV4cCI6MTcyODA0MjI1N30.cUwNNlnR3MwjH30v195V-FGL73RHC-o-zbr_hj5HA1g
+Content-Type: application/json
 
+{
+    "caption": "salam donya",
+    "images": ["43e25067-c7f0-4cd1-bc4b-286f872deb9f.png"],
+    "creatorId": "test4" 
+
+}
 # Authorization: f4fa59bc - 290f - 417a - 8968 - 83ba5ee9c25c

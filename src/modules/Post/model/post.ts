@@ -1,5 +1,6 @@
 import { User, UserLinkDao } from '../../User/model/user';
 import { CreateRelatedPostImage, ImageInfoDao, PostImage } from './image';
+import { Mention } from './mention';
 import { CreateTag, Tag } from './tag';
 
 export interface Post {
@@ -16,12 +17,15 @@ export interface Post {
 
 export interface GetPostDao {
     postId: string;
+    mentions: Mention[]
     creator: UserLinkDao;
     imageInfos: ImageInfoDao[];
     caption: string;
     tags: string[];
+    isLiked: boolean;
     likeCount: number;
     commentsCount: number;
+    isBookMarked: boolean;
     bookMarkCount: number;
 }
 
