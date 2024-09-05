@@ -1,6 +1,6 @@
 import { NotificationEntity } from '../entity/notification.entity';
 
-export const friendNotifType = ['comment', 'like', 'follow'] as const;
+export const friendNotifType = ['friendComment', 'friendLike', 'friendFollow'] as const;
 
 export type FriendNotifType = (typeof friendNotifType)[number];
 

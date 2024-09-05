@@ -52,12 +52,12 @@ export class NotifService {
         notifEntity: FriendNotifEntity
     ): Promise<GetFriendNotifDao> => {
         switch (notifEntity.type) {
-            case 'comment':
-                return this.transformComment(notifEntity);
-            case 'like':
+            case 'friendComment':
+                return this.transformFriendComment(notifEntity);
+            case 'friendLike':
                 return this.transformFriendLike(notifEntity);
-            case 'follow':
-                return this.transformFollow(notifEntity);
+            case 'friendFollow':
+                return this.transformFriendFollow(notifEntity);
         }
     };
 
@@ -79,7 +79,7 @@ export class NotifService {
         };
     }
 
-    private async transformComment(notifEntity: FriendNotifEntity): Promise<CommentNotif> {
+    private async transformFriendComment(notifEntity: FriendNotifEntity): Promise<CommentNotif> {
         const commentNotifEntity = await this.commentNotifRepo.findOneByNotifId(
             notifEntity.notifId
         );
@@ -103,7 +103,7 @@ export class NotifService {
         };
     }
 
-    private async transformFollow(notifEntity: FriendNotifEntity): Promise<FollowNotif> {
+    private async transformFriendFollow(notifEntity: FriendNotifEntity): Promise<FollowNotif> {
         const relationNotifEntity = await this.relationNotifRepo.findOneByNotifId(
             notifEntity.notifId
         );
