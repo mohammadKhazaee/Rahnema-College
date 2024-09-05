@@ -17,7 +17,7 @@ export interface Post {
 
 export interface GetPostDao {
     postId: string;
-    mentions: Mention[]
+    mentions: Mention[];
     creator: UserLinkDao;
     imageInfos: ImageInfoDao[];
     caption: string;
@@ -55,38 +55,39 @@ export interface CreatePost {
 
 export interface UpdatePost {
     postId: string;
+    creatorId: string;
     caption?: string;
     tags?: CreateTag[];
     mentions?: User[];
 }
 
 export interface explorePostsDto {
-    postId: string,
+    postId: string;
     creator: {
-        imageUrl: string,
-        username: string,
-        followersCount: number,
-    },
-    postImage: string,
-    username: string,
-    commentCount: number,
-    isLiked: boolean,
-    likeCount: number,
-    isBookMarked: boolean,
-    bookmarkCount: number,
+        imageUrl: string;
+        username: string;
+        followersCount: number;
+    };
+    postImage: string;
+    username: string;
+    commentCount: number;
+    isLiked: boolean;
+    likeCount: number;
+    isBookMarked: boolean;
+    bookmarkCount: number;
 }
 
 export interface postServiceExploreDto {
-    postId: string,
+    postId: string;
     creator: {
-        imageUrl: string,
-        username: string,
-    },
-    postImage: string,
-    username: string,
-    commentCount: number,
-    isLiked: boolean,
-    likeCount: number,
-    isBookMarked: boolean,
-    bookmarkCount: number,
+        imageUrl: string;
+        username: string;
+    };
+    postImage: string;
+    username: string;
+    commentCount: number;
+    isLiked: boolean;
+    likeCount: number;
+    isBookMarked: boolean;
+    bookmarkCount: number;
 }

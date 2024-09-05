@@ -83,6 +83,7 @@ export interface CreateLikeNotif {
 export interface DeleteLikeNotif extends CreateLikeNotif {}
 
 export interface CreateMentionNotif {
+    type: 'mention';
     emiterId: string;
-    postId: string;
+    receiverId: string;
 }

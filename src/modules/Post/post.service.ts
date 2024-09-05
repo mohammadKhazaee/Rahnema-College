@@ -100,6 +100,8 @@ export class PostService {
         const post = await this.postRepo.findPostById(postId);
         if (!post) throw new HttpError(404, 'Post not found');
 
+        const oldMentions = post.mentions;
+
         let tags: Tag[] | undefined;
         if (caption !== undefined) tags = await this.makeUpdateTags(caption);
 
@@ -121,12 +123,13 @@ export class PostService {
         if (tags) post.tags = tags;
         if (mentionedUsers) post.mentions = mentionedUsers;
 
-        const updatedPost = await this.postRepo.update(post);
+        const updatedPost = await this.postRepo.update(post, oldMentions);
 
-        await this.imageRepo.deleteBulkById(deletedImages.map((i) => i.imageId));
+        if (deletedImages.length > 0) {
+            await this.imageRepo.deleteBulkById(deletedImages.map((i) => i.imageId));
 
-        if (deletedImages.length > 0)
             await fileHandler.deleteFiles(deletedImages.map((i) => i.url));
+        }
 
         return updatedPost;
     }

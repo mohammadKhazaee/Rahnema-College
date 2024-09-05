@@ -29,7 +29,7 @@ export class PostLikeRepository {
         const createdLike = this.likeRepo.create(createPostLike);
         return this.dataSource.transaction(async (entityManager) => {
             // save like record
-            await this.likeRepo.insert(createdLike);
+            await entityManager.insert(PostLikeEntity, createdLike);
 
             // save base notif
             const createdNotif = await entityManager.save(NotificationEntity, {
@@ -49,7 +49,7 @@ export class PostLikeRepository {
     delete({ postId, emiterId, receiverId }: DeleteLikeNotif) {
         return this.dataSource.transaction(async (entityManager) => {
             // delete like record
-            await this.likeRepo.delete({ postId, userId: emiterId });
+            await entityManager.delete(PostLikeEntity, { postId, userId: emiterId });
 
             // delete base notif & related post notif entity
             await entityManager.delete(NotificationEntity, {
