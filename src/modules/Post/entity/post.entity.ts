@@ -22,7 +22,7 @@ export class PostEntity {
     @PrimaryGeneratedColumn('uuid')
     postId!: string;
 
-    @Column()
+    @Column({ type: 'varchar', length: 2500 })
     caption!: string;
 
     @Column({ default: false })
