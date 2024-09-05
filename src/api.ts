@@ -12,7 +12,7 @@ import { AuthService } from './modules/Auth/auth.service';
 import { UserRepository } from './modules/User/user.repository';
 import { GmailHandler } from './utility/gmail-handler';
 import { UserService } from './modules/User/user.service';
-import { profileRouter } from './routes/profile.route';
+import { dashboardRouter } from './routes/dashboard.route';
 import { postRouter } from './routes/post.route';
 import { PostRepository } from './modules/Post/post.repository';
 import { PostService } from './modules/Post/post.service';
@@ -31,6 +31,7 @@ import { NotifRepository } from './modules/Notification/notif.repository';
 import { PostNotifRepository } from './modules/Notification/post-notif.repository';
 import { CommentNotifRepository } from './modules/Notification/comment-notif.repository';
 import { RelationNotifRepository } from './modules/Notification/follow-notif.repository';
+import { userRelationRouter } from './routes/user-relation.route';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -109,10 +110,9 @@ export const appFactory = (dataSource: DataSource) => {
     const socialService = new SocialService(userService, userRelationService, postService);
 
     app.use('/auth', authRouter(authService));
-    app.use('/posts', postRouter(postService, userService, fileParser, socialService));
-    app.use(
-        profileRouter(userService, socialService, userRelationService, notifService, fileParser)
-    );
+    app.use('/posts', postRouter(postService, userService, fileParser));
+    app.use('/dashboard', dashboardRouter(userService, socialService, notifService, fileParser));
+    app.use('/user-relations', userRelationRouter(userService, userRelationService));
 
     app.use((req, res) => {
         res.status(404).send({ message: 'Not Found' });
