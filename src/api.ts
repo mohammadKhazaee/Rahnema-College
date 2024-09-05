@@ -53,14 +53,13 @@ export const appFactory = (dataSource: DataSource) => {
     app.use(
         morgan(
             '[:date] ' +
-                ':method::url :status ' +
-                'length::res[content-length] - :response-time[1] ms ' +
-                'authHeader::authHeader'
+            ':method::url :status ' +
+            'length::res[content-length] - :response-time[1] ms ' +
+            'authHeader::authHeader'
         )
     );
 
     app.use((req, res, next) => {
-        console.log('body:', req.body);
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');

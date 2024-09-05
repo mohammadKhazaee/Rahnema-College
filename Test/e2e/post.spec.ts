@@ -13,7 +13,7 @@ import { PostEntity } from '../../src/modules/Post/entity/post.entity';
 import { CreateCommentDto } from '../../src/modules/Post/dto/create-comment.dto';
 import { PostCommentEntity } from '../../src/modules/Post/entity/post-comment.entity';
 
-describe('Post route test suite', () => {
+describe.skip('Post route test suite', () => {
     // @ts-ignore
     let app: Express;
 

@@ -1,3 +1,5 @@
+
+
 import * as path from 'path';
 
 import { LoginDto } from '../../src/modules/Auth/dto/logindto';
@@ -72,6 +74,51 @@ export const followReqTest = (
         .set('Authorization', 'Bearer ' + followerToken)
         .expect(statusCode);
 };
+
+export const closeFriendTest = async (
+    //@ts-ignore
+    app: Express,
+    followerId: string,
+    closeFriendToken: string,
+    statusCode: number
+) => {
+    const closeFriend = await request(app)
+        .post(`/${followerId}/friend`)
+        .set('Authorization', 'Bearer ' + closeFriendToken)
+        .expect(statusCode)
+    console.log(closeFriend.body)
+    return closeFriend
+}
+
+export const removeFriendTest = async (
+    //@ts-ignore
+    app: Express,
+    friendName: string,
+    userToken: string,
+    statusCode: number
+) => {
+    const removed = await request(app)
+        .post(`/${friendName}/friend/remove`)
+        .set('Authorization', 'Bearer ' + userToken)
+        .expect(statusCode)
+    console.log(removed.body)
+    return removed
+}
+
+export const acceptFollowTest = async (
+    //@ts-ignore
+    app: Express,
+    followerName: string,
+    userToken: string,
+    statusCode: number
+) => {
+    const accepted = await request(app)
+        .post(`/${followerName}/follow/accept`)
+        .set('Authorization', 'Bearer ' + userToken)
+        .expect(statusCode)
+    console.log(accepted.body)
+    return accepted
+}
 
 export const generateTokenForReset = (user: User) => {
     return jwt.sign({ email: user.email }, process.env.JWT_SECRET!, {

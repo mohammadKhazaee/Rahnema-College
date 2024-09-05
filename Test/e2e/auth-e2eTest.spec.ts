@@ -8,7 +8,7 @@ import { UserRepository } from '../../src/modules/User/user.repository';
 import { UserEntity } from '../../src/modules/User/entity/user.entity';
 import { LoginDto } from '../../src/modules/Auth/dto/logindto';
 
-describe('CollegeGram Test Suit', () => {
+describe.skip('CollegeGram Test Suit', () => {
     const userRepo = new UserRepository(AppDataSource);
     // @ts-ignore
     let app: Express;

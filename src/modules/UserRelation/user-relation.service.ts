@@ -9,7 +9,7 @@ export class UserRelationService {
     constructor(
         private followRepo: UserRelationRepository,
         private userService: UserService
-    ) {}
+    ) { }
 
     async fetchRelationStatus({
         followerId,
@@ -217,8 +217,8 @@ export class UserRelationService {
         if (!friend) throw new NotFoundError(' Friend not found');
 
         const relation = await this.followRepo.fetchRelation({
-            followerId: username,
-            followedId: friendUsername,
+            followerId: friendUsername,
+            followedId: username,
         });
 
         if (relation && relation.status === 'friend')
@@ -227,8 +227,7 @@ export class UserRelationService {
         if (!relation || relation.status !== 'follow')
             throw new ForbiddenError('You can only add followers as close friends');
 
-        relation.status = 'friend';
-        await this.followRepo.upadte(relation);
+        await this.followRepo.updateRelationStatus(friendUsername, username, 'friend');
         return 'Added to close friends';
     }
 
@@ -241,5 +240,27 @@ export class UserRelationService {
                 followersCount: await this.followRepo.followersCount(f.followedId),
             }))
         );
+    }
+
+    async removeCloseFriend(mainUSerName: string, friendName: string) {
+        const friend = this.userService.doesUserExists({ username: friendName })
+        if (!friend)
+            throw new NotFoundError('Friend not found')
+
+        const relation = await this.followRepo.fetchRelation({
+            followerId: friendName,
+            followedId: mainUSerName
+        })
+        console.log(relation)
+        if (!relation || relation && relation.status !== 'friend')
+            throw new ForbiddenError('This user is not your close friend')
+
+        const updatedRelation = await this.followRepo.updateRelationStatus(
+            friendName,
+            mainUSerName,
+            'follow'
+        )
+
+        return 'User removed from your close friends'
     }
 }
