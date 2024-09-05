@@ -3,6 +3,7 @@ import { PostLikeEntity } from './entity/post-Likes.entity';
 import { CreatePostLike, PostLikeId } from './model/post-like';
 import { NotificationEntity } from '../Notification/entity/notification.entity';
 import { PostNotifEntity } from '../Notification/entity/post-notif.entity';
+import { CreateLikeNotif, DeleteLikeNotif } from '../Notification/model/notifications';
 
 export class PostLikeRepository {
     private likeRepo: Repository<PostLikeEntity>;
@@ -20,8 +21,12 @@ export class PostLikeRepository {
         return !!like;
     }
 
-    save(createLikeData: CreatePostLike, postCreatorId: string) {
-        const createdLike = this.likeRepo.create(createLikeData);
+    save({ emiterId, receiverId, postId }: CreateLikeNotif) {
+        const createPostLike: CreatePostLike = {
+            userId: emiterId,
+            postId,
+        };
+        const createdLike = this.likeRepo.create(createPostLike);
         return this.dataSource.transaction(async (entityManager) => {
             // save like record
             await this.likeRepo.insert(createdLike);
@@ -29,28 +34,28 @@ export class PostLikeRepository {
             // save base notif
             const createdNotif = await entityManager.save(NotificationEntity, {
                 type: 'like',
-                emiterId: createLikeData.userId,
-                receiverId: postCreatorId,
+                emiterId,
+                receiverId,
             });
 
             // save post notif
             await entityManager.save(PostNotifEntity, {
                 notifId: createdNotif.notifId,
-                postId: createLikeData.postId,
+                postId,
             });
         });
     }
 
-    delete({ postId, userId }: PostLikeId, postCreatorId: string) {
+    delete({ postId, emiterId, receiverId }: DeleteLikeNotif) {
         return this.dataSource.transaction(async (entityManager) => {
             // delete like record
-            await this.likeRepo.delete({ postId, userId });
+            await this.likeRepo.delete({ postId, userId: emiterId });
 
             // delete base notif & related post notif entity
             await entityManager.delete(NotificationEntity, {
                 type: 'like',
-                emiterId: userId,
-                receiverId: postCreatorId,
+                emiterId,
+                receiverId,
             });
         });
     }

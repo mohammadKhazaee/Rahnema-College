@@ -29,6 +29,8 @@ import { PostImageRepository } from './modules/Post/image.repository';
 import { NotifService } from './modules/Notification/notif.service';
 import { NotifRepository } from './modules/Notification/notif.repository';
 import { PostNotifRepository } from './modules/Notification/post-notif.repository';
+import { CommentNotifRepository } from './modules/Notification/comment-notif.repository';
+import { RelationNotifRepository } from './modules/Notification/follow-notif.repository';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -78,12 +80,20 @@ export const appFactory = (dataSource: DataSource) => {
     const tagRepo = new TagRepository(dataSource);
     const notifRepo = new NotifRepository(dataSource);
     const postNotifRepo = new PostNotifRepository(dataSource);
+    const commentNotifRepo = new CommentNotifRepository(dataSource);
+    const relationNotifRepo = new RelationNotifRepository(dataSource);
 
     // initializing services
     const userService = new UserService(userRepo);
     const authService = new AuthService(userService, new GmailHandler());
     const userRelationService = new UserRelationService(userRelationRepo, userService);
-    const notifService = new NotifService(notifRepo, postNotifRepo, userRelationService);
+    const notifService = new NotifService(
+        notifRepo,
+        postNotifRepo,
+        commentNotifRepo,
+        relationNotifRepo,
+        userRelationService
+    );
 
     const postService = new PostService(
         postRepo,

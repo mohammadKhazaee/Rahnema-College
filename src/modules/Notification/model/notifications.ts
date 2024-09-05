@@ -1,12 +1,22 @@
-export const notifType = {
-    like: 'like',
-    mention: 'mention',
-    acceptedFollow: 'acceptedFollow',
-    followedBy: 'followedBy',
-    incommingReq: 'incommingReq',
-} as const;
+import { NotificationEntity } from '../entity/notification.entity';
 
-export type NotifType = keyof typeof notifType;
+export const notifType = [
+    'like',
+    'mention',
+    'acceptedFollow',
+    'followedBy',
+    'incommingReq',
+] as const;
+
+export type NotifType = (typeof notifType)[number];
+
+export type NormalNotifEntity = Exclude<NotificationEntity, 'type'> & {
+    type: NotifType;
+};
+
+export const isNormalNotifEntity = (entity: NotificationEntity): entity is NormalNotifEntity => {
+    return notifType.findIndex((n) => n === entity.type) > -1;
+};
 
 export type GetNotifDao =
     | LikeNotif
@@ -15,6 +25,11 @@ export type GetNotifDao =
     | IncommingReqNotif
     | FollowedByNotif;
 
+export interface NotifMetaData {
+    createdAt: Date;
+    isSeen: boolean;
+}
+
 export interface NotifWithUser {
     user: {
         username: string;
@@ -22,8 +37,6 @@ export interface NotifWithUser {
         lName: string;
         imageUrl: string;
     };
-    createdAt: Date;
-    isSeen: boolean;
 }
 
 export interface NotifWithPost {
@@ -33,26 +46,26 @@ export interface NotifWithPost {
     };
 }
 
-export interface AcceptedFollowNotif extends NotifWithUser {
+export interface AcceptedFollowNotif extends NotifMetaData, NotifWithUser {
     type: 'accepedFollow';
 }
 
-export interface IncommingReqNotif extends NotifWithUser {
+export interface IncommingReqNotif extends NotifMetaData, NotifWithUser {
     type: 'incommingReq';
 }
 
 export type FollowedByState = 'followed' | 'requested' | 'notFollowed';
 
-export interface FollowedByNotif extends NotifWithUser {
+export interface FollowedByNotif extends NotifMetaData, NotifWithUser {
     type: 'followedBy';
     followState: FollowedByState;
 }
 
-export interface LikeNotif extends NotifWithUser, NotifWithPost {
+export interface LikeNotif extends NotifMetaData, NotifWithUser, NotifWithPost {
     type: 'like';
 }
 
-export interface MentionNotif extends NotifWithUser, NotifWithPost {
+export interface MentionNotif extends NotifMetaData, NotifWithUser, NotifWithPost {
     type: 'mention';
 }
 
@@ -63,28 +76,13 @@ export interface CreateNotif {
 
 export interface CreateLikeNotif {
     emiterId: string;
+    receiverId: string;
     postId: string;
 }
+
+export interface DeleteLikeNotif extends CreateLikeNotif {}
 
 export interface CreateMentionNotif {
     emiterId: string;
     postId: string;
-}
-
-export interface CreateCommentNotif {
-    emiterId: string;
-    commentId: string;
-}
-
-export interface CreateAcceptFollowNotif {
-    emiterId: string;
-}
-
-export interface CreateIncReqNotif {
-    emiterId: string;
-}
-
-export interface CreateFollowNotif {
-    emiterId: string;
-    followId: string;
 }

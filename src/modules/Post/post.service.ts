@@ -22,7 +22,7 @@ import { PostImageEntity } from './entity/post-image.entity';
 import { FileParser } from '../../utility/file-parser';
 import { PostImageRepository } from './image.repository';
 import { BookmarkResultDao, PostBookmarkId } from './model/post-bookmark';
-import { string } from 'zod';
+import { CreateLikeNotif } from '../Notification/model/notifications';
 
 export class PostService {
     constructor(
@@ -34,20 +34,22 @@ export class PostService {
         private userService: UserService,
         private bookmarkRepo: BookmarkRepository,
         private imageRepo: PostImageRepository
-    ) { }
+    ) {}
 
     async getPostById(postId: string): Promise<GetPostDao> {
-        const post = await this.postRepo.findPostById(postId)
+        const post = await this.postRepo.findPostById(postId);
         if (!post) throw new HttpError(404, 'Post not found');
 
         const formatedPost = {
             postId: post.postId,
 
-            mentions: [{
-                postId: post.postId,
-                mentionedId: post.mentions.map((m) => m.username).toString(),
-                image: post.creator.imageUrl,
-            }],
+            mentions: [
+                {
+                    postId: post.postId,
+                    mentionedId: post.mentions.map((m) => m.username).toString(),
+                    image: post.creator.imageUrl,
+                },
+            ],
             creator: {
                 username: post.creator.username,
                 imageUrl: post.creator.imageUrl,
@@ -59,7 +61,6 @@ export class PostService {
 
             caption: post.caption,
 
-
             tags: post.tags.map((t) => t.name),
         };
 
@@ -69,7 +70,6 @@ export class PostService {
             this.postCommentRepo.countCommentsForPost(postId),
             this.bookmarkRepo.isItBookmarked({ postId, userId: post.creator.username }),
             this.bookmarkRepo.countBookmarksForPost(postId),
-
         ]);
         return { ...formatedPost, isLiked, likeCount, commentsCount, isBookMarked, bookMarkCount };
     }
@@ -269,15 +269,21 @@ export class PostService {
         const post = await this.postRepo.findPostById(likeId.postId);
         if (!post) throw new HttpError(404, 'Post was not found');
 
+        const createLikeNotif: CreateLikeNotif = {
+            emiterId: likeId.userId,
+            receiverId: post.creatorId,
+            postId: likeId.postId,
+        };
+
         if (await this.postLikeRepo.doesLikeExists(likeId)) {
-            await this.postLikeRepo.delete(likeId, post.creatorId);
+            await this.postLikeRepo.delete(createLikeNotif);
             return {
                 message: 'unliked post',
                 likeCount: await this.postLikeRepo.countLikesForPost(likeId.postId),
             };
         }
 
-        await this.postLikeRepo.save(likeId, post.creatorId);
+        await this.postLikeRepo.save(createLikeNotif);
 
         return {
             message: 'liked post',

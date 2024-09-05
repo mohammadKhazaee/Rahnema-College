@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { UserEntity } from '../../User/entity/user.entity';
 import { NotifType } from '../model/notifications';
+import { FriendNotifType } from '../model/friend-notifs';
 
 @Entity('notifications')
 export class NotificationEntity {
@@ -16,7 +17,7 @@ export class NotificationEntity {
     notifId!: string;
 
     @Column()
-    type!: NotifType;
+    type!: NotifType | FriendNotifType;
 
     @Column({ default: false })
     isSeen!: boolean;

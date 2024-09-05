@@ -1,6 +1,14 @@
 import { PaginationDto } from '../Post/dto/get-posts-dto';
 import { UserRelationService } from '../UserRelation/user-relation.service';
-import { NotificationEntity } from './entity/notification.entity';
+import { CommentNotifRepository } from './comment-notif.repository';
+import { RelationNotifRepository } from './follow-notif.repository';
+import {
+    CommentNotif,
+    FollowNotif,
+    FriendLikeNotif,
+    FriendNotifEntity,
+    GetFriendNotifDao,
+} from './model/friend-notifs';
 import {
     AcceptedFollowNotif,
     FollowedByNotif,
@@ -8,6 +16,7 @@ import {
     IncommingReqNotif,
     LikeNotif,
     MentionNotif,
+    NormalNotifEntity,
 } from './model/notifications';
 import { NotifRepository } from './notif.repository';
 import { PostNotifRepository } from './post-notif.repository';
@@ -16,6 +25,8 @@ export class NotifService {
     constructor(
         private notifRepo: NotifRepository,
         private postNotifRepo: PostNotifRepository,
+        private commentNotifRepo: CommentNotifRepository,
+        private relationNotifRepo: RelationNotifRepository,
         private userRelationRepo: UserRelationService
     ) {}
 
@@ -28,7 +39,99 @@ export class NotifService {
         return Promise.all(notifs.map(this.notifTransformer));
     }
 
-    private notifTransformer = async (notifEntity: NotificationEntity): Promise<GetNotifDao> => {
+    async friendList(username: string, paginationDto: PaginationDto) {
+        const notifs = await this.notifRepo.friendNotifList(username, paginationDto);
+
+        // change isSeen for listed notifs
+        await this.notifRepo.updateBulk(notifs);
+
+        return Promise.all(notifs.map(this.friendNotifTransformer));
+    }
+
+    private friendNotifTransformer = async (
+        notifEntity: FriendNotifEntity
+    ): Promise<GetFriendNotifDao> => {
+        switch (notifEntity.type) {
+            case 'comment':
+                return this.transformComment(notifEntity);
+            case 'like':
+                return this.transformFriendLike(notifEntity);
+            case 'follow':
+                return this.transformFollow(notifEntity);
+        }
+    };
+
+    private async transformFriendLike(notifEntity: FriendNotifEntity): Promise<FriendLikeNotif> {
+        const postNotifEntity = await this.postNotifRepo.findOneByNotifId(notifEntity.notifId);
+        if (!postNotifEntity) throw new Error('');
+
+        return {
+            type: 'like',
+            isSeen: notifEntity.isSeen,
+            createdAt: notifEntity.updatedAt,
+            user: {
+                username: notifEntity.emiterId,
+                fName: notifEntity.emiter.fName,
+                lName: notifEntity.emiter.lName,
+                imageUrl: notifEntity.emiter.imageUrl,
+            },
+            postId: postNotifEntity.postId,
+        };
+    }
+
+    private async transformComment(notifEntity: FriendNotifEntity): Promise<CommentNotif> {
+        const commentNotifEntity = await this.commentNotifRepo.findOneByNotifId(
+            notifEntity.notifId
+        );
+        if (!commentNotifEntity) throw new Error('');
+
+        return {
+            type: 'comment',
+            isSeen: notifEntity.isSeen,
+            createdAt: notifEntity.updatedAt,
+            user: {
+                username: notifEntity.emiterId,
+                fName: notifEntity.emiter.fName,
+                lName: notifEntity.emiter.lName,
+                imageUrl: notifEntity.emiter.imageUrl,
+            },
+            post: {
+                postId: commentNotifEntity.comment.postId,
+                imageUrl: commentNotifEntity.comment.post.images[0].url,
+                commentContent: commentNotifEntity.comment.content,
+            },
+        };
+    }
+
+    private async transformFollow(notifEntity: FriendNotifEntity): Promise<FollowNotif> {
+        const relationNotifEntity = await this.relationNotifRepo.findOneByNotifId(
+            notifEntity.notifId
+        );
+        if (!relationNotifEntity) throw new Error('');
+
+        return {
+            type: 'follow',
+            isSeen: notifEntity.isSeen,
+            createdAt: notifEntity.updatedAt,
+            user: {
+                username: notifEntity.emiterId,
+                fName: notifEntity.emiter.fName,
+                lName: notifEntity.emiter.lName,
+                imageUrl: notifEntity.emiter.imageUrl,
+            },
+            friendUser: {
+                username: relationNotifEntity.relation.followedId,
+                fName: relationNotifEntity.relation.followed.fName,
+                lName: relationNotifEntity.relation.followed.lName,
+            },
+            followState: await this.userRelationRepo.fetchRelationStatus({
+                followerId: notifEntity.receiverId,
+                followedId: relationNotifEntity.relation.followedId,
+            }),
+        };
+    }
+
+    private notifTransformer = async (notifEntity: NormalNotifEntity): Promise<GetNotifDao> => {
         switch (notifEntity.type) {
             case 'acceptedFollow':
                 return this.transformAcceptedFollow(notifEntity);
@@ -43,7 +146,7 @@ export class NotifService {
         }
     };
 
-    private transformAcceptedFollow(notifEntity: NotificationEntity): AcceptedFollowNotif {
+    private transformAcceptedFollow(notifEntity: NormalNotifEntity): AcceptedFollowNotif {
         return {
             type: 'accepedFollow',
             isSeen: notifEntity.isSeen,
@@ -57,7 +160,7 @@ export class NotifService {
         };
     }
 
-    private transformIncommingReq(notifEntity: NotificationEntity): IncommingReqNotif {
+    private transformIncommingReq(notifEntity: NormalNotifEntity): IncommingReqNotif {
         return {
             type: 'incommingReq',
             isSeen: notifEntity.isSeen,
@@ -71,7 +174,7 @@ export class NotifService {
         };
     }
 
-    private async transformFollowedBy(notifEntity: NotificationEntity): Promise<FollowedByNotif> {
+    private async transformFollowedBy(notifEntity: NormalNotifEntity): Promise<FollowedByNotif> {
         return {
             type: 'followedBy',
             isSeen: notifEntity.isSeen,
@@ -89,7 +192,7 @@ export class NotifService {
         };
     }
 
-    private async transformMention(notifEntity: NotificationEntity): Promise<MentionNotif> {
+    private async transformMention(notifEntity: NormalNotifEntity): Promise<MentionNotif> {
         const mentionedPost = await this.postNotifRepo.findOneByNotifId(notifEntity.notifId);
         if (!mentionedPost) throw new Error();
 
@@ -110,7 +213,7 @@ export class NotifService {
         };
     }
 
-    private async transformLike(notifEntity: NotificationEntity): Promise<LikeNotif> {
+    private async transformLike(notifEntity: NormalNotifEntity): Promise<LikeNotif> {
         const mentionedPost = await this.postNotifRepo.findOneByNotifId(notifEntity.notifId);
         if (!mentionedPost) throw new Error();
 

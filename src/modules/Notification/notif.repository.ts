@@ -1,7 +1,13 @@
 import { Repository, DataSource, In } from 'typeorm';
 import { NotificationEntity } from './entity/notification.entity';
-import { CreateNotif } from './model/notifications';
+import {
+    CreateNotif,
+    isNormalNotifEntity,
+    NormalNotifEntity,
+    notifType,
+} from './model/notifications';
 import { PaginationDto } from '../Post/dto/get-posts-dto';
+import { FriendNotifEntity, friendNotifType, isFriendNotifEntity } from './model/friend-notifs';
 
 export class NotifRepository {
     private notifRepo: Repository<NotificationEntity>;
@@ -10,11 +16,17 @@ export class NotifRepository {
         this.notifRepo = dataSource.getRepository(NotificationEntity);
     }
 
-    notifList(username: string, { p: page, c: take }: PaginationDto) {
+    async notifList(
+        username: string,
+        { p: page, c: take }: PaginationDto
+    ): Promise<NormalNotifEntity[]> {
         const skip = (page - 1) * take;
 
-        return this.notifRepo.find({
-            where: { receiverId: username },
+        const notifList = await this.notifRepo.find({
+            where: {
+                receiverId: username,
+                type: In([notifType]),
+            },
             relations: {
                 emiter: true,
                 receiver: true,
@@ -23,6 +35,31 @@ export class NotifRepository {
             skip,
             take,
         });
+        if (notifList.every((n) => isNormalNotifEntity(n))) return notifList;
+        throw new Error();
+    }
+
+    async friendNotifList(
+        username: string,
+        { p: page, c: take }: PaginationDto
+    ): Promise<FriendNotifEntity[]> {
+        const skip = (page - 1) * take;
+
+        const notifList = await this.notifRepo.find({
+            where: {
+                receiverId: username,
+                type: In([friendNotifType]),
+            },
+            relations: {
+                emiter: true,
+                receiver: true,
+            },
+            order: { updatedAt: 'DESC' },
+            skip,
+            take,
+        });
+        if (notifList.every((n) => isFriendNotifEntity(n))) return notifList;
+        throw new Error();
     }
 
     create(createNotif: CreateNotif) {
