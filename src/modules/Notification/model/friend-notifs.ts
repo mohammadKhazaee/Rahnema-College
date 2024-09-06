@@ -53,3 +53,9 @@ export interface FollowNotif extends NotifMetaData, NotifWithUser {
         lName: string;
     };
 }
+
+export interface CreateFriendFollowNotif {
+    type: 'friendFollow';
+    emiterId: string;
+    receiverId: string;
+}

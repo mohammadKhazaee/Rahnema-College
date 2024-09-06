@@ -1,4 +1,4 @@
-import { DataSource, FindOptionsWhere, In, Repository } from 'typeorm';
+import { DataSource, EntityManager, FindOptionsWhere, In, Repository } from 'typeorm';
 import { UserRelationEntity } from './entity/user-relation.entity';
 import {
     CreateUserRelation,
@@ -7,6 +7,7 @@ import {
     UserRelationStatus,
 } from './model/user-relation';
 import { NotificationEntity } from '../Notification/entity/notification.entity';
+import { CreateFriendFollowNotif } from '../Notification/model/friend-notifs';
 
 export class UserRelationRepository {
     private followRepo: Repository<UserRelationEntity>;
@@ -64,13 +65,38 @@ export class UserRelationRepository {
                 emiterId: relation.followedId,
                 receiverId: relation.followerId,
             });
+
             // create notif entity for user
             await entityManager.save(NotificationEntity, {
                 type: 'followedBy',
                 emiterId: relation.followerId,
                 receiverId: relation.followedId,
             });
+
+            // create follow notif for close friends
+            const createFriendsNotifs = await this.makeCreateFriendFollow(
+                entityManager,
+                relation.followerId
+            );
+
+            await entityManager.save(NotificationEntity, createFriendsNotifs);
         });
+    }
+
+    private async makeCreateFriendFollow(
+        entityManager: EntityManager,
+        followedId: string
+    ): Promise<CreateFriendFollowNotif[]> {
+        const friends = await entityManager.findBy(UserRelationEntity, {
+            followedId,
+            status: 'friend',
+        });
+
+        return friends.map((f) => ({
+            type: 'friendFollow',
+            emiterId: followedId,
+            receiverId: f.followerId,
+        }));
     }
 
     deleteRequestedFollow(relation: UserRelationEntity): Promise<void> {
