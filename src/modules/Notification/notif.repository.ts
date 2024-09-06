@@ -31,7 +31,7 @@ export class NotifRepository {
                 emiter: true,
                 receiver: true,
             },
-            order: { updatedAt: 'DESC' },
+            order: { createdAt: 'DESC' },
             skip,
             take,
         });
@@ -54,7 +54,7 @@ export class NotifRepository {
                 emiter: true,
                 receiver: true,
             },
-            order: { updatedAt: 'DESC' },
+            order: { createdAt: 'DESC' },
             skip,
             take,
         });

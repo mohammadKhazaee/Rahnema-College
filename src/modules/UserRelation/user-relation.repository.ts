@@ -52,6 +52,7 @@ export class UserRelationRepository {
             // update relation status to follow
             await entityManager.update(UserRelationEntity, relation.relationId, {
                 status: 'follow',
+                createdAt: new Date(),
             });
 
             const notifEntity = await entityManager.findOneBy(NotificationEntity, {
@@ -65,6 +66,7 @@ export class UserRelationRepository {
                 type: 'acceptedFollow',
                 emiterId: relation.followedId,
                 receiverId: relation.followerId,
+                createdAt: new Date(),
             });
 
             // create notif entity for user

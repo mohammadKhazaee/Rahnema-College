@@ -68,7 +68,7 @@ export class NotifService {
         return {
             type: 'like',
             isSeen: notifEntity.isSeen,
-            createdAt: notifEntity.updatedAt,
+            createdAt: notifEntity.createdAt,
             user: {
                 username: notifEntity.emiterId,
                 fName: notifEntity.emiter.fName,
@@ -88,7 +88,7 @@ export class NotifService {
         return {
             type: 'comment',
             isSeen: notifEntity.isSeen,
-            createdAt: notifEntity.updatedAt,
+            createdAt: notifEntity.createdAt,
             user: {
                 username: notifEntity.emiterId,
                 fName: notifEntity.emiter.fName,
@@ -112,7 +112,7 @@ export class NotifService {
         return {
             type: 'follow',
             isSeen: notifEntity.isSeen,
-            createdAt: notifEntity.updatedAt,
+            createdAt: notifEntity.createdAt,
             user: {
                 username: notifEntity.emiterId,
                 fName: notifEntity.emiter.fName,
@@ -150,7 +150,7 @@ export class NotifService {
         return {
             type: 'accepedFollow',
             isSeen: notifEntity.isSeen,
-            createdAt: notifEntity.updatedAt,
+            createdAt: notifEntity.createdAt,
             user: {
                 username: notifEntity.emiterId,
                 fName: notifEntity.emiter.fName,
@@ -164,7 +164,7 @@ export class NotifService {
         return {
             type: 'incommingReq',
             isSeen: notifEntity.isSeen,
-            createdAt: notifEntity.updatedAt,
+            createdAt: notifEntity.createdAt,
             user: {
                 username: notifEntity.emiterId,
                 fName: notifEntity.emiter.fName,
@@ -178,7 +178,7 @@ export class NotifService {
         return {
             type: 'followedBy',
             isSeen: notifEntity.isSeen,
-            createdAt: notifEntity.updatedAt,
+            createdAt: notifEntity.createdAt,
             user: {
                 username: notifEntity.emiterId,
                 fName: notifEntity.emiter.fName,
@@ -199,7 +199,7 @@ export class NotifService {
         return {
             type: 'mention',
             isSeen: notifEntity.isSeen,
-            createdAt: notifEntity.updatedAt,
+            createdAt: notifEntity.createdAt,
             user: {
                 username: notifEntity.emiterId,
                 fName: notifEntity.emiter.fName,
@@ -220,7 +220,7 @@ export class NotifService {
         return {
             type: 'like',
             isSeen: notifEntity.isSeen,
-            createdAt: notifEntity.updatedAt,
+            createdAt: notifEntity.createdAt,
             user: {
                 username: notifEntity.emiterId,
                 fName: notifEntity.emiter.fName,
