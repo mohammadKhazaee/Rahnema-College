@@ -21,7 +21,7 @@ import { UserRelationRepository } from './modules/UserRelation/user-relation.rep
 import { UserRelationService } from './modules/UserRelation/user-relation.service';
 import { TagRepository } from './modules/Post/tag.repository';
 import { PostCommentRepository } from './modules/Post/post-comment.repository';
-import { SocialService } from './services/social.service';
+import { SocialService } from './modules/Common/social.service';
 import { PostLikeRepository } from './modules/Post/post-like.repository';
 import { CommentLikeRepository } from './modules/Post/comment-like.repository';
 import { BookmarkRepository } from './modules/Post/bookmark.repository';
@@ -32,6 +32,7 @@ import { PostNotifRepository } from './modules/Notification/post-notif.repositor
 import { CommentNotifRepository } from './modules/Notification/comment-notif.repository';
 import { RelationNotifRepository } from './modules/Notification/follow-notif.repository';
 import { userRelationRouter } from './routes/user-relation.route';
+import { isAuthenticated } from './login-middleware';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -53,9 +54,9 @@ export const appFactory = (dataSource: DataSource) => {
     app.use(
         morgan(
             '[:date] ' +
-            ':method::url :status ' +
-            'length::res[content-length] - :response-time[1] ms ' +
-            'authHeader::authHeader'
+                ':method::url :status ' +
+                'length::res[content-length] - :response-time[1] ms ' +
+                'authHeader::authHeader'
         )
     );
 
@@ -109,9 +110,17 @@ export const appFactory = (dataSource: DataSource) => {
     const socialService = new SocialService(userService, userRelationService, postService);
 
     app.use('/auth', authRouter(authService));
-    app.use('/posts', postRouter(postService, userService, fileParser));
-    app.use('/dashboard', dashboardRouter(userService, socialService, notifService, fileParser));
-    app.use('/user-relations', userRelationRouter(userService, userRelationService));
+    app.use('/posts', isAuthenticated(userService), postRouter(postService, fileParser));
+    app.use(
+        '/dashboard',
+        isAuthenticated(userService),
+        dashboardRouter(userService, socialService, notifService, fileParser)
+    );
+    app.use(
+        '/user-relations',
+        isAuthenticated(userService),
+        userRelationRouter(userRelationService)
+    );
 
     app.use((req, res) => {
         res.status(404).send({ message: 'Not Found' });
