@@ -12,6 +12,8 @@ import { CommentLikeEntity } from './modules/Post/entity/comment-Likes.entity';
 import { UserRelationEntity } from './modules/UserRelation/entity/user-relation.entity';
 import { NotificationEntity } from './modules/Notification/entity/notification.entity';
 import { PostNotifEntity } from './modules/Notification/entity/post-notif.entity';
+import { CommentNotifEntity } from './modules/Notification/entity/comment-notif.entity';
+import { RelationNotifEntity } from './modules/Notification/entity/relation-notif.entity';
 dotenv.config();
 
 export const AppDataSource = new DataSource({
@@ -35,6 +37,8 @@ export const AppDataSource = new DataSource({
         CommentLikeEntity,
         NotificationEntity,
         PostNotifEntity,
+        RelationNotifEntity,
+        CommentNotifEntity,
     ],
     migrations: [],
     subscribers: [],

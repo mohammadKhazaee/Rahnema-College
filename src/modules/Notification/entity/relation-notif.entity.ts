@@ -11,7 +11,7 @@ import {
 import { NotificationEntity } from './notification.entity';
 import { UserRelationEntity } from '../../UserRelation/entity/user-relation.entity';
 
-@Entity('comment_notifs')
+@Entity('relation_notifs')
 export class RelationNotifEntity {
     @PrimaryColumn()
     notifId!: string;

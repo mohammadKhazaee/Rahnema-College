@@ -8,6 +8,7 @@ import {
 } from './model/user-relation';
 import { NotificationEntity } from '../Notification/entity/notification.entity';
 import { CreateFriendFollowNotif } from '../Notification/model/friend-notifs';
+import { RelationNotifEntity } from '../Notification/entity/relation-notif.entity';
 
 export class UserRelationRepository {
     private followRepo: Repository<UserRelationEntity>;
@@ -79,7 +80,16 @@ export class UserRelationRepository {
                 relation.followerId
             );
 
-            await entityManager.save(NotificationEntity, createFriendsNotifs);
+            const createdNotifs = await entityManager.save(NotificationEntity, createFriendsNotifs);
+
+            // save relation notif
+            await entityManager.save(
+                RelationNotifEntity,
+                createdNotifs.map((n) => ({
+                    notifId: n.notifId,
+                    relationId: relation.relationId,
+                }))
+            );
         });
     }
 
