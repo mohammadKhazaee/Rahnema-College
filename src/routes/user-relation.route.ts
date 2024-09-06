@@ -50,7 +50,7 @@ export const userRelationRouter = (followService: UserRelationService) => {
         const followerName = req.username;
         const followedUserName = req.params.username;
         handleExpress(res, 200, next, async () => ({
-            message: 'not implemented yet',
+            message: await followService.unfollowUser(followerName, followedUserName),
         }));
     });
 

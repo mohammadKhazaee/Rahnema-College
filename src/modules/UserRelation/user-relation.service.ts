@@ -99,11 +99,9 @@ export class UserRelationService {
     async unfollowUser(followerId: string, followedId: string) {
         if (followerId === followedId) throw new ForbiddenError('user cant unfollow themself');
 
-        const [follower, followed] = await Promise.all([
-            this.userService.doesUserExists({ username: followerId }),
-            this.userService.doesUserExists({ username: followedId }),
-        ]);
-        if (!follower || !followed) throw new NotFoundError();
+        const followed = await this.userService.doesUserExists({ username: followedId });
+
+        if (!followed) throw new NotFoundError();
 
         const followingIds: FindUserRelation = {
             followerId,
@@ -118,8 +116,6 @@ export class UserRelationService {
             );
 
         await this.followRepo.delete(followingIds);
-        console.log('follower: ', follower);
-        console.log('followed: ', followed);
 
         return 'success';
     }
