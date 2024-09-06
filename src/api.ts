@@ -110,17 +110,9 @@ export const appFactory = (dataSource: DataSource) => {
     const socialService = new SocialService(userService, userRelationService, postService);
 
     app.use('/auth', authRouter(authService));
-    app.use('/posts', isAuthenticated(userService), postRouter(postService, fileParser));
-    app.use(
-        '/dashboard',
-        isAuthenticated(userService),
-        dashboardRouter(userService, socialService, notifService, fileParser)
-    );
-    app.use(
-        '/user-relations',
-        isAuthenticated(userService),
-        userRelationRouter(userRelationService)
-    );
+    app.use('/posts', postRouter(userService, postService, fileParser));
+    app.use('/dashboard', dashboardRouter(userService, socialService, notifService, fileParser));
+    app.use('/user-relations', userRelationRouter(userService, userRelationService));
 
     app.use((req, res) => {
         res.status(404).send({ message: 'Not Found' });
