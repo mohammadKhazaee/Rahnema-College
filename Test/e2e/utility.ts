@@ -9,6 +9,7 @@ import jwt from 'jsonwebtoken';
 import { SignupDto } from '../../src/modules/Auth/dto/signup-dto';
 import { CreatePostDto } from '../../src/modules/Post/dto/create-post-dto';
 import { CreateCommentDto } from '../../src/modules/Post/dto/create-comment.dto';
+import { appFactory } from '../../src/api';
 
 export const singupTest = async (
     //@ts-ignore
@@ -70,7 +71,7 @@ export const followReqTest = (
     statusCode: number
 ) => {
     return request(app)
-        .post(`/${followedId}/follow/req`)
+        .post(`/user-relations/follow/${followedId}/req`)
         .set('Authorization', 'Bearer ' + followerToken)
         .expect(statusCode);
 };
@@ -113,11 +114,24 @@ export const acceptFollowTest = async (
     statusCode: number
 ) => {
     const accepted = await request(app)
-        .post(`/${followerName}/follow/accept`)
+        .post(`/user-relations/follow/${followerName}`)
         .set('Authorization', 'Bearer ' + userToken)
         .expect(statusCode)
     console.log(accepted.body)
     return accepted
+}
+
+export const blockTest = async (
+    //@ts-ignore
+    app: Express,
+    blockedId: string,
+    currentUserToken: string,
+    statusCode: number
+) => {
+    await request(app)
+        .post(`/user-relations/blocks/${blockedId}`)
+        .set('Authorization', 'Bearer ' + currentUserToken)
+        .expect(statusCode)
 }
 
 export const generateTokenForReset = (user: User) => {

@@ -1,7 +1,7 @@
 import { LoginDto } from '../../src/modules/Auth/dto/logindto';
 import { appFactory } from '../../src/api';
 import { AppDataSource } from '../../src/data-source';
-import { acceptFollowTest, closeFriendTest, followReqTest, loginTest, removeFriendTest, singupTest } from './utility';
+import { acceptFollowTest, blockTest, closeFriendTest, followReqTest, loginTest, removeFriendTest, singupTest } from './utility';
 import { UserRepository } from '../../src/modules/User/user.repository';
 import { UserEntity } from '../../src/modules/User/entity/user.entity';
 import { EditProfileDto } from '../../src/modules/User/dto/edit-profile-dto';
@@ -31,18 +31,49 @@ describe('Profile Route Test Suit', () => {
 
     describe('proflile tests', () => {
         const loginUser: LoginDto = {
-            username: 'test1245',
-            password: 'test1386',
-            rememberMe: true,
+            username: 'test1',
+            password: 'test12345678901',
+            rememberMe: false,
         };
-        it.skip('should follow', async () => {
-            const loggedinUserToken = await loginTest(app, loginUser);
-            console.log(loggedinUserToken);
-            const { body: item } = await request(app)
-                .patch('/follow/test1245')
-                .set('Authorization', 'Bearer ' + loggedinUserToken)
-                .expect(200);
-            console.log(item);
+
+        it('should follow and then block the follower', async () => {
+            const signupUserTest1: SignupDto = {
+                username: 'test1',
+                email: 'testeaval@gamil.com',
+                password: 'test12345678901',
+                confirmPassword: 'test12345678901',
+            }
+
+            const signupUserTest2: SignupDto = {
+                username: 'test2',
+                email: 'testedovom@gamil.com',
+                password: 'test12345678902',
+                confirmPassword: 'test12345678902',
+            }
+
+            await singupTest(app, signupUserTest1, 201)
+            await singupTest(app, signupUserTest2, 201)
+
+            const userTest1: LoginDto = {
+                username: 'test1',
+                password: 'test12345678901',
+                rememberMe: false,
+            };
+
+            const userTest2: LoginDto = {
+                username: 'test2',
+                password: 'test12345678902',
+                rememberMe: false
+            }
+
+
+            const testYekToken = await loginTest(app, userTest1);
+            const testDoToken = await loginTest(app, userTest2)
+
+            const request = await followReqTest(app, 'test2', testYekToken, 200)
+            const accept = await acceptFollowTest(app, 'test1', testDoToken, 200)
+
+            const blocked = await blockTest(app, 'test1', testDoToken, 200)
         });
 
         it.skip('should unfallow', async () => {
@@ -87,16 +118,7 @@ describe('Profile Route Test Suit', () => {
             console.log(followings.body);
         });
 
-        it.skip('should block a user', async () => {
-            const loggedinUserToken = await loginTest(app, loginUser);
-            const blocked = await request(app)
-                .post('/ehsAnhAq86/block')
-                .set('Authorization', 'Bearer ' + loggedinUserToken)
-                .expect(200);
-            console.log(blocked.body);
-        });
-
-        it('should add and remove to close friend', async () => {
+        it.skip('should add and remove to close friend', async () => {
             const signupUser = {
                 username: 'dummy',
                 email: 'dummyUser123@gamil.com',

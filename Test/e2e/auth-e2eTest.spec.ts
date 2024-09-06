@@ -23,13 +23,13 @@ describe.skip('CollegeGram Test Suit', () => {
 
     describe('Auth parts', () => {
         const newUser = {
-            username: 'test1245',
-            email: 'testebahal86@gamil.com',
-            password: 'test1386',
-            confirmPassword: 'test1386',
+            username: 'test2',
+            email: 'testedovom@gamil.com',
+            password: 'test12345678902',
+            confirmPassword: 'test12345678902',
         };
 
-        it.skip('sould signup', async () => {
+        it('sould signup', async () => {
             const { body: user } = await request(app)
                 .post('/auth/signup')
                 .send(newUser)

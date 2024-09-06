@@ -192,8 +192,7 @@ export class UserRelationService {
         }
 
         if (secondRelation) {
-            secondRelation.status = 'blocked';
-            await this.followRepo.upadte(secondRelation);
+            await this.followRepo.delete(secondRelation)
         }
 
         if (!relation) {
