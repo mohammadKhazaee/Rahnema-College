@@ -9,7 +9,7 @@ export class UserRelationService {
     constructor(
         private followRepo: UserRelationRepository,
         private userService: UserService
-    ) {}
+    ) { }
 
     async fetchRelationStatus({
         followerId,
@@ -237,8 +237,8 @@ export class UserRelationService {
         if (!friend) throw new NotFoundError('Friend not found');
 
         const relation = await this.followRepo.fetchRelation({
-            followerId: username,
-            followedId: friendUsername,
+            followedId: username,
+            followerId: friendUsername,
         });
 
         if (relation && relation.status === 'friend')

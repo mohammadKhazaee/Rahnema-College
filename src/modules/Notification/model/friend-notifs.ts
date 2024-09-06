@@ -65,3 +65,9 @@ export interface CreateFriendCommentNotif {
     emiterId: string;
     receiverId: string;
 }
+
+export interface createFrindLikeNotif {
+    type: 'friendLike',
+    emiterId: string,
+    receiverId: string,
+}

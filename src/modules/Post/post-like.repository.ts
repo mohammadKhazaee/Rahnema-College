@@ -1,9 +1,11 @@
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 import { PostLikeEntity } from './entity/post-Likes.entity';
 import { CreatePostLike, PostLikeId } from './model/post-like';
 import { NotificationEntity } from '../Notification/entity/notification.entity';
 import { PostNotifEntity } from '../Notification/entity/post-notif.entity';
 import { CreateLikeNotif, DeleteLikeNotif } from '../Notification/model/notifications';
+import { UserRelationEntity } from '../UserRelation/entity/user-relation.entity';
+import { createFrindLikeNotif } from '../Notification/model/friend-notifs';
 
 export class PostLikeRepository {
     private likeRepo: Repository<PostLikeEntity>;
@@ -43,8 +45,29 @@ export class PostLikeRepository {
                 notifId: createdNotif.notifId,
                 postId,
             });
+            const createdLikeNotifs = await this.makeFriendLikeNotif(emiterId, entityManager);
+
+            await entityManager.save(NotificationEntity, createdLikeNotifs);
         });
     }
+
+    private async makeFriendLikeNotif(
+        emiterId: string,
+        entityManager: EntityManager
+    ): Promise<createFrindLikeNotif[]> {
+        const friends = await entityManager.findBy(UserRelationEntity, {
+            followedId: emiterId,
+            status: 'friend',
+        });
+
+        return friends.map((f) => ({
+            type: 'friendLike',
+            emiterId: emiterId,
+            receiverId: f.followerId,
+        }));
+    }
+
+
 
     delete({ postId, emiterId, receiverId }: DeleteLikeNotif) {
         return this.dataSource.transaction(async (entityManager) => {
