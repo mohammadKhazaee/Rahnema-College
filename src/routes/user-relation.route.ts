@@ -39,10 +39,13 @@ export const userRelationRouter = (followService: UserRelationService) => {
     });
 
     app.delete('/followers/:username', (req, res, next) => {
-        const followerName = req.username;
-        const followedUserName = req.params.username;
+        const followedName = req.username;
+        const followerUserName = req.params.username;
         handleExpress(res, 200, next, async () => ({
-            message: 'not implemented yet',
+            message: await followService.removeFollower({
+                followedId: followedName,
+                followerId: followerUserName,
+            }),
         }));
     });
 
@@ -50,7 +53,10 @@ export const userRelationRouter = (followService: UserRelationService) => {
         const followerName = req.username;
         const followedUserName = req.params.username;
         handleExpress(res, 200, next, async () => ({
-            message: await followService.unfollowUser(followerName, followedUserName),
+            message: await followService.unfollowUser({
+                followedId: followedUserName,
+                followerId: followerName,
+            }),
         }));
     });
 

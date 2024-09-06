@@ -96,12 +96,33 @@ export class UserRelationService {
         return `follow request accepted`;
     }
 
-    async unfollowUser(followerId: string, followedId: string) {
+    async removeFollower({ followedId, followerId }: UserRelationId) {
+        if (followerId === followedId) throw new ForbiddenError('user cant unfollow themself');
+
+        const follower = await this.userService.doesUserExists({ username: followerId });
+
+        if (!follower) throw new NotFoundError('follower was not found');
+
+        const followingIds: FindUserRelation = {
+            followerId,
+            followedId,
+            status: ['follow', 'friend'],
+        };
+
+        const fetchedFollowing = await this.followRepo.fetchRelation(followingIds);
+        if (!fetchedFollowing) throw new ForbiddenError('this user is not follower');
+
+        await this.followRepo.delete(followingIds);
+
+        return 'success';
+    }
+
+    async unfollowUser({ followedId, followerId }: UserRelationId) {
         if (followerId === followedId) throw new ForbiddenError('user cant unfollow themself');
 
         const followed = await this.userService.doesUserExists({ username: followedId });
 
-        if (!followed) throw new NotFoundError();
+        if (!followed) throw new NotFoundError('followed user was not found');
 
         const followingIds: FindUserRelation = {
             followerId,
