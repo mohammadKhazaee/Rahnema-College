@@ -209,6 +209,23 @@ export class UserRelationService {
         return 'Targeted user is blocked';
     }
 
+    async removeBlockUser(blockedName: string, blockerName: string) {
+        const blockedUser = this.userService.doesUserExists({ username: blockedName });
+        if (!blockedUser) throw new NotFoundError('User not found');
+
+        const relation = await this.followRepo.fetchRelation({
+            followerId: blockerName,
+            followedId: blockedName,
+        });
+
+        if (!relation || (relation && relation.status !== 'blocked'))
+            throw new ForbiddenError('This user is not blocked');
+
+        await this.followRepo.delete({ followerId: blockerName, followedId: blockedName });
+
+        return 'User removed from your blocks';
+    }
+
     async addToCloseFriends(username: string, friendUsername: string) {
         if (username === friendUsername)
             throw new ForbiddenError('User cannot add themselves as a close friend');
@@ -272,11 +289,7 @@ export class UserRelationService {
         if (!relation || (relation && relation.status !== 'friend'))
             throw new ForbiddenError('This user is not your close friend');
 
-        const updatedRelation = await this.followRepo.updateRelationStatus(
-            mainUserName,
-            friendName,
-            'follow'
-        );
+        await this.followRepo.updateRelationStatus(mainUserName, friendName, 'follow');
 
         return 'User removed from your close friends';
     }

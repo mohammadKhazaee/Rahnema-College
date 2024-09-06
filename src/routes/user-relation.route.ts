@@ -75,11 +75,26 @@ export const userRelationRouter = (followService: UserRelationService) => {
         }));
     });
 
+    app.delete('/blocks/:username', (req, res, next) => {
+        const related = req.params.username;
+        handleExpress(res, 200, next, async () => ({
+            message: await followService.removeBlockUser(related, req.username),
+        }));
+    });
+
     app.post('/friends/:username', (req, res, next) => {
         const currentUser = req.username;
         const friendUsername = req.params.username;
         handleExpress(res, 200, next, async () => ({
             message: await followService.addToCloseFriends(currentUser, friendUsername),
+        }));
+    });
+
+    app.delete('/friends/:username', (req, res, next) => {
+        const currentUser = req.username;
+        const friendUsername = req.params.username;
+        handleExpress(res, 200, next, async () => ({
+            message: await followService.removeCloseFriend(currentUser, friendUsername),
         }));
     });
 
