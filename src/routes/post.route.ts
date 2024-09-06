@@ -34,7 +34,7 @@ export const postRouter = (postService: PostService, fileParser: FileParser) => 
 
     app.get('/:postId', (req, res, next) => {
         const postId = z.string().parse(req.params.postId);
-        handleExpress(res, 200, next, () => postService.getPostById(postId));
+        handleExpress(res, 200, next, () => postService.getPostById(postId, req.username));
     });
 
     app.get('/user/:username', (req, res, next) => {

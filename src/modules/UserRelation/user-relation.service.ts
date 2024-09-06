@@ -6,10 +6,7 @@ import { FindUserRelation, GetFollowBlockListDao, UserRelationId } from './model
 import { FollowedByState } from '../Notification/model/notifications';
 
 export class UserRelationService {
-    constructor(
-        private followRepo: UserRelationRepository,
-        private userService: UserService
-    ) { }
+    constructor(private followRepo: UserRelationRepository, private userService: UserService) {}
 
     async fetchRelationStatus({
         followerId,
@@ -160,12 +157,13 @@ export class UserRelationService {
 
         const skip = (page - 1) * count;
         const followersList = await this.followRepo.getFollowers(username, count, skip);
+        console.log(followersList);
 
         return Promise.all(
             followersList.map(async (f) => ({
                 username: f.followerId,
-                fName: f.followed.fName,
-                lName: f.followed.lName,
+                fName: f.follower.fName,
+                lName: f.follower.lName,
                 imageUrl: f.follower.imageUrl,
                 followersCount: await this.followRepo.followersCount(f.followerId),
             }))

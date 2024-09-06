@@ -36,7 +36,7 @@ export class PostService {
         private imageRepo: PostImageRepository
     ) {}
 
-    async getPostById(postId: string): Promise<GetPostDao> {
+    async getPostById(postId: string, userId: string): Promise<GetPostDao> {
         const post = await this.postRepo.findPostById(postId);
         if (!post) throw new HttpError(404, 'Post not found');
 
@@ -65,10 +65,10 @@ export class PostService {
         };
 
         const [isLiked, likeCount, commentsCount, isBookMarked, bookMarkCount] = await Promise.all([
-            this.postLikeRepo.doesLikeExists({ postId, userId: post.creator.username }),
+            this.postLikeRepo.doesLikeExists({ postId, userId }),
             this.postLikeRepo.countLikesForPost(postId),
             this.postCommentRepo.countCommentsForPost(postId),
-            this.bookmarkRepo.isItBookmarked({ postId, userId: post.creator.username }),
+            this.bookmarkRepo.isItBookmarked({ postId, userId }),
             this.bookmarkRepo.countBookmarksForPost(postId),
         ]);
         return { ...formatedPost, isLiked, likeCount, commentsCount, isBookMarked, bookMarkCount };
