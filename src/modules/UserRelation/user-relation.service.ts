@@ -2,7 +2,7 @@ import { ForbiddenError, NotFoundError } from '../../utility/errors';
 import { UserService } from '../User/user.service';
 import { FollowListDto } from './dto/follow-list-dto';
 import { UserRelationRepository } from './user-relation.repository';
-import { FindUserRelation, GetFollowListDao, UserRelationId } from './model/user-relation';
+import { FindUserRelation, GetFollowBlockListDao, UserRelationId } from './model/user-relation';
 import { FollowedByState } from '../Notification/model/notifications';
 
 export class UserRelationService {
@@ -137,7 +137,7 @@ export class UserRelationService {
     async getFollowersList(
         username: string,
         { p: page, c: count }: FollowListDto
-    ): Promise<GetFollowListDao[]> {
+    ): Promise<GetFollowBlockListDao[]> {
         const user = await this.userService.doesUserExists({ username });
         if (!user) throw new NotFoundError();
 
@@ -147,6 +147,8 @@ export class UserRelationService {
         return Promise.all(
             followersList.map(async (f) => ({
                 username: f.followerId,
+                fName: f.followed.fName,
+                lName: f.followed.lName,
                 imageUrl: f.follower.imageUrl,
                 followersCount: await this.followRepo.followersCount(f.followerId),
             }))
@@ -156,7 +158,7 @@ export class UserRelationService {
     async getFollowingsList(
         username: string,
         { p: page, c: count }: FollowListDto
-    ): Promise<GetFollowListDao[]> {
+    ): Promise<GetFollowBlockListDao[]> {
         const user = await this.userService.doesUserExists({ username });
         if (!user) throw new NotFoundError();
 
@@ -165,6 +167,8 @@ export class UserRelationService {
         return Promise.all(
             followingsList.map(async (f) => ({
                 username: f.followedId,
+                fName: f.followed.fName,
+                lName: f.followed.lName,
                 imageUrl: f.followed.imageUrl,
                 followersCount: await this.followRepo.followersCount(f.followedId),
             }))
@@ -192,7 +196,7 @@ export class UserRelationService {
         }
 
         if (secondRelation) {
-            await this.followRepo.delete(secondRelation)
+            await this.followRepo.delete(secondRelation);
         }
 
         if (!relation) {
@@ -230,11 +234,26 @@ export class UserRelationService {
         return 'Added to close friends';
     }
 
-    async getCloseFriendsList(username: string): Promise<GetFollowListDao[]> {
+    async getBlockList(username: string): Promise<GetFollowBlockListDao[]> {
+        const blocks = await this.followRepo.getBlocks(username);
+        return Promise.all(
+            blocks.map(async (b) => ({
+                username: b.followedId,
+                fName: b.followed.fName,
+                lName: b.followed.lName,
+                imageUrl: b.followed.imageUrl,
+                followersCount: await this.followRepo.followersCount(b.followedId),
+            }))
+        );
+    }
+
+    async getCloseFriendsList(username: string): Promise<GetFollowBlockListDao[]> {
         const closeFriends = await this.followRepo.getCloseFriends(username);
         return Promise.all(
             closeFriends.map(async (f) => ({
                 username: f.followedId,
+                fName: f.followed.fName,
+                lName: f.followed.lName,
                 imageUrl: f.followed.imageUrl,
                 followersCount: await this.followRepo.followersCount(f.followedId),
             }))

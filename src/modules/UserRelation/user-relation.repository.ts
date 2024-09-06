@@ -162,7 +162,7 @@ export class UserRelationRepository {
         return this.followRepo.find({
             select: {
                 followed: {},
-                follower: { imageUrl: true },
+                follower: { imageUrl: true, fName: true, lName: true },
             },
             where: { followedId: username, status: 'follow' },
             take: count,
@@ -175,7 +175,7 @@ export class UserRelationRepository {
     getFollowings(username: string, count: number, skipCount: number) {
         return this.followRepo.find({
             select: {
-                followed: { imageUrl: true },
+                followed: { imageUrl: true, fName: true, lName: true },
                 follower: {},
             },
             where: { followerId: username, status: 'follow' },
@@ -193,10 +193,22 @@ export class UserRelationRepository {
     getCloseFriends(username: string) {
         return this.followRepo.find({
             select: {
-                followed: { imageUrl: true },
+                followed: { imageUrl: true, fName: true, lName: true },
                 follower: {},
             },
             where: { followerId: username, status: 'friend' },
+            order: { createdAt: 'DESC' },
+            relations: ['followed', 'follower'],
+        });
+    }
+
+    getBlocks(username: string) {
+        return this.followRepo.find({
+            select: {
+                followed: { imageUrl: true, fName: true, lName: true },
+                follower: {},
+            },
+            where: { followerId: username, status: 'blocked' },
             order: { createdAt: 'DESC' },
             relations: ['followed', 'follower'],
         });

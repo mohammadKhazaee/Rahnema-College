@@ -1,4 +1,4 @@
-import { User } from '../../User/model/user';
+import { GetUserMinInfo, User } from '../../User/model/user';
 
 export const userRelationStatus = {
     blocked: 'blocked',
@@ -31,8 +31,6 @@ export interface FindUserRelation extends UserRelationId {
     status?: UserRelationStatus[];
 }
 
-export interface GetFollowListDao {
-    username: string;
-    imageUrl: string;
+export interface GetFollowBlockListDao extends GetUserMinInfo {
     followersCount: number;
 }

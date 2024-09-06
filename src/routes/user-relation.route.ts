@@ -83,6 +83,13 @@ export const userRelationRouter = (followService: UserRelationService) => {
         }));
     });
 
+    app.get('/blocks', (req, res, next) => {
+        const username = req.username;
+        handleExpress(res, 200, next, async () => ({
+            blocks: await followService.getBlockList(username),
+        }));
+    });
+
     app.get('/friends', (req, res, next) => {
         const username = req.username;
         handleExpress(res, 200, next, async () => ({

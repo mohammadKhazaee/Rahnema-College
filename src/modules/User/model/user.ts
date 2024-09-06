@@ -58,3 +58,10 @@ export type userIdentifier =
     | {
           username: string;
       };
+
+export interface GetUserMinInfo {
+    username: string;
+    lName: string;
+    fName: string;
+    imageUrl: string;
+}
