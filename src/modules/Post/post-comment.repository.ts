@@ -1,22 +1,19 @@
-import { Repository, DataSource, IsNull } from 'typeorm';
+import { Repository, DataSource, IsNull, EntityManager } from 'typeorm';
 import { PostCommentEntity } from './entity/post-comment.entity';
-import {
-    CreatePostComment,
-    PostCommentWithReplays,
-} from './model/post-comment';
+import { CreatePostComment, PostCommentWithReplays } from './model/post-comment';
+import { NotificationEntity } from '../Notification/entity/notification.entity';
+import { UserRelationEntity } from '../UserRelation/entity/user-relation.entity';
+import { CreateFriendCommentNotif } from '../Notification/model/friend-notifs';
+import { CommentNotifEntity } from '../Notification/entity/comment-notif.entity';
 
 export class PostCommentRepository {
     private commentRepo: Repository<PostCommentEntity>;
 
-    constructor(dataSource: DataSource) {
+    constructor(private dataSource: DataSource) {
         this.commentRepo = dataSource.getRepository(PostCommentEntity);
     }
 
-    getComments(
-        postId: string,
-        take: number,
-        skip: number
-    ): Promise<PostCommentEntity[]> {
+    getComments(postId: string, take: number, skip: number): Promise<PostCommentEntity[]> {
         return this.commentRepo.find({
             where: { postId, parentId: IsNull() },
             take,
@@ -37,7 +34,45 @@ export class PostCommentRepository {
     }
 
     save(commentData: CreatePostComment): Promise<PostCommentWithReplays> {
-        return this.commentRepo.save(commentData);
+        const createdComment = this.commentRepo.create(commentData);
+        return this.dataSource.transaction(async (entityManager) => {
+            // save comment record
+            await entityManager.insert(PostCommentEntity, createdComment);
+
+            // save base notif
+            const createFriendNotif = await this.makeCreateFriendComment(
+                entityManager,
+                commentData.commenterId
+            );
+            const createdNotif = await entityManager.save(NotificationEntity, createFriendNotif);
+
+            // save comment notif
+            await entityManager.save(
+                CommentNotifEntity,
+                createdNotif.map((n) => ({
+                    notifId: n.notifId,
+                    commentId: createdComment.commentId,
+                }))
+            );
+
+            return createdComment;
+        });
+    }
+
+    private async makeCreateFriendComment(
+        entityManager: EntityManager,
+        followedId: string
+    ): Promise<CreateFriendCommentNotif[]> {
+        const friends = await entityManager.findBy(UserRelationEntity, {
+            followedId,
+            status: 'friend',
+        });
+
+        return friends.map((f) => ({
+            type: 'friendComment',
+            emiterId: followedId,
+            receiverId: f.followerId,
+        }));
     }
 
     countCommentsForPost(postId: string): Promise<number> {

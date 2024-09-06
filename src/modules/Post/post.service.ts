@@ -319,7 +319,7 @@ export class PostService {
         if (!user) throw new NotFoundError('user not founded');
 
         const exploreposts = await this.postRepo.explorePosts(username);
-        console.log(exploreposts);
+
         const retuenExplore: postServiceExploreDto[] = await Promise.all(
             exploreposts.map(async (p) => ({
                 postId: p.postId,
