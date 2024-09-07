@@ -11,13 +11,14 @@ export class SocialService {
         private postService: PostService
     ) {}
 
-    async getUserInfo(username: string): Promise<UserProfileDao> {
+    async getUserInfo(username: string, mainUser: string): Promise<UserProfileDao> {
         const user = await this.userService.getUser({ username });
 
-        const [followersCount, followingsCount, postCount] = await Promise.all([
+        const [followersCount, followingsCount, postCount, relationState] = await Promise.all([
             this.followService.getFollowersCount(username),
             this.followService.getFollowingsCount(username),
             this.postService.getPostCount(username),
+            this.followService.fetchRelationStatus({ followerId: mainUser, followedId: username }),
         ]);
 
         return {
@@ -31,6 +32,7 @@ export class SocialService {
             followersCount,
             followingsCount,
             postCount,
+            relationState,
         };
     }
 

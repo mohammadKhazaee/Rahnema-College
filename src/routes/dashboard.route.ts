@@ -17,7 +17,9 @@ export const dashboardRouter = (
     const app = Router();
 
     app.get('/profile-info/:username', isAuthenticated(userService), (req, res, next) => {
-        handleExpress(res, 200, next, () => socialService.getUserInfo(req.params.username));
+        handleExpress(res, 200, next, () =>
+            socialService.getUserInfo(req.params.username, req.username)
+        );
     });
 
     app.put(

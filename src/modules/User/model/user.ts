@@ -1,5 +1,6 @@
-import { UserRelation } from '../../UserRelation/model/user-relation';
+import { UserRelation, UserRelationStatus } from '../../UserRelation/model/user-relation';
 import { PostEntity } from '../../Post/entity/post.entity';
+import { FollowedByState } from '../../Notification/model/notifications';
 
 export interface User {
     username: string;
@@ -27,6 +28,7 @@ export interface UserProfileDao {
     followersCount: number;
     followingsCount: number;
     postCount: number;
+    relationState: FollowedByState;
 }
 
 export interface UserLinkDao {
