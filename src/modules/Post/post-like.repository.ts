@@ -1,4 +1,4 @@
-import { Repository, DataSource, EntityManager } from 'typeorm';
+import { Repository, DataSource, EntityManager, In } from 'typeorm';
 import { PostLikeEntity } from './entity/post-Likes.entity';
 import { CreatePostLike, PostLikeId } from './model/post-like';
 import { NotificationEntity } from '../Notification/entity/notification.entity';
@@ -45,9 +45,19 @@ export class PostLikeRepository {
                 notifId: createdNotif.notifId,
                 postId,
             });
-            const createdLikeNotifs = await this.makeFriendLikeNotif(emiterId, entityManager);
 
-            await entityManager.save(NotificationEntity, createdLikeNotifs);
+            // save friend base notif
+            const createdLikeNotifs = await this.makeFriendLikeNotif(emiterId, entityManager);
+            const createdNotifs = await entityManager.save(NotificationEntity, createdLikeNotifs);
+
+            // save friend post notif
+            await entityManager.save(
+                PostNotifEntity,
+                createdNotifs.map((n) => ({
+                    notifId: n.notifId,
+                    postId,
+                }))
+            );
         });
     }
 
@@ -67,8 +77,6 @@ export class PostLikeRepository {
         }));
     }
 
-
-
     delete({ postId, emiterId, receiverId }: DeleteLikeNotif) {
         return this.dataSource.transaction(async (entityManager) => {
             // delete like record
@@ -79,6 +87,18 @@ export class PostLikeRepository {
                 type: 'like',
                 emiterId,
                 receiverId,
+            });
+
+            // delete friend base notifs & related post notif entities
+            const postNotifs = await entityManager.findBy(PostNotifEntity, {
+                postId,
+                notif: { emiterId, type: 'friendLike' },
+            });
+
+            await entityManager.delete(NotificationEntity, {
+                type: 'friendLike',
+                emiterId,
+                notifId: In(postNotifs.map((n) => n.notifId)),
             });
         });
     }
