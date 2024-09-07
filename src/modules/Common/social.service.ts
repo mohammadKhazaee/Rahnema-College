@@ -1,4 +1,5 @@
-import { explorePostsDto } from '../Post/model/post';
+import { PaginationDto } from '../Post/dto/get-posts-dto';
+import { ExplorePostsDto } from '../Post/model/post';
 import { PostService } from '../Post/post.service';
 import { UserProfileDao } from '../User/model/user';
 import { UserService } from '../User/user.service';
@@ -36,9 +37,9 @@ export class SocialService {
         };
     }
 
-    async getSocialExplore(username: string) {
-        const explore = await this.postService.exlorePosts(username);
-        const returnExplore: explorePostsDto[] = await Promise.all(
+    async getSocialExplore(username: string, paginationDto: PaginationDto) {
+        const explore = await this.postService.exlorePosts(username, paginationDto);
+        const returnExplore: ExplorePostsDto[] = await Promise.all(
             explore.map(async (p) => ({
                 ...p,
                 creator: {

@@ -36,8 +36,8 @@ export const dashboardRouter = (
 
     app.get('/explore', isAuthenticated(userService), (req, res, next) => {
         const username = req.username;
-        console.log(username);
-        handleExpress(res, 200, next, () => socialService.getSocialExplore(username));
+        const dto = paginationDto.parse(req.query);
+        handleExpress(res, 200, next, () => socialService.getSocialExplore(username, dto));
     });
 
     app.get('/notif', isAuthenticated(userService), (req, res, next) => {

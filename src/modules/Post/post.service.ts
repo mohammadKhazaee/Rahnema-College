@@ -3,7 +3,7 @@ import { imageUrlPath } from '../../utility/path-adjuster';
 import { User } from '../User/model/user';
 import { UserService } from '../User/user.service';
 import { CreatePostDto } from './dto/create-post-dto';
-import { CreatePost, GetPostDao, GetPostsDao, postServiceExploreDto } from './model/post';
+import { CreatePost, GetPostDao, GetPostsDao, PostServiceExploreDto } from './model/post';
 import { CreateTag, Tag } from './model/tag';
 import { PostRepository } from './post.repository';
 import { EditPostDto } from './dto/edit-post-dto';
@@ -314,13 +314,14 @@ export class PostService {
         };
     }
 
-    async exlorePosts(username: string) {
+    async exlorePosts(username: string, { p: page, c: count }: PaginationDto) {
         const user = await this.userService.doesUserExists({ username });
-        if (!user) throw new NotFoundError('user not founded');
+        if (!user) throw new NotFoundError('user was not found');
 
-        const exploreposts = await this.postRepo.explorePosts(username);
+        const skip = (page - 1) * count;
+        const exploreposts = await this.postRepo.explorePosts(username, count, skip);
 
-        const retuenExplore: postServiceExploreDto[] = await Promise.all(
+        const retuenExplore: PostServiceExploreDto[] = await Promise.all(
             exploreposts.map(async (p) => ({
                 postId: p.postId,
                 creator: {

@@ -61,7 +61,7 @@ export interface UpdatePost {
     mentions?: User[];
 }
 
-export interface explorePostsDto {
+export interface ExplorePostsDto {
     postId: string;
     creator: {
         imageUrl: string;
@@ -77,7 +77,7 @@ export interface explorePostsDto {
     bookmarkCount: number;
 }
 
-export interface postServiceExploreDto {
+export interface PostServiceExploreDto {
     postId: string;
     creator: {
         imageUrl: string;

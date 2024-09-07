@@ -6,6 +6,7 @@ import { NotificationEntity } from '../Notification/entity/notification.entity';
 import { CreateMentionNotif } from '../Notification/model/notifications';
 import { PostNotifEntity } from '../Notification/entity/post-notif.entity';
 import { User } from '../User/model/user';
+import { PaginationDto } from './dto/get-posts-dto';
 
 export class PostRepository {
     private postRepo: Repository<PostEntity>;
@@ -160,27 +161,33 @@ export class PostRepository {
         return this.postRepo.count({ where: { creatorId: username } });
     }
 
-    async explorePosts(mainName: string) {
-        const followings = (
-            await this.dataSource.manager.find(UserRelationEntity, {
-                where: { followerId: mainName },
-                select: ['followedId'],
-            })
-        ).map((f) => f.followedId);
-        console.log(followings);
-        const posts = await this.postRepo.find({
-            order: {
-                createdAt: 'DESC',
-            },
-            where: {
-                creatorId: In([...followings]),
-            },
-            relations: {
-                creator: true,
-                images: true,
-            },
+    async explorePosts(mainUser: string, take: number, skip: number) {
+        return this.dataSource.transaction(async (entityManeger) => {
+            const followings = (
+                await entityManeger.find(UserRelationEntity, {
+                    where: { followerId: mainUser, status: In(['follow', 'friend']) },
+                    select: ['followedId'],
+                })
+            ).map((f) => f.followedId);
+
+            console.log(followings);
+
+            const posts = await entityManeger.find(PostEntity, {
+                order: {
+                    createdAt: 'DESC',
+                },
+                where: {
+                    creatorId: In([...followings]),
+                },
+                relations: {
+                    creator: true,
+                    images: true,
+                },
+                skip,
+                take,
+            });
+
+            return posts;
         });
-        console.log(posts);
-        return posts;
     }
 }
