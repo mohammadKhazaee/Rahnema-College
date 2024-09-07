@@ -22,6 +22,7 @@ export interface GetPostDao {
     imageInfos: ImageInfoDao[];
     caption: string;
     tags: string[];
+    createdAt: Date
     isLiked: boolean;
     likeCount: number;
     commentsCount: number;

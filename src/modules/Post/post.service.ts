@@ -34,7 +34,7 @@ export class PostService {
         private userService: UserService,
         private bookmarkRepo: BookmarkRepository,
         private imageRepo: PostImageRepository
-    ) {}
+    ) { }
 
     async getPostById(postId: string, userId: string): Promise<GetPostDao> {
         const post = await this.postRepo.findPostById(postId);
@@ -42,7 +42,6 @@ export class PostService {
 
         const formatedPost = {
             postId: post.postId,
-
             mentions: [
                 {
                     postId: post.postId,
@@ -58,10 +57,9 @@ export class PostService {
                 url: i.url,
                 imageId: i.imageId,
             })),
-
             caption: post.caption,
-
             tags: post.tags.map((t) => t.name),
+            createdAt: post.createdAt
         };
 
         const [isLiked, likeCount, commentsCount, isBookMarked, bookMarkCount] = await Promise.all([
