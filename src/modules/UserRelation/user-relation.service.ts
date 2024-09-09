@@ -157,7 +157,6 @@ export class UserRelationService {
 
         const skip = (page - 1) * count;
         const followersList = await this.followRepo.getFollowers(username, count, skip);
-        console.log(followersList);
 
         return Promise.all(
             followersList.map(async (f) => ({
@@ -262,7 +261,7 @@ export class UserRelationService {
         if (!relation || relation.status !== 'follow')
             throw new ForbiddenError('You can only add followers as close friends');
 
-        await this.followRepo.updateRelationStatus(username, friendUsername, 'friend');
+        await this.followRepo.updateRelationStatus(friendUsername, username, 'friend');
         return 'Added to close friends';
     }
 
@@ -297,8 +296,8 @@ export class UserRelationService {
         if (!friend) throw new NotFoundError('Friend not found');
 
         const relation = await this.followRepo.fetchRelation({
-            followerId: mainUserName,
-            followedId: friendName,
+            followerId: friendName,
+            followedId: mainUserName,
         });
 
         if (!relation || (relation && relation.status !== 'friend'))

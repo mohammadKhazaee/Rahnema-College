@@ -1,7 +1,21 @@
 import { LoginDto } from '../../src/modules/Auth/dto/logindto';
 import { appFactory } from '../../src/api';
 import { AppDataSource } from '../../src/data-source';
-import { acceptFollowTest, blockTest, closeFriendTest, followReqTest, loginTest, removeFriendTest, singupTest } from './utility';
+import {
+    acceptFollowTest,
+    blockTest,
+    closeFriendListTest,
+    closeFriendTest,
+    editProfileTest,
+    followersListTest,
+    followingsListTest,
+    followReqTest,
+    loginTest,
+    removeFriendTest,
+    singupTest,
+    unfollowTest,
+    userInfoTest,
+} from './utility';
 import { UserRepository } from '../../src/modules/User/user.repository';
 import { UserEntity } from '../../src/modules/User/entity/user.entity';
 import { EditProfileDto } from '../../src/modules/User/dto/edit-profile-dto';
@@ -20,10 +34,10 @@ describe('Profile Route Test Suit', () => {
     });
 
     beforeEach(async () => {
-        await AppDataSource.getRepository(UserEntity).delete({})
-        await AppDataSource.getRepository(UserRelationEntity).delete({})
-        await AppDataSource.getRepository(PostEntity).delete({})
-    })
+        await AppDataSource.getRepository(UserEntity).delete({});
+        await AppDataSource.getRepository(UserRelationEntity).delete({});
+        await AppDataSource.getRepository(PostEntity).delete({});
+    });
 
     afterAll(async () => {
         await AppDataSource.destroy();
@@ -36,23 +50,23 @@ describe('Profile Route Test Suit', () => {
             rememberMe: false,
         };
 
-        it('should follow and then block the follower', async () => {
+        it("should follow a user that didn't followed before", async () => {
             const signupUserTest1: SignupDto = {
                 username: 'test1',
                 email: 'testeaval@gamil.com',
                 password: 'test12345678901',
                 confirmPassword: 'test12345678901',
-            }
+            };
 
             const signupUserTest2: SignupDto = {
                 username: 'test2',
                 email: 'testedovom@gamil.com',
                 password: 'test12345678902',
                 confirmPassword: 'test12345678902',
-            }
+            };
 
-            await singupTest(app, signupUserTest1, 201)
-            await singupTest(app, signupUserTest2, 201)
+            await singupTest(app, signupUserTest1, 201);
+            await singupTest(app, signupUserTest2, 201);
 
             const userTest1: LoginDto = {
                 username: 'test1',
@@ -63,36 +77,94 @@ describe('Profile Route Test Suit', () => {
             const userTest2: LoginDto = {
                 username: 'test2',
                 password: 'test12345678902',
-                rememberMe: false
-            }
-
+                rememberMe: false,
+            };
 
             const testYekToken = await loginTest(app, userTest1);
-            const testDoToken = await loginTest(app, userTest2)
+            const testDoToken = await loginTest(app, userTest2);
 
-            const request = await followReqTest(app, 'test2', testYekToken, 200)
-            const accept = await acceptFollowTest(app, 'test1', testDoToken, 200)
+            const request = await followReqTest(app, 'test2', testYekToken, 200);
+            const accept = await acceptFollowTest(app, 'test1', testDoToken, 200);
 
-            const blocked = await blockTest(app, 'test1', testDoToken, 200)
+            // const blocked = await blockTest(app, 'test1', testDoToken, 200)
         });
 
-        it.skip('should unfallow', async () => {
-            const loggedinUserToken = await loginTest(app, loginUser);
-            const item = await request(app)
-                .patch('/unfollow/ehsAnhAq86')
-                .set('Authorization', 'Bearer ' + loggedinUserToken)
-                .expect(200);
-            console.log(item.body);
+        it('should unfallow a user that followed before', async () => {
+            const signupUserTest1: SignupDto = {
+                username: 'test1',
+                email: 'testeaval@gamil.com',
+                password: 'test12345678901',
+                confirmPassword: 'test12345678901',
+            };
+
+            const signupUserTest2: SignupDto = {
+                username: 'test2',
+                email: 'testedovom@gamil.com',
+                password: 'test12345678902',
+                confirmPassword: 'test12345678902',
+            };
+
+            await singupTest(app, signupUserTest1, 201);
+            await singupTest(app, signupUserTest2, 201);
+
+            const userTest1: LoginDto = {
+                username: 'test1',
+                password: 'test12345678901',
+                rememberMe: false,
+            };
+
+            const userTest2: LoginDto = {
+                username: 'test2',
+                password: 'test12345678902',
+                rememberMe: false,
+            };
+
+            const user1Token = await loginTest(app, userTest1);
+            const user2Token = await loginTest(app, userTest2);
+
+            await followReqTest(app, 'test2', user1Token, 200);
+            await acceptFollowTest(app, 'test1', user2Token, 200);
+
+            const folowersList = await followersListTest(app, 'test2', user2Token, 200);
+
+            const unfallowed = await unfollowTest(app, 'test2', user1Token, 200);
         });
 
-        it.skip('should get user info', async () => {
-            const user = await request(app).get('/ehsan').expect(200);
-            console.log(user.body);
+        it('should get user info', async () => {
+            const user: SignupDto = {
+                username: 'test1',
+                email: 'testeaval@gamil.com',
+                password: 'test12345678901',
+                confirmPassword: 'test12345678901',
+            };
+            await singupTest(app, user, 201);
+
+            const userTest: LoginDto = {
+                username: 'test1',
+                password: 'test12345678901',
+                rememberMe: false,
+            };
+            const userToken = await loginTest(app, userTest);
+            const infos = await userInfoTest(app, 'test1', userToken, 200);
         });
 
-        it.skip('should edit profile', async () => {
-            const loggedinUserToken = await loginTest(app, loginUser);
-            const editProfile: EditProfileDto = {
+        it('should edit profile', async () => {
+            const user: SignupDto = {
+                username: 'test1',
+                email: 'testeaval@gamil.com',
+                password: 'test12345678901',
+                confirmPassword: 'test12345678901',
+            };
+            await singupTest(app, user, 201);
+
+            const userTest: LoginDto = {
+                username: 'test1',
+                password: 'test12345678901',
+                rememberMe: false,
+            };
+            const userToken = await loginTest(app, userTest);
+
+            const editedProfile: EditProfileDto = {
                 email: 'ehsunhaq86@gmail.com',
                 fName: 'احسان',
                 lName: 'حق شناس',
@@ -101,62 +173,202 @@ describe('Profile Route Test Suit', () => {
                 password: '123456789',
                 confirmPassword: '123456789',
             };
-            const user = await request(app)
-                .put('/edit-profile')
-                .set('Authorization', 'Bearer ' + loggedinUserToken)
-                .send(editProfile);
-            console.log(user.body);
+
+            const edited = await editProfileTest(app, userToken, editedProfile, 200);
         });
 
-        it.skip('should get user followers list', async () => {
-            const followers = await request(app).get('/ehsan/followers');
-            console.log(followers.body);
+        it('should get user followers list', async () => {
+            const user: SignupDto = {
+                username: 'test1',
+                email: 'testeaval@gamil.com',
+                password: 'test12345678901',
+                confirmPassword: 'test12345678901',
+            };
+
+            await singupTest(app, user, 201);
+
+            const userTest: LoginDto = {
+                username: 'test1',
+                password: 'test12345678901',
+                rememberMe: false,
+            };
+            const userToken = await loginTest(app, userTest);
+
+            const followers = await followersListTest(app, user.username, userToken, 200);
         });
 
-        it.skip('should get user followings list', async () => {
-            const followings = await request(app).get('/ehsAnhAq86/followings');
-            console.log(followings.body);
+        it('should get user followings list', async () => {
+            const user: SignupDto = {
+                username: 'test1',
+                email: 'testeaval@gamil.com',
+                password: 'test12345678901',
+                confirmPassword: 'test12345678901',
+            };
+
+            await singupTest(app, user, 201);
+
+            const userTest: LoginDto = {
+                username: 'test1',
+                password: 'test12345678901',
+                rememberMe: false,
+            };
+            const userToken = await loginTest(app, userTest);
+
+            const followings = await followingsListTest(app, user.username, userToken, 200);
         });
 
-        it.skip('should add and remove to close friend', async () => {
+        it('should add a follower to close friend', async () => {
             const signupUser = {
                 username: 'dummy',
                 email: 'dummyUser123@gamil.com',
                 password: 'passAlaki1234',
                 confirmPassword: 'passAlaki1234',
-            }
+            };
 
             const signupUser2 = {
                 username: 'dummy22',
                 email: 'dummyUser22@gamil.com',
                 password: 'passAlaki22',
                 confirmPassword: 'passAlaki22',
-            }
+            };
 
-            await singupTest(app, signupUser2, 201)
-            await singupTest(app, signupUser, 201)
+            await singupTest(app, signupUser2, 201);
+            await singupTest(app, signupUser, 201);
 
             const loginUser: LoginDto = {
                 username: 'dummy',
                 password: 'passAlaki1234',
-                rememberMe: false
-            }
+                rememberMe: false,
+            };
 
             const loginUer22: LoginDto = {
                 username: 'dummy22',
                 password: 'passAlaki22',
-                rememberMe: false
-            }
+                rememberMe: false,
+            };
 
-            const dummyLoggedinToken = await loginTest(app, loginUser)
-            const dummy22LoggedinToken = await loginTest(app, loginUer22)
+            const dummyLoggedinToken = await loginTest(app, loginUser);
+            const dummy22LoggedinToken = await loginTest(app, loginUer22);
 
-            await followReqTest(app, 'dummy22', dummyLoggedinToken, 200)
-            await acceptFollowTest(app, 'dummy', dummy22LoggedinToken, 200)
-            await closeFriendTest(app, 'dummy', dummy22LoggedinToken, 200)
-            await removeFriendTest(app, 'dummy', dummy22LoggedinToken, 200)
-        })
-    })
+            await followReqTest(app, 'dummy22', dummyLoggedinToken, 200);
+            await acceptFollowTest(app, 'dummy', dummy22LoggedinToken, 200);
+            await closeFriendTest(app, 'dummy', dummy22LoggedinToken, 200);
+        });
+    });
+
+    it('should remove a user from closefriends', async () => {
+        const user = {
+            username: 'dummy',
+            email: 'dummyUser123@gamil.com',
+            password: 'passAlaki1234',
+            confirmPassword: 'passAlaki1234',
+        };
+
+        const user2 = {
+            username: 'dummy22',
+            email: 'dummyUser22@gamil.com',
+            password: 'passAlaki22',
+            confirmPassword: 'passAlaki22',
+        };
+
+        await singupTest(app, user2, 201);
+        await singupTest(app, user, 201);
+
+        const loginUser: LoginDto = {
+            username: 'dummy',
+            password: 'passAlaki1234',
+            rememberMe: false,
+        };
+
+        const loginUer2: LoginDto = {
+            username: 'dummy22',
+            password: 'passAlaki22',
+            rememberMe: false,
+        };
+
+        const dummyToken = await loginTest(app, loginUser);
+        const dummy22Token = await loginTest(app, loginUer2);
+
+        await followReqTest(app, user2.username, dummyToken, 200);
+        await acceptFollowTest(app, user.username, dummy22Token, 200);
+
+        await closeFriendTest(app, user.username, dummy22Token, 200);
+        await closeFriendListTest(app, dummyToken, 200);
+        await removeFriendTest(app, user.username, dummy22Token, 200);
+    });
+
+    it('should block a user with no relation from before', async () => {
+        const user: SignupDto = {
+            username: 'test1',
+            email: 'testeaval@gmail.com',
+            password: 'test12345678901',
+            confirmPassword: 'test12345678901',
+        };
+
+        const user2: SignupDto = {
+            username: 'test2',
+            email: 'testedovom@gmail.com',
+            password: 'test12345678902',
+            confirmPassword: 'test12345678902',
+        };
+
+        await singupTest(app, user, 201);
+        await singupTest(app, user2, 201);
+
+        const loginUser: LoginDto = {
+            username: 'test1',
+            password: 'test12345678901',
+            rememberMe: false,
+        };
+
+        const loginUser2: LoginDto = {
+            username: 'test2',
+            password: 'test12345678902',
+            rememberMe: false,
+        };
+
+        const user2Token = await loginTest(app, loginUser2);
+        await blockTest(app, user.username, user2Token, 200);
+    });
+
+    it('should follow a user then block the follower', async () => {
+        const signupUserTest1: SignupDto = {
+            username: 'test1',
+            email: 'testeaval@gamil.com',
+            password: 'test12345678901',
+            confirmPassword: 'test12345678901',
+        };
+
+        const signupUserTest2: SignupDto = {
+            username: 'test2',
+            email: 'testedovom@gamil.com',
+            password: 'test12345678902',
+            confirmPassword: 'test12345678902',
+        };
+
+        await singupTest(app, signupUserTest1, 201);
+        await singupTest(app, signupUserTest2, 201);
+
+        const userTest1: LoginDto = {
+            username: 'test1',
+            password: 'test12345678901',
+            rememberMe: false,
+        };
+
+        const userTest2: LoginDto = {
+            username: 'test2',
+            password: 'test12345678902',
+            rememberMe: false,
+        };
+
+        const testYekToken = await loginTest(app, userTest1);
+        const testDoToken = await loginTest(app, userTest2);
+
+        await followReqTest(app, 'test2', testYekToken, 200);
+        await acceptFollowTest(app, 'test1', testDoToken, 200);
+        await blockTest(app, 'test1', testDoToken, 200);
+    });
+
     describe.skip('Follow related routes', () => {
         const dummyUser: SignupDto = {
             username: 'test',
@@ -205,7 +417,5 @@ describe('Profile Route Test Suit', () => {
                 // expect(comments[0].replays[0].likeCount).toBe(1);
             });
         });
-
     });
-
 });

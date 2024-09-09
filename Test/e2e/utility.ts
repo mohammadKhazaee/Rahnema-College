@@ -1,7 +1,4 @@
-
-
 import * as path from 'path';
-
 import { LoginDto } from '../../src/modules/Auth/dto/logindto';
 import request from 'supertest';
 import { User } from '../../src/modules/User/model/user';
@@ -10,6 +7,7 @@ import { SignupDto } from '../../src/modules/Auth/dto/signup-dto';
 import { CreatePostDto } from '../../src/modules/Post/dto/create-post-dto';
 import { CreateCommentDto } from '../../src/modules/Post/dto/create-comment.dto';
 import { appFactory } from '../../src/api';
+import { EditProfileDto } from '../../src/modules/User/dto/edit-profile-dto';
 
 export const singupTest = async (
     //@ts-ignore
@@ -84,12 +82,11 @@ export const closeFriendTest = async (
     statusCode: number
 ) => {
     const closeFriend = await request(app)
-        .post(`/${followerId}/friend`)
+        .post(`/user-relations/friends/${followerId}`)
         .set('Authorization', 'Bearer ' + closeFriendToken)
-        .expect(statusCode)
-    console.log(closeFriend.body)
-    return closeFriend
-}
+        .expect(statusCode);
+    return closeFriend;
+};
 
 export const removeFriendTest = async (
     //@ts-ignore
@@ -99,12 +96,11 @@ export const removeFriendTest = async (
     statusCode: number
 ) => {
     const removed = await request(app)
-        .post(`/${friendName}/friend/remove`)
+        .delete(`/user-relations/friends/${friendName}`)
         .set('Authorization', 'Bearer ' + userToken)
-        .expect(statusCode)
-    console.log(removed.body)
-    return removed
-}
+        .expect(statusCode);
+    return removed;
+};
 
 export const acceptFollowTest = async (
     //@ts-ignore
@@ -116,10 +112,9 @@ export const acceptFollowTest = async (
     const accepted = await request(app)
         .post(`/user-relations/follow/${followerName}`)
         .set('Authorization', 'Bearer ' + userToken)
-        .expect(statusCode)
-    console.log(accepted.body)
-    return accepted
-}
+        .expect(statusCode);
+    return accepted;
+};
 
 export const blockTest = async (
     //@ts-ignore
@@ -128,11 +123,96 @@ export const blockTest = async (
     currentUserToken: string,
     statusCode: number
 ) => {
-    await request(app)
+    const blocked = await request(app)
         .post(`/user-relations/blocks/${blockedId}`)
         .set('Authorization', 'Bearer ' + currentUserToken)
-        .expect(statusCode)
-}
+        .expect(statusCode);
+    return blocked;
+};
+
+export const followersListTest = async (
+    //@ts-ignore
+    app: Express,
+    username: string,
+    currentUserToken: string,
+    statusCode: number
+) => {
+    const followersList = await request(app)
+        .get(`/user-relations/followers/${username}`)
+        .set('Authorization', 'Bearer ' + currentUserToken)
+        .expect(statusCode);
+    return followersList;
+};
+
+export const followingsListTest = async (
+    //@ts-ignore
+    app: Express,
+    username: string,
+    currentUserToken: string,
+    statusCode: number
+) => {
+    const followingsList = await request(app)
+        .get(`/user-relations/followings/${username}`)
+        .set('Authorization', 'Bearer ' + currentUserToken)
+        .expect(statusCode);
+    return followingsList;
+};
+
+export const unfollowTest = async (
+    //@ts-ignore
+    app: Express,
+    username: string,
+    currentUserToken: string,
+    statusCode: number
+) => {
+    const unfollowed = await request(app)
+        .delete(`/user-relations/followings/${username}`)
+        .set('Authorization', 'Bearer ' + currentUserToken)
+        .expect(statusCode);
+    return unfollowed;
+};
+
+export const userInfoTest = async (
+    //@ts-ignore
+    app: Express,
+    username: string,
+    currentUserToken: string,
+    statusCode: number
+) => {
+    const userInfos = await request(app)
+        .get(`/dashboard/profile-info/${username}`)
+        .set('Authorization', 'Bearer ' + currentUserToken)
+        .expect(statusCode);
+    return userInfos;
+};
+
+export const editProfileTest = async (
+    //@ts-ignore
+    app: Express,
+    currentUserToken: string,
+    editDto: EditProfileDto,
+    statusCode: number
+) => {
+    const edited = await request(app)
+        .put('/dashboard/edit-profile')
+        .set('Authorization', 'Bearer ' + currentUserToken)
+        .send(editDto)
+        .expect(statusCode);
+    return edited;
+};
+
+export const closeFriendListTest = async (
+    //@ts-ignore
+    app: Express,
+    currentUserToken: string,
+    statusCode: number
+) => {
+    const friendsList = await request(app)
+        .get('/user-relations/friends')
+        .set('Authorization', 'Bearer ' + currentUserToken)
+        .expect(statusCode);
+    return friendsList;
+};
 
 export const generateTokenForReset = (user: User) => {
     return jwt.sign({ email: user.email }, process.env.JWT_SECRET!, {
