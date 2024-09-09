@@ -1,4 +1,4 @@
-import { PaginationDto } from '../Post/dto/get-posts-dto';
+import { PaginationDto } from '../Common/dto/pagination-dto';
 import { UserRelationService } from '../UserRelation/user-relation.service';
 import { CommentNotifRepository } from './comment-notif.repository';
 import { RelationNotifRepository } from './follow-notif.repository';

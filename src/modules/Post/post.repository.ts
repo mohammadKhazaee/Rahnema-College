@@ -6,7 +6,7 @@ import { NotificationEntity } from '../Notification/entity/notification.entity';
 import { CreateMentionNotif } from '../Notification/model/notifications';
 import { PostNotifEntity } from '../Notification/entity/post-notif.entity';
 import { User } from '../User/model/user';
-import { PaginationDto } from './dto/get-posts-dto';
+import { PaginationDto } from '../Common/dto/pagination-dto';
 
 export class PostRepository {
     private postRepo: Repository<PostEntity>;

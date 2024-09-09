@@ -17,7 +17,7 @@ import { LikeResultDao, PostLikeId } from './model/post-like';
 import { CommentLikeId } from './model/post-comment-like';
 import { CommentLikeRepository } from './comment-like.repository';
 import { BookmarkRepository } from './bookmark.repository';
-import { PaginationDto } from './dto/get-posts-dto';
+import { PaginationDto } from '../Common/dto/pagination-dto';
 import { PostImageEntity } from './entity/post-image.entity';
 import { FileParser } from '../../utility/file-parser';
 import { PostImageRepository } from './image.repository';

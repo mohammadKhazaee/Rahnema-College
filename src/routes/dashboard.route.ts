@@ -5,7 +5,7 @@ import { UserService } from '../modules/User/user.service';
 import { SocialService } from '../modules/Common/social.service';
 import { FileParser } from '../utility/file-parser';
 import { NotifService } from '../modules/Notification/notif.service';
-import { paginationDto } from '../modules/Post/dto/get-posts-dto';
+import { paginationDto } from '../modules/Common/dto/pagination-dto';
 import { isAuthenticated } from '../login-middleware';
 import { createMessageDto } from '../modules/Message/dto/createMessageDto';
 import { MessageService } from '../modules/Message/message.service';

@@ -6,7 +6,7 @@ import { FileParser } from '../utility/file-parser';
 import { z } from 'zod';
 import { editPostDto } from '../modules/Post/dto/edit-post-dto';
 import { createCommentDto } from '../modules/Post/dto/create-comment.dto';
-import { paginationDto } from '../modules/Post/dto/get-posts-dto';
+import { paginationDto } from '../modules/Common/dto/pagination-dto';
 import { isAuthenticated } from '../login-middleware';
 import { UserService } from '../modules/User/user.service';
 

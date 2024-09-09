@@ -1,4 +1,4 @@
-import { PaginationDto } from '../Post/dto/get-posts-dto';
+import { PaginationDto } from './dto/pagination-dto';
 import { ExplorePostsDto } from '../Post/model/post';
 import { PostService } from '../Post/post.service';
 import { UserEntity } from '../User/entity/user.entity';

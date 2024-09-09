@@ -6,7 +6,7 @@ import {
     NormalNotifEntity,
     notifType,
 } from './model/notifications';
-import { PaginationDto } from '../Post/dto/get-posts-dto';
+import { PaginationDto } from '../Common/dto/pagination-dto';
 import { FriendNotifEntity, friendNotifType, isFriendNotifEntity } from './model/friend-notifs';
 
 export class NotifRepository {
