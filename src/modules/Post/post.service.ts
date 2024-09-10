@@ -51,6 +51,24 @@ export class PostService {
         const post = await this.postRepo.findPostById(postId);
         if (!post) throw new HttpError(404, 'Post not found');
 
+        const creatorStatusToUser = await this.followService.fetchRelationStatus({
+            followerId: post.creatorId,
+            followedId: userId,
+        });
+        const userStatusToCreator = await this.followService.fetchRelationStatus({
+            followedId: post.creatorId,
+            followerId: userId,
+        });
+
+        if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
+            throw new HttpError(403, 'you or creator have blocked eachother');
+
+        if (post.creator.isPrivate && userStatusToCreator === 'notFollowed')
+            throw new HttpError(403, 'you have to be a follower');
+
+        if (post.isCloseFriend && creatorStatusToUser !== 'friend')
+            throw new HttpError(403, 'you have to be a friend of creator');
+
         const [isLiked, likeCount, commentsCount, isBookMarked, bookMarkCount] = await Promise.all([
             this.postLikeRepo.doesLikeExists({ postId, userId }),
             this.postLikeRepo.countLikesForPost(postId),

@@ -1,5 +1,3 @@
-import { PaginationDto } from './dto/pagination-dto';
-import { ExplorePostsDto, FindExplorePosts } from '../Post/model/post';
 import { PostService } from '../Post/post.service';
 import { UserEntity } from '../User/entity/user.entity';
 import { UserProfileDao, UserSearchResult } from '../User/model/user';

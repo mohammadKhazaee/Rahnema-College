@@ -1,11 +1,11 @@
 import { User, UserLinkDao } from '../../User/model/user';
 import { CreateRelatedPostImage, ImageInfoDao, PostImage } from './image';
-import { Mention } from './mention';
 import { CreateTag, Tag } from './tag';
 
 export interface Post {
     postId: string;
     caption: string;
+    isCloseFriend: boolean;
     creatorId: string;
     creator: User;
     tags: Tag[];
