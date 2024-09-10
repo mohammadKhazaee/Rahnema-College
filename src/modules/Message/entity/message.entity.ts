@@ -4,15 +4,14 @@ import {
     Entity,
     JoinColumn,
     ManyToOne,
-    PrimaryColumn,
+    PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 import { UserEntity } from '../../User/entity/user.entity';
-import { boolean } from 'zod';
 
 @Entity('messages')
 export class MessageEntity {
-    @PrimaryColumn('uuid')
+    @PrimaryGeneratedColumn('uuid')
     messageId!: string;
 
     @Column()

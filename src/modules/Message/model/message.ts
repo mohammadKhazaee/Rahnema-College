@@ -1,5 +1,4 @@
-export interface Message {
-    messageId: string;
+export interface CreateMessage {
     receiverId: string;
     senderId: string;
     isImage: boolean;

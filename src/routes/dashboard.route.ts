@@ -7,11 +7,14 @@ import { FileParser } from '../utility/file-parser';
 import { NotifService } from '../modules/Notification/notif.service';
 import { paginationDto } from '../modules/Post/dto/get-posts-dto';
 import { isAuthenticated } from '../login-middleware';
+import { createMessageDto } from '../modules/Message/dto/createMessageDto';
+import { MessageService } from '../modules/Message/message.service';
 
 export const dashboardRouter = (
     userService: UserService,
     socialService: SocialService,
     notifService: NotifService,
+    messageService: MessageService,
     fileParser: FileParser
 ) => {
     const app = Router();
@@ -53,6 +56,18 @@ export const dashboardRouter = (
             notifs: await notifService.friendList(req.username, dto),
         }));
     });
+
+    app.post(
+        '/message/send/:username',
+        fileParser.fileParser().single('image'),
+        isAuthenticated(userService),
+        (req, res, next) => {
+            const dto = createMessageDto.parse({ ...req.body, image: req.file });
+            handleExpress(res, 200, next, async () => ({
+                message: await messageService.addMessage(dto, req.params.username, req.username),
+            }));
+        }
+    );
 
     return app;
 };

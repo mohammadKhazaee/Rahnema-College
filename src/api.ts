@@ -32,7 +32,8 @@ import { PostNotifRepository } from './modules/Notification/post-notif.repositor
 import { CommentNotifRepository } from './modules/Notification/comment-notif.repository';
 import { RelationNotifRepository } from './modules/Notification/follow-notif.repository';
 import { userRelationRouter } from './routes/user-relation.route';
-import { isAuthenticated } from './login-middleware';
+import { MessageService } from './modules/Message/message.service';
+import { MessageRepository } from './modules/Message/message.repository';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -83,6 +84,7 @@ export const appFactory = (dataSource: DataSource) => {
     const postNotifRepo = new PostNotifRepository(dataSource);
     const commentNotifRepo = new CommentNotifRepository(dataSource);
     const relationNotifRepo = new RelationNotifRepository(dataSource);
+    const messageRepo = new MessageRepository(dataSource);
 
     // initializing services
     const userService = new UserService(userRepo);
@@ -108,10 +110,14 @@ export const appFactory = (dataSource: DataSource) => {
     );
 
     const socialService = new SocialService(userService, userRelationService, postService);
+    const messageService = new MessageService(messageRepo, userService, userRelationService);
 
     app.use('/auth', authRouter(authService));
     app.use('/posts', postRouter(userService, postService, fileParser));
-    app.use('/dashboard', dashboardRouter(userService, socialService, notifService, fileParser));
+    app.use(
+        '/dashboard',
+        dashboardRouter(userService, socialService, notifService, messageService, fileParser)
+    );
     app.use('/user-relations', userRelationRouter(userService, userRelationService));
 
     app.use((req, res) => {
