@@ -4,6 +4,7 @@ import {
     CreateUserRelation,
     FindOneWayRelations,
     FindUserRelation,
+    UpdateUserRelation,
     UserRelationId,
     UserRelationStatus,
 } from './model/user-relation';
@@ -26,27 +27,12 @@ export class UserRelationRepository {
         return this.followRepo.create(createRelationData);
     }
 
-    upadte({ followedId, followerId }: UserRelationId) {
-        return this.followRepo.save({ followedId, followerId });
+    upadte(updateObject: UpdateUserRelation) {
+        return this.followRepo.save(updateObject);
     }
 
     delete({ followedId, followerId }: UserRelationId) {
         return this.followRepo.delete({ followedId, followerId });
-    }
-
-    deleteBlockRelation({ followedId, followerId }: UserRelationId) {
-        return this.dataSource.transaction(async (entityManager) => {
-            await entityManager.delete(UserRelationEntity, {
-                followedId,
-                followerId,
-                status: 'blocked',
-            });
-            await entityManager.delete(UserRelationEntity, {
-                followerId: followedId,
-                followedId: followerId,
-                status: 'gotBlocked',
-            });
-        });
     }
 
     createFollowRequest(relation: UserRelationEntity): Promise<void> {

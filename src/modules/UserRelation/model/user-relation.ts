@@ -3,6 +3,7 @@ import { GetUserMinInfo, User } from '../../User/model/user';
 export const userRelationStatus = {
     blocked: 'blocked',
     gotBlocked: 'gotBlocked',
+    twoWayBlocked: 'twoWayBlocked',
     requestedFollow: 'requestedFollow',
     follow: 'follow',
     friend: 'friend',
@@ -29,6 +30,8 @@ export interface UserRelationId {
 export interface CreateUserRelation extends UserRelationId {
     status: UserRelationStatus;
 }
+
+export interface UpdateUserRelation extends CreateUserRelation {}
 
 export interface FindUserRelation extends UserRelationId {
     status?: UserRelationStatus[];

@@ -197,60 +197,86 @@ export class UserRelationService {
         );
     }
 
-    async blockUser(blockedName: string, blockerName: string) {
-        if (blockedName === blockerName) throw new ForbiddenError('user cant block themself');
+    async blockUser(blockedId: string, blockerId: string) {
+        if (blockedId === blockerId) throw new ForbiddenError('user cant block themself');
 
         const relation = await this.followRepo.fetchRelation({
-            followerId: blockerName,
-            followedId: blockedName,
+            followerId: blockerId,
+            followedId: blockedId,
         });
         const secondRelation = await this.followRepo.fetchRelation({
-            followerId: blockedName,
-            followedId: blockerName,
+            followerId: blockedId,
+            followedId: blockerId,
         });
 
-        if (relation && secondRelation) {
-            if (relation.status === 'blocked')
-                throw new ForbiddenError('You already blocked this user');
+        if (relation && relation.status === 'blocked')
+            throw new ForbiddenError('You already blocked this user');
+        console.log(relation);
 
-            relation.status = 'blocked';
+        if (relation) {
+            relation.status = relation.status === 'gotBlocked' ? 'twoWayBlocked' : 'blocked';
+            console.log(relation);
             await this.followRepo.upadte(relation);
-
-            secondRelation.status = 'gotBlocked';
-            await this.followRepo.delete(secondRelation);
-        }
-
-        if (!relation) {
+        } else
             await this.followRepo.create({
-                followerId: blockerName,
-                followedId: blockedName,
+                followerId: blockerId,
+                followedId: blockedId,
                 status: 'blocked',
             });
+
+        if (secondRelation) {
+            secondRelation.status =
+                secondRelation.status === 'blocked' ? 'twoWayBlocked' : 'gotBlocked';
+            await this.followRepo.upadte(secondRelation);
+        } else {
             await this.followRepo.create({
-                followerId: blockedName,
-                followedId: blockerName,
+                followerId: blockedId,
+                followedId: blockerId,
                 status: 'gotBlocked',
             });
         }
+
         return 'Targeted user is blocked';
     }
 
-    async removeBlockUser(blockedName: string, blockerName: string) {
-        const blockedUser = this.userService.doesUserExists({ username: blockedName });
+    async removeBlockUser(blockedId: string, blockerId: string) {
+        const blockedUser = await this.userService.doesUserExists({ username: blockedId });
         if (!blockedUser) throw new NotFoundError('User not found');
 
         const relation = await this.followRepo.fetchRelation({
-            followerId: blockerName,
-            followedId: blockedName,
+            followerId: blockerId,
+            followedId: blockedId,
+        });
+        const secondRelation = await this.followRepo.fetchRelation({
+            followerId: blockedId,
+            followedId: blockerId,
         });
 
-        if (!relation || (relation && relation.status !== 'blocked'))
+        if (
+            !secondRelation ||
+            (secondRelation &&
+                secondRelation.status !== 'gotBlocked' &&
+                secondRelation &&
+                secondRelation.status !== 'twoWayBlocked')
+        )
+            throw new Error('the user is not blocker');
+
+        if (
+            !relation ||
+            (relation &&
+                relation.status !== 'blocked' &&
+                relation &&
+                relation.status !== 'twoWayBlocked')
+        )
             throw new ForbiddenError('This user is not blocked');
 
-        await this.followRepo.deleteBlockRelation({
-            followerId: blockerName,
-            followedId: blockedName,
-        });
+        if (relation.status === 'blocked')
+            await this.followRepo.delete({ followerId: blockerId, followedId: blockedId });
+        else await this.followRepo.updateRelationStatus(blockerId, blockedId, 'gotBlocked');
+
+        if (secondRelation.status === 'gotBlocked')
+            await this.followRepo.delete({ followerId: blockedId, followedId: blockerId });
+        else await this.followRepo.updateRelationStatus(blockedId, blockerId, 'blocked');
 
         return 'User removed from your blocks';
     }
