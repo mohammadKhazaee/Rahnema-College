@@ -48,26 +48,7 @@ export class PostService {
     ) {}
 
     async getPostById(postId: string, userId: string): Promise<GetPostDao> {
-        const post = await this.postRepo.findPostById(postId);
-        if (!post) throw new HttpError(404, 'Post not found');
-
-        const creatorStatusToUser = await this.followService.fetchRelationStatus({
-            followerId: post.creatorId,
-            followedId: userId,
-        });
-        const userStatusToCreator = await this.followService.fetchRelationStatus({
-            followedId: post.creatorId,
-            followerId: userId,
-        });
-
-        if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
-            throw new HttpError(403, 'you or creator have blocked eachother');
-
-        if (post.creator.isPrivate && userStatusToCreator === 'notFollowed')
-            throw new HttpError(403, 'you have to be a follower');
-
-        if (post.isCloseFriend && creatorStatusToUser !== 'friend')
-            throw new HttpError(403, 'you have to be a friend of creator');
+        const post = await this.canAccessPost(postId, userId);
 
         const [isLiked, likeCount, commentsCount, isBookMarked, bookMarkCount] = await Promise.all([
             this.postLikeRepo.doesLikeExists({ postId, userId }),
@@ -88,7 +69,7 @@ export class PostService {
     }
 
     async togglePostBookmark({ userId, postId }: PostBookmarkId): Promise<BookmarkResultDao> {
-        if (!this.postRepo.doesPostExist(postId)) throw new HttpError(404, 'Post was not found');
+        await this.canAccessPost(postId, userId);
 
         const bookmark = await this.bookmarkRepo.findBookmark({ userId, postId });
 
@@ -171,65 +152,15 @@ export class PostService {
         return this.formatSinglePost(createdPost);
     }
 
-    private async CreatePostImageEnities(images: IFile[], postId: string) {
-        return images.map((i) => {
-            const image = new PostImageEntity();
-            image.url = imageUrlPath(i.path);
-            image.postId = postId;
-            return image;
-        });
-    }
-
-    private async makeCreateTags(caption: string) {
-        const tags = this.extractTags(caption);
-        const existingTags = await this.tagRepo.findTagsByNames(tags);
-
-        let newTags: CreateTag[] = [];
-        for (const tag of tags) {
-            if (!existingTags.find((t) => t.name === tag)) newTags.push({ name: tag });
-        }
-
-        return [...newTags, ...existingTags];
-    }
-
-    private async makeUpdateTags(caption: string) {
-        const tags = this.extractTags(caption);
-        const existingTags = await this.tagRepo.findTagsByNames(tags);
-
-        let newTags: CreateTag[] = [];
-        for (const tag of tags) {
-            if (!existingTags.find((t) => t.name === tag)) newTags.push({ name: tag });
-        }
-        const newTagEntities: Tag[] = await this.tagRepo.saveBulk(newTags);
-
-        return [...newTagEntities, ...existingTags];
-    }
-
-    private extractTags(caption: string): string[] {
-        return caption
-            .split(' ')
-            .filter((s) => s.includes('#'))
-            .flatMap((s) => s.split('#'))
-            .filter((s) => s !== '');
-    }
-
-    private async verifyMentionedExists(mentions: string[]): Promise<User[] | never> {
-        const mentionedUsers: (User | null)[] = await Promise.all(
-            mentions.map((userId) => this.userService.fetchUser({ username: userId }))
-        );
-
-        if (!mentionedUsers.every((u) => u !== null))
-            throw new HttpError(404, 'couldnt find mentioned user');
-
-        return mentionedUsers as any;
-    }
-
     async getUserPosts(
         username: string,
+        viewerId: string,
         { p: page, c: take }: PaginationDto
     ): Promise<GetPostsDao[]> {
+        const isAuthorized = await this.canAccessCloseFriendPost(username, viewerId);
+
         const skip = (page - 1) * take;
-        const posts = await this.postRepo.getPosts(username, { take, skip });
+        const posts = await this.postRepo.getPosts(username, isAuthorized, { take, skip });
 
         const resultPosts: GetPostsDao[] = posts.map((p) => ({
             postId: p.postId,
@@ -419,5 +350,128 @@ export class PostService {
                 bookmarkCount: await this.bookmarkRepo.countBookmarksForPost(p.postId),
             }))
         );
+    }
+
+    private async canAccessUserInfo(userId: string, viewerId: string): Promise<void | never> {
+        const user = await this.userService.fetchUser({ username: userId });
+        if (!user) throw new HttpError(404, 'User not found');
+
+        const creatorStatusToUser = await this.followService.fetchRelationStatus({
+            followerId: user.username,
+            followedId: viewerId,
+        });
+        const userStatusToCreator = await this.followService.fetchRelationStatus({
+            followedId: user.username,
+            followerId: viewerId,
+        });
+
+        if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
+            throw new HttpError(403, 'you or creator have blocked eachother');
+
+        if (user.isPrivate && userStatusToCreator === 'notFollowed')
+            throw new HttpError(403, 'you have to be a follower');
+    }
+
+    private async canAccessCloseFriendPost(
+        postId: string,
+        viewerId: string
+    ): Promise<boolean | never> {
+        const post = await this.postRepo.findPostById(postId);
+        if (!post) throw new HttpError(404, 'Post not found');
+
+        const creatorStatusToUser = await this.followService.fetchRelationStatus({
+            followerId: post.creatorId,
+            followedId: viewerId,
+        });
+        const userStatusToCreator = await this.followService.fetchRelationStatus({
+            followedId: post.creatorId,
+            followerId: viewerId,
+        });
+
+        if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
+            throw new HttpError(403, 'you or creator have blocked eachother');
+
+        if (post.creator.isPrivate && userStatusToCreator === 'notFollowed')
+            throw new HttpError(403, 'you have to be a follower');
+
+        return creatorStatusToUser === 'friend';
+    }
+
+    private async canAccessPost(postId: string, viewerId: string): Promise<Post | never> {
+        const post = await this.postRepo.findPostById(postId);
+        if (!post) throw new HttpError(404, 'Post not found');
+
+        const creatorStatusToUser = await this.followService.fetchRelationStatus({
+            followerId: post.creatorId,
+            followedId: viewerId,
+        });
+        const userStatusToCreator = await this.followService.fetchRelationStatus({
+            followedId: post.creatorId,
+            followerId: viewerId,
+        });
+
+        if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
+            throw new HttpError(403, 'you or creator have blocked eachother');
+
+        if (post.creator.isPrivate && userStatusToCreator === 'notFollowed')
+            throw new HttpError(403, 'you have to be a follower');
+
+        if (post.isCloseFriend && creatorStatusToUser !== 'friend')
+            throw new HttpError(403, 'you have to be a friend of creator');
+
+        return post;
+    }
+
+    private async CreatePostImageEnities(images: IFile[], postId: string) {
+        return images.map((i) => {
+            const image = new PostImageEntity();
+            image.url = imageUrlPath(i.path);
+            image.postId = postId;
+            return image;
+        });
+    }
+
+    private async makeCreateTags(caption: string) {
+        const tags = this.extractTags(caption);
+        const existingTags = await this.tagRepo.findTagsByNames(tags);
+
+        let newTags: CreateTag[] = [];
+        for (const tag of tags) {
+            if (!existingTags.find((t) => t.name === tag)) newTags.push({ name: tag });
+        }
+
+        return [...newTags, ...existingTags];
+    }
+
+    private async makeUpdateTags(caption: string) {
+        const tags = this.extractTags(caption);
+        const existingTags = await this.tagRepo.findTagsByNames(tags);
+
+        let newTags: CreateTag[] = [];
+        for (const tag of tags) {
+            if (!existingTags.find((t) => t.name === tag)) newTags.push({ name: tag });
+        }
+        const newTagEntities: Tag[] = await this.tagRepo.saveBulk(newTags);
+
+        return [...newTagEntities, ...existingTags];
+    }
+
+    private extractTags(caption: string): string[] {
+        return caption
+            .split(' ')
+            .filter((s) => s.includes('#'))
+            .flatMap((s) => s.split('#'))
+            .filter((s) => s !== '');
+    }
+
+    private async verifyMentionedExists(mentions: string[]): Promise<User[] | never> {
+        const mentionedUsers: (User | null)[] = await Promise.all(
+            mentions.map((userId) => this.userService.fetchUser({ username: userId }))
+        );
+
+        if (!mentionedUsers.every((u) => u !== null))
+            throw new HttpError(404, 'couldnt find mentioned user');
+
+        return mentionedUsers as any;
     }
 }

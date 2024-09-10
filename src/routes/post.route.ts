@@ -56,7 +56,7 @@ export const postRouter = (
     app.get('/user/:username', isAuthenticated(userService), (req, res, next) => {
         const dto = paginationDto.parse(req.query);
         handleExpress(res, 200, next, async () => ({
-            posts: await postService.getUserPosts(req.params.username, dto),
+            posts: await postService.getUserPosts(req.params.username, req.username, dto),
         }));
     });
 
