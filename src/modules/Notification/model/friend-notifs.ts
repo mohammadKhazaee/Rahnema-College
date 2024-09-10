@@ -1,3 +1,4 @@
+import { FollowedByState } from '../../UserRelation/model/user-relation';
 import { NotificationEntity } from '../entity/notification.entity';
 
 export const friendNotifType = ['friendComment', 'friendLike', 'friendFollow'] as const;
@@ -42,11 +43,9 @@ export interface CommentNotif extends NotifMetaData, NotifWithUser {
     };
 }
 
-export type FollowState = 'followed' | 'requested' | 'notFollowed';
-
 export interface FollowNotif extends NotifMetaData, NotifWithUser {
     type: 'follow';
-    followState: FollowState;
+    followState: FollowedByState;
     friendUser: {
         username: string;
         fName: string;
@@ -67,7 +66,7 @@ export interface CreateFriendCommentNotif {
 }
 
 export interface createFrindLikeNotif {
-    type: 'friendLike',
-    emiterId: string,
-    receiverId: string,
+    type: 'friendLike';
+    emiterId: string;
+    receiverId: string;
 }

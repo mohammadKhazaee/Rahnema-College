@@ -1,3 +1,4 @@
+import { FollowedByState } from '../../UserRelation/model/user-relation';
 import { NotificationEntity } from '../entity/notification.entity';
 
 export const notifType = [
@@ -53,6 +54,7 @@ export interface AcceptedFollowNotif extends NotifMetaData, NotifWithUser {
 export interface IncommingReqNotif extends NotifMetaData, NotifWithUser {
     type: 'incommingReq';
 }
+
 export interface FollowedByNotif extends NotifMetaData, NotifWithUser {
     type: 'followedBy';
     followState: FollowedByState;
@@ -84,4 +86,3 @@ export interface CreateMentionNotif {
     emiterId: string;
     receiverId: string;
 }
-export type FollowedByState = 'followed' | 'requested' | 'notFollowed';

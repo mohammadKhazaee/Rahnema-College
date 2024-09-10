@@ -2,12 +2,15 @@ import { GetUserMinInfo, User } from '../../User/model/user';
 
 export const userRelationStatus = {
     blocked: 'blocked',
+    gotBlocked: 'gotBlocked',
     requestedFollow: 'requestedFollow',
     follow: 'follow',
     friend: 'friend',
 } as const;
 
 export type UserRelationStatus = keyof typeof userRelationStatus;
+
+export type FollowedByState = UserRelationStatus | 'notFollowed';
 
 export interface UserRelation {
     relationId: string;

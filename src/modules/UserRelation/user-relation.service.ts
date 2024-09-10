@@ -5,10 +5,10 @@ import { UserRelationRepository } from './user-relation.repository';
 import {
     FindOneWayRelations,
     FindUserRelation,
+    FollowedByState,
     GetFollowBlockListDao,
     UserRelationId,
 } from './model/user-relation';
-import { FollowedByState } from '../Notification/model/notifications';
 
 export class UserRelationService {
     constructor(private followRepo: UserRelationRepository, private userService: UserService) {}
@@ -23,9 +23,8 @@ export class UserRelationService {
     }: UserRelationId): Promise<FollowedByState> {
         const foundRelation = await this.followRepo.fetchRelation({ followedId, followerId });
         if (!foundRelation) return 'notFollowed';
-        if (foundRelation.status === 'blocked') throw new ForbiddenError('This user blocked you');
 
-        return foundRelation.status === 'requestedFollow' ? 'requested' : 'followed';
+        return foundRelation.status;
     }
 
     async followRequest({ followerId, followedId }: UserRelationId) {
@@ -210,15 +209,14 @@ export class UserRelationService {
             followedId: blockerName,
         });
 
-        if (relation) {
+        if (relation && secondRelation) {
             if (relation.status === 'blocked')
                 throw new ForbiddenError('You already blocked this user');
 
             relation.status = 'blocked';
             await this.followRepo.upadte(relation);
-        }
 
-        if (secondRelation && secondRelation.status !== 'blocked') {
+            secondRelation.status = 'gotBlocked';
             await this.followRepo.delete(secondRelation);
         }
 
@@ -227,6 +225,11 @@ export class UserRelationService {
                 followerId: blockerName,
                 followedId: blockedName,
                 status: 'blocked',
+            });
+            await this.followRepo.create({
+                followerId: blockedName,
+                followedId: blockerName,
+                status: 'gotBlocked',
             });
         }
         return 'Targeted user is blocked';
@@ -244,7 +247,10 @@ export class UserRelationService {
         if (!relation || (relation && relation.status !== 'blocked'))
             throw new ForbiddenError('This user is not blocked');
 
-        await this.followRepo.delete({ followerId: blockerName, followedId: blockedName });
+        await this.followRepo.deleteBlockRelation({
+            followerId: blockerName,
+            followedId: blockedName,
+        });
 
         return 'User removed from your blocks';
     }

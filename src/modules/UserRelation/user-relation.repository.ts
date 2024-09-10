@@ -34,6 +34,21 @@ export class UserRelationRepository {
         return this.followRepo.delete({ followedId, followerId });
     }
 
+    deleteBlockRelation({ followedId, followerId }: UserRelationId) {
+        return this.dataSource.transaction(async (entityManager) => {
+            await entityManager.delete(UserRelationEntity, {
+                followedId,
+                followerId,
+                status: 'blocked',
+            });
+            await entityManager.delete(UserRelationEntity, {
+                followerId: followedId,
+                followedId: followerId,
+                status: 'gotBlocked',
+            });
+        });
+    }
+
     createFollowRequest(relation: UserRelationEntity): Promise<void> {
         return this.dataSource.transaction(async (entityManager) => {
             // insert follow request relation
