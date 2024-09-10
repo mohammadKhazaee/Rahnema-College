@@ -6,7 +6,7 @@ import {
     NormalNotifEntity,
     notifType,
 } from './model/notifications';
-import { PaginationDto } from '../Common/dto/pagination-dto';
+import { DbPagination } from '../Common/model/db-pagination';
 import { FriendNotifEntity, friendNotifType, isFriendNotifEntity } from './model/friend-notifs';
 
 export class NotifRepository {
@@ -16,12 +16,7 @@ export class NotifRepository {
         this.notifRepo = dataSource.getRepository(NotificationEntity);
     }
 
-    async notifList(
-        username: string,
-        { p: page, c: take }: PaginationDto
-    ): Promise<NormalNotifEntity[]> {
-        const skip = (page - 1) * take;
-
+    async notifList(username: string, { skip, take }: DbPagination): Promise<NormalNotifEntity[]> {
         const notifList = await this.notifRepo.find({
             where: {
                 receiverId: username,
@@ -41,10 +36,8 @@ export class NotifRepository {
 
     async friendNotifList(
         username: string,
-        { p: page, c: take }: PaginationDto
+        { skip, take }: DbPagination
     ): Promise<FriendNotifEntity[]> {
-        const skip = (page - 1) * take;
-
         const notifList = await this.notifRepo.find({
             where: {
                 receiverId: username,

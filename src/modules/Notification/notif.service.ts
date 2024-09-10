@@ -30,8 +30,9 @@ export class NotifService {
         private userRelationRepo: UserRelationService
     ) {}
 
-    async followingList(username: string, paginationDto: PaginationDto) {
-        const notifs = await this.notifRepo.notifList(username, paginationDto);
+    async followingList(username: string, { p: page, c: take }: PaginationDto) {
+        const skip = (page - 1) * take;
+        const notifs = await this.notifRepo.notifList(username, { take, skip });
 
         // change isSeen for listed notifs
         await this.notifRepo.updateBulk(notifs);
@@ -39,8 +40,9 @@ export class NotifService {
         return Promise.all(notifs.map(this.notifTransformer));
     }
 
-    async friendList(username: string, paginationDto: PaginationDto) {
-        const notifs = await this.notifRepo.friendNotifList(username, paginationDto);
+    async friendList(username: string, { p: page, c: take }: PaginationDto) {
+        const skip = (page - 1) * take;
+        const notifs = await this.notifRepo.friendNotifList(username, { take, skip });
 
         // change isSeen for listed notifs
         await this.notifRepo.updateBulk(notifs);
