@@ -5,6 +5,7 @@ import { UserService } from '../User/user.service';
 import { CreatePostDto } from './dto/create-post-dto';
 import {
     CreatePost,
+    ExplorePostsDto,
     FindExplorePosts,
     GetPostDao,
     GetPostsDao,
@@ -29,6 +30,8 @@ import { FileParser } from '../../utility/file-parser';
 import { PostImageRepository } from './image.repository';
 import { BookmarkResultDao, PostBookmarkId } from './model/post-bookmark';
 import { CreateLikeNotif } from '../Notification/model/notifications';
+import { UserRelationService } from '../UserRelation/user-relation.service';
+import { PostEntity } from './entity/post.entity';
 
 export class PostService {
     constructor(
@@ -38,6 +41,7 @@ export class PostService {
         private postLikeRepo: PostLikeRepository,
         private tagRepo: TagRepository,
         private userService: UserService,
+        private followService: UserRelationService,
         private bookmarkRepo: BookmarkRepository,
         private imageRepo: PostImageRepository
     ) {}
@@ -320,21 +324,50 @@ export class PostService {
 
     async explorePosts(
         username: string,
-        findData: FindExplorePosts,
         { p: page, c: take }: PaginationDto
-    ) {
-        const skip = (page - 1) * take;
-        const exploreposts = await this.postRepo.explorePosts(findData, { take, skip });
+    ): Promise<ExplorePostsDto[]> {
+        // all post creators
+        const followings = (
+            await this.followService.fetchRelations({
+                followerId: [username],
+                status: ['follow', 'friend'],
+            })
+        ).map((f) => f.followedId);
 
-        const retuenExplore: PostServiceExploreDto[] = await Promise.all(
-            exploreposts.map(async (p) => ({
+        if (followings.length === 0) return [];
+
+        // creators that we're their friend
+        const friendCreators = (
+            await this.followService.fetchRelations({
+                followerId: followings,
+                followedId: [username],
+                status: ['friend'],
+            })
+        ).map((f) => f.followerId);
+
+        const NonFriendCreators = followings.filter((f) => !friendCreators.includes(f));
+
+        const findExplorePostsData: FindExplorePosts = { friendCreators, NonFriendCreators };
+        const skip = (page - 1) * take;
+
+        const authorizedPosts = await this.postRepo.explorePosts(findExplorePostsData, {
+            take,
+            skip,
+        });
+
+        return this.formatExplorePost(authorizedPosts);
+    }
+
+    private formatExplorePost(posts: PostEntity[]): Promise<ExplorePostsDto[]> {
+        return Promise.all(
+            posts.map(async (p) => ({
                 postId: p.postId,
                 creator: {
                     username: p.creatorId,
                     imageUrl: p.creator.imageUrl,
+                    followersCount: await this.followService.getFollowersCount(p.creator.username),
                 },
                 postImage: p.images[0].url,
-                username,
                 commentCount: await this.postCommentRepo.countCommentsForPost(p.postId),
                 isLiked: await this.postLikeRepo.doesLikeExists({
                     postId: p.postId,
@@ -348,6 +381,5 @@ export class PostService {
                 bookmarkCount: await this.bookmarkRepo.countBookmarksForPost(p.postId),
             }))
         );
-        return retuenExplore;
     }
 }

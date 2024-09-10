@@ -105,6 +105,7 @@ export const appFactory = (dataSource: DataSource) => {
         postLikeRepo,
         tagRepo,
         userService,
+        userRelationService,
         bookmarkRepo,
         postImageRepo
     );
@@ -116,7 +117,15 @@ export const appFactory = (dataSource: DataSource) => {
     app.use('/posts', postRouter(userService, postService, fileParser));
     app.use(
         '/dashboard',
-        dashboardRouter(userService, socialService, notifService, messageService, fileParser)
+
+        dashboardRouter(
+            userService,
+            socialService,
+            postService,
+            notifService,
+            messageService,
+            fileParser
+        )
     );
     app.use('/user-relations', userRelationRouter(userService, userRelationService));
 

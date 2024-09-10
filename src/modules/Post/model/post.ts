@@ -70,7 +70,6 @@ export interface ExplorePostsDto {
         followersCount: number;
     };
     postImage: string;
-    username: string;
     commentCount: number;
     isLiked: boolean;
     likeCount: number;

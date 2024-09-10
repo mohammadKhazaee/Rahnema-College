@@ -7,12 +7,14 @@ import { FileParser } from '../utility/file-parser';
 import { NotifService } from '../modules/Notification/notif.service';
 import { paginationDto } from '../modules/Common/dto/pagination-dto';
 import { isAuthenticated } from '../login-middleware';
+import { PostService } from '../modules/Post/post.service';
 import { createMessageDto } from '../modules/Message/dto/createMessageDto';
 import { MessageService } from '../modules/Message/message.service';
 
 export const dashboardRouter = (
     userService: UserService,
     socialService: SocialService,
+    postService: PostService,
     notifService: NotifService,
     messageService: MessageService,
     fileParser: FileParser
@@ -40,7 +42,7 @@ export const dashboardRouter = (
     app.get('/explore', isAuthenticated(userService), (req, res, next) => {
         const username = req.username;
         const dto = paginationDto.parse(req.query);
-        handleExpress(res, 200, next, () => socialService.getSocialExplore(username, dto));
+        handleExpress(res, 200, next, () => postService.explorePosts(username, dto));
     });
 
     app.get('/notif', isAuthenticated(userService), (req, res, next) => {

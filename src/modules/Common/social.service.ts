@@ -38,47 +38,6 @@ export class SocialService {
         };
     }
 
-    async getSocialExplore(username: string, paginationDto: PaginationDto) {
-        // all post creators
-        const followings = (
-            await this.followService.fetchRelations({
-                followerId: [username],
-                status: ['follow', 'friend'],
-            })
-        ).map((f) => f.followedId);
-
-        if (followings.length === 0) return [];
-
-        // creators that we're their friend
-        const friendCreators = (
-            await this.followService.fetchRelations({
-                followerId: followings,
-                followedId: [username],
-                status: ['friend'],
-            })
-        ).map((f) => f.followerId);
-
-        const NonFriendCreators = followings.filter((f) => !friendCreators.includes(f));
-
-        const findExplorePostsData: FindExplorePosts = { friendCreators, NonFriendCreators };
-
-        const explore = await this.postService.explorePosts(
-            username,
-            findExplorePostsData,
-            paginationDto
-        );
-        const returnExplore: ExplorePostsDto[] = await Promise.all(
-            explore.map(async (p) => ({
-                ...p,
-                creator: {
-                    ...p.creator,
-                    followersCount: await this.followService.getFollowersCount(p.creator.username),
-                },
-            }))
-        );
-        return returnExplore;
-    }
-
     async searchUsers(
         query: string,
         currentUsername: string,
