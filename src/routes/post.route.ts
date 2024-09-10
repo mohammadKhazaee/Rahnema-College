@@ -43,7 +43,7 @@ export const postRouter = (
 
             handleExpress(res, 200, next, async () => ({
                 message: 'post updated successfully',
-                updatedPost: await postService.updatePost(dto, fileParser),
+                updatedPost: await postService.updatePost(req.username, dto, fileParser),
             }));
         }
     );

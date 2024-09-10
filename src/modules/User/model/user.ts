@@ -33,6 +33,8 @@ export interface UserProfileDao {
 
 export interface UserLinkDao {
     username: string;
+    fName: string;
+    lName: string;
     imageUrl: string;
 }
 
@@ -61,17 +63,13 @@ export type userIdentifier =
           username: string;
       };
 
-export interface GetUserMinInfo {
-    username: string;
-    lName: string;
-    fName: string;
-    imageUrl: string;
-}
+export interface GetUserMinInfo extends UserLinkDao {}
+
 export interface UserSearchResult {
     username: string;
     imageUrl: string;
     fName: string;
     lName: string;
     followersCount: number;
-    relationState: 'follow' | 'requestedFollow' | 'notFollowed' | 'blocked' | 'friend';
+    relationState: FollowedByState;
 }

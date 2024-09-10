@@ -15,19 +15,22 @@ export interface Post {
     updatedAt: Date;
 }
 
-export interface GetPostDao {
-    postId: string;
-    mentions: Mention[];
-    creator: UserLinkDao;
-    imageInfos: ImageInfoDao[];
-    caption: string;
-    tags: string[];
-    createdAt: Date;
+export interface GetPostDao extends FormatedSinglePost {
     isLiked: boolean;
     likeCount: number;
     commentsCount: number;
     isBookMarked: boolean;
     bookMarkCount: number;
+}
+
+export interface FormatedSinglePost {
+    postId: string;
+    mentions: string[];
+    creator: UserLinkDao;
+    imageInfos: ImageInfoDao[];
+    caption: string;
+    tags: string[];
+    createdAt: Date;
 }
 
 export interface PostWithImages {
@@ -70,21 +73,6 @@ export interface ExplorePostsDto {
         followersCount: number;
     };
     postImage: string;
-    commentCount: number;
-    isLiked: boolean;
-    likeCount: number;
-    isBookMarked: boolean;
-    bookmarkCount: number;
-}
-
-export interface PostServiceExploreDto {
-    postId: string;
-    creator: {
-        imageUrl: string;
-        username: string;
-    };
-    postImage: string;
-    username: string;
     commentCount: number;
     isLiked: boolean;
     likeCount: number;

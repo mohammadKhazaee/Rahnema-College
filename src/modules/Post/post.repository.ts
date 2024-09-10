@@ -7,6 +7,7 @@ import { CreateMentionNotif } from '../Notification/model/notifications';
 import { PostNotifEntity } from '../Notification/entity/post-notif.entity';
 import { User } from '../User/model/user';
 import { DbPagination } from '../Common/model/db-pagination';
+import { UserEntity } from '../User/entity/user.entity';
 
 export class PostRepository {
     private postRepo: Repository<PostEntity>;
@@ -24,10 +25,10 @@ export class PostRepository {
         });
     }
 
-    create(createPostObject: CreatePost): Promise<Post> {
+    create(createPostObject: CreatePost): Promise<PostEntity> {
         return this.dataSource.transaction(async (entityManager) => {
             // save like record
-            const createdPost = await this.postRepo.save(createPostObject);
+            const createdPost = await entityManager.save(PostEntity, createPostObject);
 
             // save base notif for followers
             const preparedMentionNotifs: CreateMentionNotif[] = await this.makeFollowersNotifs(
@@ -50,7 +51,12 @@ export class PostRepository {
                 }))
             );
 
-            return createdPost;
+            const creatorInfo = await entityManager.findOne(UserEntity, {
+                where: { username: createdPost.creatorId },
+            });
+            if (!creatorInfo) throw new Error();
+
+            return { ...createdPost, creator: creatorInfo };
         });
     }
 
@@ -92,10 +98,12 @@ export class PostRepository {
             },
             relations: { notif: true },
         });
-        await entityManager.delete(
-            NotificationEntity,
-            oldMentionNotifs.map((n) => n.notif)
-        );
+
+        if (oldMentionNotifs.length > 0)
+            await entityManager.delete(
+                NotificationEntity,
+                oldMentionNotifs.map((n) => n.notif)
+            );
     }
 
     update(post: UpdatePost, oldMentions: User[] = []) {
@@ -128,7 +136,12 @@ export class PostRepository {
                 }))
             );
 
-            return createdPost;
+            const creatorInfo = await entityManager.findOne(UserEntity, {
+                where: { username: createdPost.creatorId },
+            });
+            if (!creatorInfo) throw new Error();
+
+            return { ...createdPost, creator: creatorInfo };
         });
     }
 

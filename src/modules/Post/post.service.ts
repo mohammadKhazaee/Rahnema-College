@@ -1,4 +1,4 @@
-import { HttpError, NotFoundError } from '../../utility/errors';
+import { HttpError } from '../../utility/errors';
 import { imageUrlPath } from '../../utility/path-adjuster';
 import { User } from '../User/model/user';
 import { UserService } from '../User/user.service';
@@ -7,9 +7,10 @@ import {
     CreatePost,
     ExplorePostsDto,
     FindExplorePosts,
+    FormatedSinglePost,
     GetPostDao,
     GetPostsDao,
-    PostServiceExploreDto,
+    Post,
 } from './model/post';
 import { CreateTag, Tag } from './model/tag';
 import { PostRepository } from './post.repository';
@@ -26,7 +27,7 @@ import { CommentLikeRepository } from './comment-like.repository';
 import { BookmarkRepository } from './bookmark.repository';
 import { PaginationDto } from '../Common/dto/pagination-dto';
 import { PostImageEntity } from './entity/post-image.entity';
-import { FileParser } from '../../utility/file-parser';
+import { FileParser, IFile } from '../../utility/file-parser';
 import { PostImageRepository } from './image.repository';
 import { BookmarkResultDao, PostBookmarkId } from './model/post-bookmark';
 import { CreateLikeNotif } from '../Notification/model/notifications';
@@ -50,28 +51,6 @@ export class PostService {
         const post = await this.postRepo.findPostById(postId);
         if (!post) throw new HttpError(404, 'Post not found');
 
-        const formatedPost = {
-            postId: post.postId,
-            mentions: [
-                {
-                    postId: post.postId,
-                    mentionedId: post.mentions.map((m) => m.username).toString(),
-                    image: post.creator.imageUrl,
-                },
-            ],
-            creator: {
-                username: post.creator.username,
-                imageUrl: post.creator.imageUrl,
-            },
-            imageInfos: post.images.map((i) => ({
-                url: i.url,
-                imageId: i.imageId,
-            })),
-            caption: post.caption,
-            tags: post.tags.map((t) => t.name),
-            createdAt: post.createdAt,
-        };
-
         const [isLiked, likeCount, commentsCount, isBookMarked, bookMarkCount] = await Promise.all([
             this.postLikeRepo.doesLikeExists({ postId, userId }),
             this.postLikeRepo.countLikesForPost(postId),
@@ -79,7 +58,15 @@ export class PostService {
             this.bookmarkRepo.isItBookmarked({ postId, userId }),
             this.bookmarkRepo.countBookmarksForPost(postId),
         ]);
-        return { ...formatedPost, isLiked, likeCount, commentsCount, isBookMarked, bookMarkCount };
+
+        return {
+            ...this.formatSinglePost(post),
+            isLiked,
+            likeCount,
+            commentsCount,
+            isBookMarked,
+            bookMarkCount,
+        };
     }
 
     async togglePostBookmark({ userId, postId }: PostBookmarkId): Promise<BookmarkResultDao> {
@@ -102,11 +89,15 @@ export class PostService {
     }
 
     async updatePost(
+        username: string,
         { postId, mentions, caption, deletedImages, images }: EditPostDto,
         fileHandler: FileParser
-    ) {
+    ): Promise<FormatedSinglePost> {
         const post = await this.postRepo.findPostById(postId);
         if (!post) throw new HttpError(404, 'Post not found');
+
+        if (post.creatorId !== username)
+            throw new HttpError(403, 'only creator of the post can edit it');
 
         const oldMentions = post.mentions;
 
@@ -118,12 +109,7 @@ export class PostService {
 
         let newImageEntities: PostImageEntity[] = [];
         if (images) {
-            newImageEntities = images.map((i) => {
-                const image = new PostImageEntity();
-                image.url = imageUrlPath(i.path);
-                image.postId = postId;
-                return image;
-            });
+            newImageEntities = await this.CreatePostImageEnities(images, postId);
             post.images = [...post.images, ...newImageEntities];
         }
 
@@ -139,10 +125,13 @@ export class PostService {
             await fileHandler.deleteFiles(deletedImages.map((i) => i.url));
         }
 
-        return updatedPost;
+        return this.formatSinglePost(updatedPost);
     }
 
-    async createPost({ mentions, caption, images }: CreatePostDto, creatorId: string) {
+    async createPost(
+        { mentions, caption, images }: CreatePostDto,
+        creatorId: string
+    ): Promise<FormatedSinglePost> {
         const tags = await this.makeCreateTags(caption);
 
         const mentionedUsers: User[] = await this.verifyMentionedExists(mentions);
@@ -159,7 +148,18 @@ export class PostService {
             mentions: mentionedUsers,
         };
 
-        return this.postRepo.create(newPost);
+        const createdPost = await this.postRepo.create(newPost);
+
+        return this.formatSinglePost(createdPost);
+    }
+
+    private async CreatePostImageEnities(images: IFile[], postId: string) {
+        return images.map((i) => {
+            const image = new PostImageEntity();
+            image.url = imageUrlPath(i.path);
+            image.postId = postId;
+            return image;
+        });
     }
 
     private async makeCreateTags(caption: string) {
@@ -356,6 +356,26 @@ export class PostService {
         });
 
         return this.formatExplorePost(authorizedPosts);
+    }
+
+    private formatSinglePost(post: Post): FormatedSinglePost {
+        return {
+            postId: post.postId,
+            mentions: post.mentions.map((m) => m.username),
+            creator: {
+                username: post.creator.username,
+                fName: post.creator.fName,
+                lName: post.creator.lName,
+                imageUrl: post.creator.imageUrl,
+            },
+            imageInfos: post.images.map((i) => ({
+                url: i.url,
+                imageId: i.imageId,
+            })),
+            caption: post.caption,
+            tags: post.tags.map((t) => t.name),
+            createdAt: post.createdAt,
+        };
     }
 
     private formatExplorePost(posts: PostEntity[]): Promise<ExplorePostsDto[]> {
