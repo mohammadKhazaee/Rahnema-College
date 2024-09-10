@@ -22,7 +22,7 @@ export interface GetPostDao {
     imageInfos: ImageInfoDao[];
     caption: string;
     tags: string[];
-    createdAt: Date
+    createdAt: Date;
     isLiked: boolean;
     likeCount: number;
     commentsCount: number;
@@ -91,4 +91,9 @@ export interface PostServiceExploreDto {
     likeCount: number;
     isBookMarked: boolean;
     bookmarkCount: number;
+}
+
+export interface FindExplorePosts {
+    friendCreators: string[];
+    NonFriendCreators: string[];
 }

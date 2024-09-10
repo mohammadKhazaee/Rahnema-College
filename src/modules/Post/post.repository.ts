@@ -1,12 +1,12 @@
-import { Repository, DataSource, In, EntityManager } from 'typeorm';
-import { CreatePost, Post, PostWithImages, UpdatePost } from './model/post';
+import { Repository, DataSource, In, EntityManager, FindOptionsWhere, Not } from 'typeorm';
+import { CreatePost, FindExplorePosts, Post, PostWithImages, UpdatePost } from './model/post';
 import { PostEntity } from './entity/post.entity';
 import { UserRelationEntity } from '../UserRelation/entity/user-relation.entity';
 import { NotificationEntity } from '../Notification/entity/notification.entity';
 import { CreateMentionNotif } from '../Notification/model/notifications';
 import { PostNotifEntity } from '../Notification/entity/post-notif.entity';
 import { User } from '../User/model/user';
-import { PaginationDto } from '../Common/dto/pagination-dto';
+import { DbPagination } from '../Common/model/db-pagination';
 
 export class PostRepository {
     private postRepo: Repository<PostEntity>;
@@ -15,7 +15,7 @@ export class PostRepository {
         this.postRepo = this.dataSource.getRepository(PostEntity);
     }
 
-    getPosts(username: string, take: number, skip: number): Promise<PostWithImages[]> {
+    getPosts(username: string, { take, skip }: DbPagination): Promise<PostWithImages[]> {
         return this.postRepo.find({
             where: { creatorId: username },
             take,
@@ -161,33 +161,22 @@ export class PostRepository {
         return this.postRepo.count({ where: { creatorId: username } });
     }
 
-    async explorePosts(mainUser: string, take: number, skip: number) {
-        return this.dataSource.transaction(async (entityManeger) => {
-            const followings = (
-                await entityManeger.find(UserRelationEntity, {
-                    where: { followerId: mainUser, status: In(['follow', 'friend']) },
-                    select: ['followedId'],
-                })
-            ).map((f) => f.followedId);
+    explorePosts(
+        { friendCreators, NonFriendCreators }: FindExplorePosts,
+        { take, skip }: DbPagination
+    ) {
+        let where: FindOptionsWhere<PostEntity>[] = [];
 
-            console.log(followings);
+        if (friendCreators) where = [...where, { creatorId: In([...friendCreators]) }];
+        if (NonFriendCreators)
+            where = [...where, { creatorId: In([...NonFriendCreators]), isCloseFriend: false }];
 
-            const posts = await entityManeger.find(PostEntity, {
-                order: {
-                    createdAt: 'DESC',
-                },
-                where: {
-                    creatorId: In([...followings]),
-                },
-                relations: {
-                    creator: true,
-                    images: true,
-                },
-                skip,
-                take,
-            });
-
-            return posts;
+        return this.postRepo.find({
+            order: { createdAt: 'DESC' },
+            where,
+            relations: { creator: true, images: true },
+            skip,
+            take,
         });
     }
 }

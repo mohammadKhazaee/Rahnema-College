@@ -3,7 +3,13 @@ import { imageUrlPath } from '../../utility/path-adjuster';
 import { User } from '../User/model/user';
 import { UserService } from '../User/user.service';
 import { CreatePostDto } from './dto/create-post-dto';
-import { CreatePost, GetPostDao, GetPostsDao, PostServiceExploreDto } from './model/post';
+import {
+    CreatePost,
+    FindExplorePosts,
+    GetPostDao,
+    GetPostsDao,
+    PostServiceExploreDto,
+} from './model/post';
 import { CreateTag, Tag } from './model/tag';
 import { PostRepository } from './post.repository';
 import { EditPostDto } from './dto/edit-post-dto';
@@ -34,7 +40,7 @@ export class PostService {
         private userService: UserService,
         private bookmarkRepo: BookmarkRepository,
         private imageRepo: PostImageRepository
-    ) { }
+    ) {}
 
     async getPostById(postId: string, userId: string): Promise<GetPostDao> {
         const post = await this.postRepo.findPostById(postId);
@@ -59,7 +65,7 @@ export class PostService {
             })),
             caption: post.caption,
             tags: post.tags.map((t) => t.name),
-            createdAt: post.createdAt
+            createdAt: post.createdAt,
         };
 
         const [isLiked, likeCount, commentsCount, isBookMarked, bookMarkCount] = await Promise.all([
@@ -198,10 +204,10 @@ export class PostService {
 
     async getUserPosts(
         username: string,
-        { p: page, c: count }: PaginationDto
+        { p: page, c: take }: PaginationDto
     ): Promise<GetPostsDao[]> {
-        const skip = (page - 1) * count;
-        const posts = await this.postRepo.getPosts(username, count, skip);
+        const skip = (page - 1) * take;
+        const posts = await this.postRepo.getPosts(username, { take, skip });
 
         const resultPosts: GetPostsDao[] = posts.map((p) => ({
             postId: p.postId,
@@ -312,12 +318,13 @@ export class PostService {
         };
     }
 
-    async exlorePosts(username: string, { p: page, c: count }: PaginationDto) {
-        const user = await this.userService.doesUserExists({ username });
-        if (!user) throw new NotFoundError('user was not found');
-
-        const skip = (page - 1) * count;
-        const exploreposts = await this.postRepo.explorePosts(username, count, skip);
+    async explorePosts(
+        username: string,
+        findData: FindExplorePosts,
+        { p: page, c: take }: PaginationDto
+    ) {
+        const skip = (page - 1) * take;
+        const exploreposts = await this.postRepo.explorePosts(findData, { take, skip });
 
         const retuenExplore: PostServiceExploreDto[] = await Promise.all(
             exploreposts.map(async (p) => ({

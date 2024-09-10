@@ -2,6 +2,7 @@ import { DataSource, EntityManager, FindOptionsWhere, In, Repository } from 'typ
 import { UserRelationEntity } from './entity/user-relation.entity';
 import {
     CreateUserRelation,
+    FindOneWayRelations,
     FindUserRelation,
     UserRelationId,
     UserRelationStatus,
@@ -147,6 +148,23 @@ export class UserRelationRepository {
         if (status.length > 0) where.status = In(status);
 
         return this.followRepo.findOne({ where });
+    }
+
+    fetchRelations(ids: FindOneWayRelations) {
+        let where: FindOptionsWhere<UserRelationEntity>[] = [];
+
+        if ('followerId' in ids && ids.followerId.length > 0) {
+            if ('status' in ids && ids.status && ids.status.length > 0)
+                where = [...where, { followerId: In(ids.followerId), status: In(ids.status) }];
+            else where = [...where, { followerId: In(ids.followerId) }];
+        }
+
+        if ('followedId' in ids && ids.followedId.length > 0)
+            if ('status' in ids && ids.status && ids.status.length > 0)
+                where = [...where, { followedId: In(ids.followedId), status: In(ids.status) }];
+            else where = [...where, { followedId: In(ids.followedId) }];
+
+        return this.followRepo.find({ where });
     }
 
     async doesRelationExist({ followedId, followerId, status = [] }: FindUserRelation) {

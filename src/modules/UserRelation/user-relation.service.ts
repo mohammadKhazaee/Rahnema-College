@@ -2,11 +2,20 @@ import { ForbiddenError, NotFoundError } from '../../utility/errors';
 import { UserService } from '../User/user.service';
 import { FollowListDto } from './dto/follow-list-dto';
 import { UserRelationRepository } from './user-relation.repository';
-import { FindUserRelation, GetFollowBlockListDao, UserRelationId } from './model/user-relation';
+import {
+    FindOneWayRelations,
+    FindUserRelation,
+    GetFollowBlockListDao,
+    UserRelationId,
+} from './model/user-relation';
 import { FollowedByState } from '../Notification/model/notifications';
 
 export class UserRelationService {
     constructor(private followRepo: UserRelationRepository, private userService: UserService) {}
+
+    fetchRelations(findObject: FindOneWayRelations) {
+        return this.followRepo.fetchRelations(findObject);
+    }
 
     async fetchRelationStatus({
         followerId,
@@ -251,8 +260,8 @@ export class UserRelationService {
         if (!friend) throw new NotFoundError('Friend not found');
 
         const relation = await this.followRepo.fetchRelation({
-            followedId: username,
-            followerId: friendUsername,
+            followerId: username,
+            followedId: friendUsername,
         });
 
         if (relation && relation.status === 'friend')
