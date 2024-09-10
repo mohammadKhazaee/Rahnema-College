@@ -14,6 +14,7 @@ import { NotificationEntity } from './modules/Notification/entity/notification.e
 import { PostNotifEntity } from './modules/Notification/entity/post-notif.entity';
 import { CommentNotifEntity } from './modules/Notification/entity/comment-notif.entity';
 import { RelationNotifEntity } from './modules/Notification/entity/relation-notif.entity';
+import { MessageEntity } from './modules/Message/entity/message.entity';
 dotenv.config();
 
 export const AppDataSource = new DataSource({
@@ -39,6 +40,7 @@ export const AppDataSource = new DataSource({
         PostNotifEntity,
         RelationNotifEntity,
         CommentNotifEntity,
+        MessageEntity,
     ],
     migrations: [],
     subscribers: [],

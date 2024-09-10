@@ -13,6 +13,7 @@ import { PostLikeEntity } from '../../Post/entity/post-Likes.entity';
 import { BookmarkEntity } from '../../Post/entity/bookmark.entity';
 import { UserRelationEntity } from '../../UserRelation/entity/user-relation.entity';
 import { NotificationEntity } from '../../Notification/entity/notification.entity';
+import { MessageEntity } from '../../Message/entity/message.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -73,6 +74,18 @@ export class UserEntity {
         cascade: ['insert', 'update'],
     })
     bookmarks!: BookmarkEntity[];
+
+    @OneToMany(() => MessageEntity, (message) => message.sender, {
+        cascade: ['insert', 'update'],
+        onDelete: 'CASCADE',
+    })
+    sentMessages!: MessageEntity[];
+
+    @OneToMany(() => MessageEntity, (message) => message.receiver, {
+        cascade: ['insert', 'update'],
+        onDelete: 'CASCADE',
+    })
+    receivedMessages!: MessageEntity[];
 
     @CreateDateColumn()
     createdAt!: Date;
