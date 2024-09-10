@@ -71,7 +71,7 @@ export const postRouter = (
     app.get('/:postId/comments', isAuthenticated(userService), (req, res, next) => {
         const dto = paginationDto.parse(req.query);
         handleExpress(res, 201, next, async () => ({
-            comments: await postService.getComments(req.params.postId, dto),
+            comments: await postService.getComments(req.params.postId, req.username, dto),
         }));
     });
 

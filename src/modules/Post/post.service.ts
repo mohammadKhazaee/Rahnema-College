@@ -33,6 +33,7 @@ import { BookmarkResultDao, PostBookmarkId } from './model/post-bookmark';
 import { CreateLikeNotif } from '../Notification/model/notifications';
 import { UserRelationService } from '../UserRelation/user-relation.service';
 import { PostEntity } from './entity/post.entity';
+import { PostCommentEntity } from './entity/post-comment.entity';
 
 export class PostService {
     constructor(
@@ -174,55 +175,40 @@ export class PostService {
         return this.postRepo.countPostsByUsername(username);
     }
 
-    async createComment(dto: CreateCommentDto, commentor: string): Promise<PostCommentWithReplays> {
-        if (!this.postRepo.doesPostExist(dto.postId))
-            throw new HttpError(404, 'Post was not found');
-        if (dto.type === 'replay' && !this.postCommentRepo.doesCommentExist(dto.parentId))
-            throw new HttpError(404, 'Comment targeted to replay was not found');
+    async createComment(
+        dto: CreateCommentDto,
+        commenterId: string
+    ): Promise<PostCommentWithReplays> {
+        await this.canAccessPost(dto.postId, commenterId);
+
+        if (
+            dto.type === 'replay' &&
+            !(await this.canAccessComment(dto.parentId, dto.postId, commenterId))
+        )
+            throw new HttpError(403, 'you have no access to the comment');
 
         const { type, ...createCommentData } = dto;
 
-        return this.postCommentRepo.save({
-            commenterId: commentor,
-            ...createCommentData,
-        });
+        return this.postCommentRepo.save({ commenterId, ...createCommentData });
     }
 
     async getComments(
         postId: string,
+        viewerId: string,
         { p: page, c: count }: PaginationDto
     ): Promise<GetCommentsDao[]> {
-        if (!this.postRepo.doesPostExist(postId)) throw new HttpError(404, 'Post was not found');
+        await this.canAccessPost(postId, viewerId);
 
         const skip = (page - 1) * count;
         const comments = await this.postCommentRepo.getComments(postId, count, skip);
 
-        const resultComments: GetCommentsDao[] = await Promise.all(
-            comments.map(async (c) => ({
-                commentId: c.commentId,
-                commentor: {
-                    username: c.commenter.username,
-                    imageUrl: c.commenter.imageUrl,
-                },
-                likeCount: await this.commentLikeRepo.countLikesForComment(c.commentId),
-                content: c.content,
-                createDate: c.createdAt,
-                replays: await Promise.all(
-                    c.replays.map(async (r) => ({
-                        commentId: r.commentId,
-                        commentor: {
-                            username: r.commenter.username,
-                            imageUrl: r.commenter.imageUrl,
-                        },
-                        content: r.content,
-                        createDate: r.createdAt,
-                        likeCount: await this.commentLikeRepo.countLikesForComment(r.commentId),
-                    }))
-                ),
-            }))
-        );
+        const allowedComments = [];
 
-        return resultComments;
+        for (let i = 0; i < comments.length; i++)
+            if (await this.canAccessComment(comments[i].commentId, postId, viewerId))
+                allowedComments.push(comments[i]);
+
+        return this.formatComments(allowedComments);
     }
 
     async togglePostLike(likeId: PostLikeId): Promise<LikeResultDao> {
@@ -305,6 +291,33 @@ export class PostService {
         });
 
         return this.formatExplorePost(authorizedPosts);
+    }
+
+    private formatComments(comments: PostCommentEntity[]): Promise<GetCommentsDao[]> {
+        return Promise.all(
+            comments.map(async (c) => ({
+                commentId: c.commentId,
+                commentor: {
+                    username: c.commenter.username,
+                    imageUrl: c.commenter.imageUrl,
+                },
+                likeCount: await this.commentLikeRepo.countLikesForComment(c.commentId),
+                content: c.content,
+                createDate: c.createdAt,
+                replays: await Promise.all(
+                    c.replays.map(async (r) => ({
+                        commentId: r.commentId,
+                        commentor: {
+                            username: r.commenter.username,
+                            imageUrl: r.commenter.imageUrl,
+                        },
+                        content: r.content,
+                        createDate: r.createdAt,
+                        likeCount: await this.commentLikeRepo.countLikesForComment(r.commentId),
+                    }))
+                ),
+            }))
+        );
     }
 
     private formatSinglePost(post: Post): FormatedSinglePost {
@@ -395,6 +408,42 @@ export class PostService {
             throw new HttpError(403, 'you have to be a follower');
 
         return creatorStatusToUser === 'friend';
+    }
+
+    private async canAccessComment(
+        commentId: string,
+        postId: string,
+        viewerId: string
+    ): Promise<boolean | never> {
+        const post = await this.postRepo.findPostById(postId);
+        if (!post) throw new HttpError(404, 'Post not found');
+
+        const comment = await this.postCommentRepo.findCommentById(commentId);
+        if (!comment) throw new HttpError(404, 'Comment not found');
+
+        const creatorStatusToUser = await this.followService.fetchRelationStatus({
+            followerId: post.creatorId,
+            followedId: viewerId,
+        });
+        const commentorStatusToUser = await this.followService.fetchRelationStatus({
+            followerId: comment.commenterId,
+            followedId: viewerId,
+        });
+        const userStatusToCreator = await this.followService.fetchRelationStatus({
+            followedId: post.creatorId,
+            followerId: viewerId,
+        });
+
+        if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
+            throw new HttpError(403, 'you or creator have blocked eachother');
+
+        if (post.creator.isPrivate && userStatusToCreator === 'notFollowed')
+            throw new HttpError(403, 'you have to be a follower');
+
+        if (post.isCloseFriend && creatorStatusToUser !== 'friend')
+            throw new HttpError(403, 'you have to be a friend of creator');
+
+        return commentorStatusToUser !== 'blocked' && commentorStatusToUser !== 'gotBlocked';
     }
 
     private async canAccessPost(postId: string, viewerId: string): Promise<Post | never> {

@@ -13,6 +13,13 @@ export class PostCommentRepository {
         this.commentRepo = dataSource.getRepository(PostCommentEntity);
     }
 
+    findCommentById(commentId: string): Promise<PostCommentEntity | null> {
+        return this.commentRepo.findOne({
+            where: { commentId },
+            relations: { commenter: true },
+        });
+    }
+
     getComments(postId: string, take: number, skip: number): Promise<PostCommentEntity[]> {
         return this.commentRepo.find({
             where: { postId, parentId: IsNull() },
