@@ -211,11 +211,9 @@ export class UserRelationService {
 
         if (relation && relation.status === 'blocked')
             throw new ForbiddenError('You already blocked this user');
-        console.log(relation);
 
         if (relation) {
             relation.status = relation.status === 'gotBlocked' ? 'twoWayBlocked' : 'blocked';
-            console.log(relation);
             await this.followRepo.upadte(relation);
         } else
             await this.followRepo.create({
