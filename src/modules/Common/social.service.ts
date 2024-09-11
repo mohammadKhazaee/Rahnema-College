@@ -59,26 +59,13 @@ export class SocialService {
                     }),
                 ]);
 
-                let mappedRelationState: UserSearchResult['relationState'];
-                switch (relationState) {
-                    case 'followed':
-                        mappedRelationState = 'follow';
-                        break;
-                    case 'requested':
-                        mappedRelationState = 'requestedFollow';
-                        break;
-
-                    default:
-                        mappedRelationState = 'notFollowed';
-                }
-
                 return {
                     username: user.username,
                     imageUrl: user.imageUrl,
                     fName: user.fName,
                     lName: user.lName,
                     followersCount,
-                    relationState: mappedRelationState,
+                    relationState,
                 };
             })
         );
