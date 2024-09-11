@@ -16,7 +16,7 @@ export class PostCommentRepository {
     findCommentById(commentId: string): Promise<PostCommentEntity | null> {
         return this.commentRepo.findOne({
             where: { commentId },
-            relations: { commenter: true },
+            relations: { commenter: true, post: { creator: true } },
         });
     }
 

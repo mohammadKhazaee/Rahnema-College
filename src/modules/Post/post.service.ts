@@ -183,7 +183,7 @@ export class PostService {
 
         if (
             dto.type === 'replay' &&
-            !(await this.canAccessComment(dto.parentId, dto.postId, commenterId))
+            !(await this.canReplayComment(dto.parentId, dto.postId, commenterId))
         )
             throw new HttpError(403, 'you have no access to the comment');
 
@@ -205,15 +205,14 @@ export class PostService {
         const allowedComments = [];
 
         for (let i = 0; i < comments.length; i++)
-            if (await this.canAccessComment(comments[i].commentId, postId, viewerId))
+            if (await this.canReplayComment(comments[i].commentId, postId, viewerId))
                 allowedComments.push(comments[i]);
 
         return this.formatComments(allowedComments);
     }
 
     async togglePostLike(likeId: PostLikeId): Promise<LikeResultDao> {
-        const post = await this.postRepo.findPostById(likeId.postId);
-        if (!post) throw new HttpError(404, 'Post was not found');
+        const post = await this.canAccessPost(likeId.postId, likeId.postId);
 
         const createLikeNotif: CreateLikeNotif = {
             emiterId: likeId.userId,
@@ -238,8 +237,7 @@ export class PostService {
     }
 
     async toggleCommentLike(commentLikeId: CommentLikeId): Promise<LikeResultDao> {
-        if (!this.postCommentRepo.doesCommentExist(commentLikeId.commentId))
-            throw new HttpError(404, 'Comment was not found');
+        await this.canAccessComment(commentLikeId.commentId, commentLikeId.userId);
 
         if (await this.commentLikeRepo.doesLikeExists(commentLikeId)) {
             await this.commentLikeRepo.delete(commentLikeId);
@@ -386,31 +384,61 @@ export class PostService {
     }
 
     private async canAccessCloseFriendPost(
-        postId: string,
+        creatorId: string,
         viewerId: string
     ): Promise<boolean | never> {
-        const post = await this.postRepo.findPostById(postId);
-        if (!post) throw new HttpError(404, 'Post not found');
+        const creator = await this.userService.fetchUser({ username: creatorId });
+        if (!creator) throw new HttpError(404, 'Targeted User was not found');
 
         const creatorStatusToUser = await this.followService.fetchRelationStatus({
-            followerId: post.creatorId,
+            followerId: creatorId,
             followedId: viewerId,
         });
         const userStatusToCreator = await this.followService.fetchRelationStatus({
-            followedId: post.creatorId,
+            followedId: creatorId,
             followerId: viewerId,
         });
 
         if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
             throw new HttpError(403, 'you or creator have blocked eachother');
 
-        if (post.creator.isPrivate && userStatusToCreator === 'notFollowed')
+        if (creator.isPrivate && userStatusToCreator === 'notFollowed')
             throw new HttpError(403, 'you have to be a follower');
 
         return creatorStatusToUser === 'friend';
     }
 
-    private async canAccessComment(
+    private async canAccessComment(commentId: string, viewerId: string): Promise<void | never> {
+        const comment = await this.postCommentRepo.findCommentById(commentId);
+        if (!comment) throw new HttpError(404, 'Comment not found');
+
+        const creatorStatusToUser = await this.followService.fetchRelationStatus({
+            followerId: comment.post.creatorId,
+            followedId: viewerId,
+        });
+        const commentorStatusToUser = await this.followService.fetchRelationStatus({
+            followerId: comment.commenterId,
+            followedId: viewerId,
+        });
+        const userStatusToCreator = await this.followService.fetchRelationStatus({
+            followedId: comment.post.creatorId,
+            followerId: viewerId,
+        });
+
+        if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
+            throw new HttpError(403, 'you or creator have blocked eachother');
+
+        if (comment.post.creator.isPrivate && userStatusToCreator === 'notFollowed')
+            throw new HttpError(403, 'you have to be a follower');
+
+        if (comment.post.isCloseFriend && creatorStatusToUser !== 'friend')
+            throw new HttpError(403, 'you have to be a friend of creator');
+
+        if (commentorStatusToUser === 'blocked' || commentorStatusToUser === 'gotBlocked')
+            throw new HttpError(403, 'you have to be a friend of creator');
+    }
+
+    private async canReplayComment(
         commentId: string,
         postId: string,
         viewerId: string
