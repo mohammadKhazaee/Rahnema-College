@@ -14,10 +14,13 @@ export class MessageService {
     ) {}
 
     async addMessage(messageDto: CreateMessageDto, receiverId: string, senderId: string) {
-        const relationStatus = await this.relationService.fetchRelationStatus({
-            followedId: receiverId,
-            followerId: senderId,
+        if (receiverId === senderId) throw new ForbiddenError('Users cant message themselves');
+
+        await this.relationService.fetchRelationStatus({
+            followerId: receiverId,
+            followedId: senderId,
         });
+
         if ('image' in messageDto) {
             const url = imageUrlPath(messageDto.image.path);
             const newMessage: CreateMessage = {

@@ -12,9 +12,9 @@ export class UserRelationService {
         followerId,
         followedId,
     }: UserRelationId): Promise<FollowedByState> {
-        const foundRelation = await this.followRepo.fetchRelation({ followerId, followedId });
+        const foundRelation = await this.followRepo.fetchRelation({ followedId, followerId });
         if (!foundRelation) return 'notFollowed';
-        if (foundRelation.status === 'blocked') throw new Error();
+        if (foundRelation.status === 'blocked') throw new ForbiddenError('This user blocked you');
 
         return foundRelation.status === 'requestedFollow' ? 'requested' : 'followed';
     }
@@ -209,7 +209,7 @@ export class UserRelationService {
             await this.followRepo.upadte(relation);
         }
 
-        if (secondRelation) {
+        if (secondRelation && secondRelation.status !== 'blocked') {
             await this.followRepo.delete(secondRelation);
         }
 
