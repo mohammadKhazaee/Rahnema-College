@@ -87,10 +87,15 @@ export class UserService {
     }
     async searchUsers(
         query: string,
-        currentUserId: string,
+        currentUsername: string,
         page: number,
         count: number
-    ): Promise<UserEntity[]> {
-        return this.userRepo.searchUsers(query, currentUserId, page, count);
+    ): Promise<{ users: UserEntity[]; followersCount: number[] }> {
+        const result = await this.userRepo.searchUsers(query, currentUsername, page, count);
+
+        const users = result.entities;
+        const followersCount = result.raw.map((r: any) => parseInt(r.followersCount, 10));
+
+        return { users, followersCount };
     }
 }

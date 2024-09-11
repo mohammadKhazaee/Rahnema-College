@@ -76,15 +76,15 @@ export const dashboardRouter = (
         if (typeof query !== 'string') {
             return res.status(400).json({ error: 'Search query is required' });
         }
-        handleExpress(res, 200, next, () =>
-            socialService.searchUsers(
+        handleExpress(res, 200, next, async () => {
+            const users = await socialService.searchUsers(
                 query,
                 req.username,
                 parseInt(page as string),
                 parseInt(count as string)
-            )
-        );
+            );
+            return { users };
+        });
     });
-
     return app;
 };

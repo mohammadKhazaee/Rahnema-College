@@ -42,36 +42,34 @@ export class SocialService {
         page: number,
         count: number
     ): Promise<UserSearchResult[]> {
-        const users: UserEntity[] = await this.userService.searchUsers(
+        const { users, followersCount } = await this.userService.searchUsers(
             query,
             currentUsername,
             page,
             count
         );
 
+        if (users.length === 0) {
+            return [];
+        }
+
         const searchResults: UserSearchResult[] = await Promise.all(
-            users.map(async (user) => {
-                const [followersCount, relationState] = await Promise.all([
-                    this.followService.getFollowersCount(user.username),
-                    this.followService.fetchRelationStatus({
-                        followerId: currentUsername,
-                        followedId: user.username,
-                    }),
-                ]);
+            users.map(async (user, index) => {
+                const relationState = await this.followService.fetchRelationStatus({
+                    followerId: currentUsername,
+                    followedId: user.username,
+                });
 
                 return {
                     username: user.username,
                     imageUrl: user.imageUrl,
                     fName: user.fName,
                     lName: user.lName,
-                    followersCount,
+                    followersCount: followersCount[index],
                     relationState,
                 };
             })
         );
-
-        // Sort by followers count
-        searchResults.sort((a, b) => b.followersCount - a.followersCount);
 
         return searchResults;
     }
