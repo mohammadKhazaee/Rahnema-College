@@ -1,8 +1,10 @@
 import { HttpError } from '../../utility/errors';
 import { FileParser } from '../../utility/file-parser';
 import { imageUrlPath } from '../../utility/path-adjuster';
+import { UserRelationRepository } from '../UserRelation/user-relation.repository';
 import { EditProfileDto } from './dto/edit-profile-dto';
-import { UpdateUser, userIdentifier, User, CreateUser } from './model/user';
+import { UserEntity } from './entity/user.entity';
+import { UpdateUser, userIdentifier, User, CreateUser, UserSearchResult } from './model/user';
 import { UserRepository } from './user.repository';
 import * as bcrypt from 'bcrypt';
 
@@ -29,16 +31,14 @@ export class UserService {
             bio: dto.bio,
             isPrivate: dto.isPrivate,
         };
-        if ('image' in dto && dto.image)
-            updateData.imageUrl = imageUrlPath(dto.image.path);
+        if ('image' in dto && dto.image) updateData.imageUrl = imageUrlPath(dto.image.path);
 
         if ('password' in dto && dto.password)
             updateData.password = await bcrypt.hash(dto.password, 12);
 
         await this.userRepo.upadte(updateData);
 
-        if ('image' in dto && dto.image)
-            await fileHandler.deleteFiles([user.imageUrl]);
+        if ('image' in dto && dto.image) await fileHandler.deleteFiles([user.imageUrl]);
 
         return 'Profile Updated';
     }
@@ -53,8 +53,7 @@ export class UserService {
 
     async fetchUser(userIds: userIdentifier): Promise<User | null> {
         let user: User | null;
-        if ('username' in userIds)
-            user = await this.userRepo.findByUsername(userIds.username);
+        if ('username' in userIds) user = await this.userRepo.findByUsername(userIds.username);
         else user = await this.userRepo.findByEmail(userIds.email);
         return user;
     }
@@ -85,5 +84,13 @@ export class UserService {
 
     updateUser(dto: UpdateUser) {
         return this.userRepo.upadte(dto);
+    }
+    async searchUsers(
+        query: string,
+        currentUserId: string,
+        page: number,
+        count: number
+    ): Promise<UserEntity[]> {
+        return this.userRepo.searchUsers(query, currentUserId, page, count);
     }
 }

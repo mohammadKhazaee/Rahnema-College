@@ -1,7 +1,8 @@
 import { PaginationDto } from '../Post/dto/get-posts-dto';
 import { ExplorePostsDto } from '../Post/model/post';
 import { PostService } from '../Post/post.service';
-import { UserProfileDao } from '../User/model/user';
+import { UserEntity } from '../User/entity/user.entity';
+import { UserProfileDao, UserSearchResult } from '../User/model/user';
 import { UserService } from '../User/user.service';
 import { UserRelationService } from '../UserRelation/user-relation.service';
 
@@ -49,5 +50,58 @@ export class SocialService {
             }))
         );
         return returnExplore;
+    }
+
+    async searchUsers(
+        query: string,
+        currentUsername: string,
+        page: number,
+        count: number
+    ): Promise<UserSearchResult[]> {
+        const users: UserEntity[] = await this.userService.searchUsers(
+            query,
+            currentUsername,
+            page,
+            count
+        );
+
+        const searchResults: UserSearchResult[] = await Promise.all(
+            users.map(async (user) => {
+                const [followersCount, relationState] = await Promise.all([
+                    this.followService.getFollowersCount(user.username),
+                    this.followService.fetchRelationStatus({
+                        followerId: currentUsername,
+                        followedId: user.username,
+                    }),
+                ]);
+
+                let mappedRelationState: UserSearchResult['relationState'];
+                switch (relationState) {
+                    case 'followed':
+                        mappedRelationState = 'follow';
+                        break;
+                    case 'requested':
+                        mappedRelationState = 'requestedFollow';
+                        break;
+
+                    default:
+                        mappedRelationState = 'notFollowed';
+                }
+
+                return {
+                    username: user.username,
+                    imageUrl: user.imageUrl,
+                    fName: user.fName,
+                    lName: user.lName,
+                    followersCount,
+                    relationState: mappedRelationState,
+                };
+            })
+        );
+
+        // Sort by followers count
+        searchResults.sort((a, b) => b.followersCount - a.followersCount);
+
+        return searchResults;
     }
 }

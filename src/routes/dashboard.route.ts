@@ -69,5 +69,20 @@ export const dashboardRouter = (
         }
     );
 
+    app.get('/search-users', isAuthenticated(userService), (req, res, next) => {
+        const { s: query, p: page = '1', c: count = '5' } = req.query;
+        if (typeof query !== 'string') {
+            return res.status(400).json({ error: 'Search query is required' });
+        }
+        handleExpress(res, 200, next, () =>
+            socialService.searchUsers(
+                query,
+                req.username,
+                parseInt(page as string),
+                parseInt(count as string)
+            )
+        );
+    });
+
     return app;
 };

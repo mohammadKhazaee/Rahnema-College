@@ -53,9 +53,6 @@ export interface AcceptedFollowNotif extends NotifMetaData, NotifWithUser {
 export interface IncommingReqNotif extends NotifMetaData, NotifWithUser {
     type: 'incommingReq';
 }
-
-export type FollowedByState = 'followed' | 'requested' | 'notFollowed';
-
 export interface FollowedByNotif extends NotifMetaData, NotifWithUser {
     type: 'followedBy';
     followState: FollowedByState;
@@ -87,3 +84,4 @@ export interface CreateMentionNotif {
     emiterId: string;
     receiverId: string;
 }
+export type FollowedByState = 'followed' | 'requested' | 'notFollowed';

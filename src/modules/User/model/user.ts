@@ -67,3 +67,11 @@ export interface GetUserMinInfo {
     fName: string;
     imageUrl: string;
 }
+export interface UserSearchResult {
+    username: string;
+    imageUrl: string;
+    fName: string;
+    lName: string;
+    followersCount: number;
+    relationState: 'follow' | 'requestedFollow' | 'notFollowed' | 'blocked' | 'friend';
+}
