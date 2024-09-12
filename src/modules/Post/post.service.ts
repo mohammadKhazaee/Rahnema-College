@@ -212,7 +212,7 @@ export class PostService {
     }
 
     async togglePostLike(likeId: PostLikeId): Promise<LikeResultDao> {
-        const post = await this.canAccessPost(likeId.postId, likeId.postId);
+        const post = await this.canAccessPost(likeId.postId, likeId.userId);
 
         const createLikeNotif: CreateLikeNotif = {
             emiterId: likeId.userId,

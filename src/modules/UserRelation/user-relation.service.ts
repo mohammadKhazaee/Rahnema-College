@@ -300,7 +300,10 @@ export class UserRelationService {
         if (!relation || relation.status !== 'follow')
             throw new ForbiddenError('You can only add followers as close friends');
 
-        await this.followRepo.updateRelationStatus(friendUsername, username, 'friend');
+        relation.status = 'friend';
+
+        await this.followRepo.upadte(relation);
+
         return 'Added to close friends';
     }
 
@@ -335,14 +338,16 @@ export class UserRelationService {
         if (!friend) throw new NotFoundError('Friend not found');
 
         const relation = await this.followRepo.fetchRelation({
-            followerId: friendName,
-            followedId: mainUserName,
+            followerId: mainUserName,
+            followedId: friendName,
         });
 
         if (!relation || (relation && relation.status !== 'friend'))
             throw new ForbiddenError('This user is not your close friend');
 
-        await this.followRepo.updateRelationStatus(mainUserName, friendName, 'follow');
+        relation.status = 'follow';
+
+        await this.followRepo.upadte(relation);
 
         return 'User removed from your close friends';
     }
