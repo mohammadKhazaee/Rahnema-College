@@ -6,6 +6,7 @@ import { BookmarkEntity } from '../../Post/entity/bookmark.entity';
 import { CommentLikeEntity } from '../../Post/entity/comment-Likes.entity';
 import { NotificationEntity } from '../../Notification/entity/notification.entity';
 import { UserEntity } from '../../User/entity/user.entity';
+import { RelationNotifEntity } from '../../Notification/entity/relation-notif.entity';
 
 @EventSubscriber()
 export class UserRelationSubscriber implements EntitySubscriberInterface<UserRelationEntity> {
@@ -15,15 +16,36 @@ export class UserRelationSubscriber implements EntitySubscriberInterface<UserRel
 
     async beforeRemove(event: RemoveEvent<UserRelationEntity>) {
         const entity = event.databaseEntity;
+
+        if (
+            !entity ||
+            entity.status === 'blocked' ||
+            entity.status === 'gotBlocked' ||
+            entity.status === 'twoWayBlocked'
+        )
+            return;
+
         const user = (await event.manager.findOneBy(UserEntity, {
             username: entity.followedId,
         }))!;
 
-        // delete all notifications
+        // delete all notifications between users
         await event.manager.delete(NotificationEntity, {
             emiterId: entity.followedId,
             receiverId: entity.followerId,
         });
+
+        // delete all relation notifications
+        const postNotifs = await event.manager.find(RelationNotifEntity, {
+            where: {
+                notif: { emiterId: entity.followerId, type: 'friendFollow' },
+                relationId: entity.relationId,
+            },
+            relations: { notif: true },
+        });
+        const baseNotifs = postNotifs.map((p) => p.notif);
+
+        await event.manager.remove(NotificationEntity, baseNotifs);
 
         if (user.isPrivate)
             await this.clearFollowerActivities(event, entity.followedId, entity.followerId);
@@ -42,7 +64,7 @@ export class UserRelationSubscriber implements EntitySubscriberInterface<UserRel
                 afterUpdate.status === 'gotBlocked' ||
                 afterUpdate.status === 'twoWayBlocked')
         ) {
-            // delete all notifications
+            // delete all notifications between users
             await event.manager.delete(NotificationEntity, {
                 emiterId: afterUpdate.followedId,
                 receiverId: afterUpdate.followerId,

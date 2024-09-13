@@ -1,4 +1,4 @@
-import { ForbiddenError, NotFoundError } from '../../utility/errors';
+import { ForbiddenError, HttpError, NotFoundError } from '../../utility/errors';
 import { UserService } from '../User/user.service';
 import { FollowListDto } from './dto/follow-list-dto';
 import { UserRelationRepository } from './user-relation.repository';
@@ -257,7 +257,7 @@ export class UserRelationService {
                 secondRelation &&
                 secondRelation.status !== 'twoWayBlocked')
         )
-            throw new Error('the user is not blocker');
+            throw new HttpError(403, 'the user is not blocker');
 
         if (
             !relation ||
@@ -274,7 +274,7 @@ export class UserRelationService {
             await this.followRepo.update(relation);
         }
 
-        if (secondRelation.status === 'gotBlocked') await this.followRepo.delete(relation);
+        if (secondRelation.status === 'gotBlocked') await this.followRepo.delete(secondRelation);
         else {
             secondRelation.status = 'blocked';
             await this.followRepo.update(secondRelation);
