@@ -364,6 +364,8 @@ export class PostService {
     }
 
     private async canAccessUserInfo(userId: string, viewerId: string): Promise<void | never> {
+        if (userId === viewerId) return;
+
         const user = await this.userService.fetchUser({ username: userId });
         if (!user) throw new HttpError(404, 'User not found');
 
@@ -387,6 +389,8 @@ export class PostService {
         creatorId: string,
         viewerId: string
     ): Promise<boolean | never> {
+        if (creatorId === viewerId) return true;
+
         const creator = await this.userService.fetchUser({ username: creatorId });
         if (!creator) throw new HttpError(404, 'Targeted User was not found');
 
@@ -409,6 +413,8 @@ export class PostService {
     }
 
     private async canAccessComment(commentId: string, viewerId: string): Promise<void | never> {
+        if (commentId === viewerId) return;
+
         const comment = await this.postCommentRepo.findCommentById(commentId);
         if (!comment) throw new HttpError(404, 'Comment not found');
 
@@ -443,6 +449,8 @@ export class PostService {
         postId: string,
         viewerId: string
     ): Promise<boolean | never> {
+        if (commentId === viewerId) return true;
+
         const post = await this.postRepo.findPostById(postId);
         if (!post) throw new HttpError(404, 'Post not found');
 
@@ -477,6 +485,8 @@ export class PostService {
     private async canAccessPost(postId: string, viewerId: string): Promise<Post | never> {
         const post = await this.postRepo.findPostById(postId);
         if (!post) throw new HttpError(404, 'Post not found');
+
+        if (post.creatorId === viewerId) return post;
 
         const creatorStatusToUser = await this.followService.fetchRelationStatus({
             followerId: post.creatorId,
