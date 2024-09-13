@@ -111,24 +111,26 @@ export class NotifService {
         );
         if (!relationNotifEntity) throw new Error('');
 
+        const relation = relationNotifEntity.relation;
+
         return {
             type: 'follow',
             isSeen: notifEntity.isSeen,
             createdAt: notifEntity.createdAt,
             user: {
-                username: notifEntity.emiterId,
-                fName: notifEntity.emiter.fName,
-                lName: notifEntity.emiter.lName,
-                imageUrl: notifEntity.emiter.imageUrl,
+                username: relation.followedId,
+                fName: relation.followed.fName,
+                lName: relation.followed.lName,
+                imageUrl: relation.followed.imageUrl,
             },
             friendUser: {
-                username: relationNotifEntity.relation.followedId,
-                fName: relationNotifEntity.relation.followed.fName,
-                lName: relationNotifEntity.relation.followed.lName,
+                username: relation.followerId,
+                fName: relation.follower.fName,
+                lName: relation.follower.lName,
             },
             followState: await this.userRelationRepo.fetchRelationStatus({
                 followerId: notifEntity.receiverId,
-                followedId: relationNotifEntity.relation.followedId,
+                followedId: relation.followedId,
             }),
         };
     }

@@ -9,17 +9,11 @@ export class CommentLikeRepository {
         this.likeRepo = dataSource.getRepository(CommentLikeEntity);
     }
 
-    findOne({
-        commentId,
-        userId,
-    }: CommentLikeId): Promise<CommentLikeEntity | null> {
+    findOne({ commentId, userId }: CommentLikeId): Promise<CommentLikeEntity | null> {
         return this.likeRepo.findOneBy({ commentId, userId });
     }
 
-    async doesLikeExists({
-        commentId,
-        userId,
-    }: CommentLikeId): Promise<boolean> {
+    async doesLikeExists({ commentId, userId }: CommentLikeId): Promise<boolean> {
         const like = await this.likeRepo.findOneBy({ commentId, userId });
         return !!like;
     }
@@ -29,8 +23,9 @@ export class CommentLikeRepository {
         return this.likeRepo.insert(createdLike);
     }
 
-    delete({ commentId, userId }: CommentLikeId) {
-        return this.likeRepo.delete({ commentId, userId });
+    async delete({ commentId, userId }: CommentLikeId) {
+        const like = (await this.likeRepo.findOneBy({ commentId, userId }))!;
+        return this.likeRepo.remove(like);
     }
 
     countLikesForComment(commentId: string): Promise<number> {

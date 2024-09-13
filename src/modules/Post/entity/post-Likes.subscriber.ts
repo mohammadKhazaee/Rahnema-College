@@ -11,6 +11,9 @@ export class PostLikeSubscriber implements EntitySubscriberInterface<PostLikeEnt
 
     async beforeRemove(event: RemoveEvent<PostLikeEntity>) {
         const entity = event.databaseEntity;
+        console.log(entity);
+
+        if (!entity) return;
 
         const postNotifs = await event.manager.find(PostNotifEntity, {
             where: {

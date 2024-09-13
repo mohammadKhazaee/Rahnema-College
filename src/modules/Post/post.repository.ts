@@ -21,8 +21,11 @@ export class PostRepository {
         showCloseFriend: boolean,
         { take, skip }: DbPagination
     ): Promise<PostWithImages[]> {
+        let where: FindOptionsWhere<PostEntity> = { creatorId: username };
+        if (!showCloseFriend) where = { ...where, isCloseFriend: false };
+
         return this.postRepo.find({
-            where: { creatorId: username, isCloseFriend: showCloseFriend },
+            where,
             take,
             skip,
             relations: ['images'],

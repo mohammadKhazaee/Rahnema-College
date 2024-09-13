@@ -1,4 +1,11 @@
-import { EventSubscriber, EntitySubscriberInterface, UpdateEvent, In, RemoveEvent } from 'typeorm';
+import {
+    EventSubscriber,
+    EntitySubscriberInterface,
+    UpdateEvent,
+    In,
+    RemoveEvent,
+    InsertEvent,
+} from 'typeorm';
 import { UserRelationEntity } from './user-relation.entity';
 import { PostCommentEntity } from '../../Post/entity/post-comment.entity';
 import { PostLikeEntity } from '../../Post/entity/post-Likes.entity';
@@ -7,11 +14,99 @@ import { CommentLikeEntity } from '../../Post/entity/comment-Likes.entity';
 import { NotificationEntity } from '../../Notification/entity/notification.entity';
 import { UserEntity } from '../../User/entity/user.entity';
 import { RelationNotifEntity } from '../../Notification/entity/relation-notif.entity';
+import { PostNotifEntity } from '../../Notification/entity/post-notif.entity';
+import { CommentNotifEntity } from '../../Notification/entity/comment-notif.entity';
 
 @EventSubscriber()
 export class UserRelationSubscriber implements EntitySubscriberInterface<UserRelationEntity> {
     listenTo() {
         return UserRelationEntity;
+    }
+
+    async afterInsert(event: InsertEvent<UserRelationEntity>) {
+        const entity = event.entity;
+        if (entity.status === 'blocked') {
+            // delete all notifications between users
+            await event.manager.delete(NotificationEntity, {
+                emiterId: entity.followedId,
+                receiverId: entity.followerId,
+            });
+            await event.manager.delete(NotificationEntity, {
+                emiterId: entity.followerId,
+                receiverId: entity.followedId,
+            });
+            console.log(entity);
+
+            await this.clearFollowerActivities(event, entity.followedId, entity.followerId);
+            await this.clearFollowerActivities(event, entity.followerId, entity.followedId);
+
+            // delete all like notifications
+            const likeNotifs = await event.manager.find(PostNotifEntity, {
+                where: [
+                    {
+                        notif: {
+                            receiverId: entity.followerId,
+                            type: 'friendLike',
+                        },
+                        post: { creatorId: entity.followedId },
+                    },
+                    {
+                        notif: {
+                            receiverId: entity.followedId,
+                            type: 'friendLike',
+                        },
+                        post: { creatorId: entity.followerId },
+                    },
+                ],
+                relations: { notif: true },
+            });
+
+            // delete all comment notifications
+            const commentNotifs = await event.manager.find(CommentNotifEntity, {
+                where: [
+                    {
+                        notif: {
+                            receiverId: entity.followerId,
+                            type: 'friendComment',
+                        },
+                        comment: { post: { creatorId: entity.followedId } },
+                    },
+                    {
+                        notif: {
+                            receiverId: entity.followedId,
+                            type: 'friendComment',
+                        },
+                        comment: { post: { creatorId: entity.followerId } },
+                    },
+                ],
+                relations: { notif: true },
+            });
+
+            // delete all relation notifications
+            const relationNotifs = await event.manager.find(RelationNotifEntity, {
+                where: [
+                    {
+                        notif: { receiverId: entity.followedId, type: 'friendFollow' },
+                        relation: { followedId: entity.followerId },
+                    },
+                    {
+                        notif: { receiverId: entity.followerId, type: 'friendFollow' },
+                        relation: { followedId: entity.followedId },
+                    },
+                ],
+                relations: { notif: true },
+            });
+
+            const baseNotifs = relationNotifs.map((p) => p.notif);
+            const baseLikeNotifs = likeNotifs.map((p) => p.notif);
+            const baseCommentNotifs = commentNotifs.map((p) => p.notif);
+
+            await event.manager.remove(NotificationEntity, [
+                ...baseNotifs,
+                ...baseCommentNotifs,
+                ...baseLikeNotifs,
+            ]);
+        }
     }
 
     async beforeRemove(event: RemoveEvent<UserRelationEntity>) {
@@ -36,14 +131,14 @@ export class UserRelationSubscriber implements EntitySubscriberInterface<UserRel
         });
 
         // delete all relation notifications
-        const postNotifs = await event.manager.find(RelationNotifEntity, {
+        const relationNotifs = await event.manager.find(RelationNotifEntity, {
             where: {
                 notif: { emiterId: entity.followerId, type: 'friendFollow' },
                 relationId: entity.relationId,
             },
             relations: { notif: true },
         });
-        const baseNotifs = postNotifs.map((p) => p.notif);
+        const baseNotifs = relationNotifs.map((p) => p.notif);
 
         await event.manager.remove(NotificationEntity, baseNotifs);
 
