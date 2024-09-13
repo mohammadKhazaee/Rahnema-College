@@ -19,99 +19,127 @@ export class UserRelationSubscriber implements EntitySubscriberInterface<UserRel
             username: entity.followedId,
         }))!;
 
-        if (user.isPrivate) await this.clearFollowerActivities(event);
-        else if (entity.status === 'friend') {
-            // delete all notifications
-            await event.manager.delete(NotificationEntity, {
-                emiterId: entity.followedId,
-                receiverId: entity.followerId,
-            });
+        // delete all notifications
+        await event.manager.delete(NotificationEntity, {
+            emiterId: entity.followedId,
+            receiverId: entity.followerId,
+        });
 
-            await this.clearFriendActivities(event);
-        }
+        if (user.isPrivate)
+            await this.clearFollowerActivities(event, entity.followedId, entity.followerId);
+        else if (entity.status === 'friend')
+            await this.clearFriendActivities(event, entity.followedId, entity.followerId);
     }
 
     async afterUpdate(event: UpdateEvent<UserRelationEntity>) {
         const beforeUpdate = event.databaseEntity;
         const afterUpdate = event.entity;
 
+        // block user extra logic
+        if (
+            afterUpdate &&
+            (afterUpdate.status === 'blocked' ||
+                afterUpdate.status === 'gotBlocked' ||
+                afterUpdate.status === 'twoWayBlocked')
+        ) {
+            // delete all notifications
+            await event.manager.delete(NotificationEntity, {
+                emiterId: afterUpdate.followedId,
+                receiverId: afterUpdate.followerId,
+            });
+            await event.manager.delete(NotificationEntity, {
+                emiterId: afterUpdate.followerId,
+                receiverId: afterUpdate.followedId,
+            });
+
+            await this.clearFollowerActivities(
+                event,
+                afterUpdate.followedId,
+                afterUpdate.followerId
+            );
+            await this.clearFollowerActivities(
+                event,
+                afterUpdate.followerId,
+                afterUpdate.followedId
+            );
+        }
+
         // remove close friend extra logic
-        if (beforeUpdate.status === 'friend' && afterUpdate && afterUpdate.status === 'follow')
-            await this.clearFriendActivities(event);
+        if (
+            beforeUpdate &&
+            beforeUpdate.status === 'friend' &&
+            afterUpdate &&
+            afterUpdate.status === 'follow'
+        ) {
+            // clear closeFriend notifs
+            const notifs = await event.manager.findBy(NotificationEntity, {
+                emiterId: beforeUpdate.followedId,
+                receiverId: beforeUpdate.followerId,
+                type: In(['friendFollow', 'friendComment', 'friendLike']),
+            });
+            await event.manager.remove(NotificationEntity, notifs);
+
+            await this.clearFriendActivities(
+                event,
+                beforeUpdate.followedId,
+                beforeUpdate.followerId
+            );
+        }
     }
 
-    private async clearFollowerActivities(event: any) {
-        const entity = event.databaseEntity;
-
+    private async clearFollowerActivities(event: any, removedUser: string, removerUser: string) {
         // clear follower comments, likes & bookmarks in user posts
         const comments = await event.manager.findBy(PostCommentEntity, {
-            commenterId: entity.followerId,
-            post: { creatorId: entity.followedId },
+            commenterId: removedUser,
+            post: { creatorId: removerUser },
         });
         await event.manager.remove(PostCommentEntity, comments);
 
         const likes = await event.manager.findBy(PostLikeEntity, {
-            userId: entity.followerId,
-            post: { creatorId: entity.followedId },
+            userId: removedUser,
+            post: { creatorId: removerUser },
         });
         await event.manager.remove(PostLikeEntity, likes);
 
         const bookmarks = await event.manager.findBy(BookmarkEntity, {
-            userId: entity.followerId,
-            post: { creatorId: entity.followedId },
+            userId: removedUser,
+            post: { creatorId: removerUser },
         });
         await event.manager.remove(BookmarkEntity, bookmarks);
 
         // clear follower comment-likes in user posts
         const commentLikes = await event.manager.findBy(CommentLikeEntity, {
-            userId: entity.followerId,
-            comment: { post: { creatorId: entity.followedId } },
+            userId: removedUser,
+            comment: { post: { creatorId: removerUser } },
         });
         await event.manager.remove(CommentLikeEntity, commentLikes);
-
-        // clear notifs from follower
-        const notifs = await event.manager.findBy(NotificationEntity, {
-            emiterId: entity.followedId,
-            receiverId: entity.followerId,
-        });
-        await event.manager.remove(NotificationEntity, notifs);
     }
 
-    private async clearFriendActivities(event: any) {
-        const entity = event.databaseEntity;
-
+    private async clearFriendActivities(event: any, removedUser: string, removerUser: string) {
         // clear comments, likes & bookmarks in closeFriend posts
         const comments = await event.manager.findBy(PostCommentEntity, {
-            commenterId: entity.followedId,
-            post: { creatorId: entity.followerId, isCloseFriend: true },
+            commenterId: removedUser,
+            post: { creatorId: removerUser, isCloseFriend: true },
         });
         await event.manager.remove(PostCommentEntity, comments);
 
         const likes = await event.manager.findBy(PostLikeEntity, {
-            userId: entity.followedId,
-            post: { creatorId: entity.followerId, isCloseFriend: true },
+            userId: removedUser,
+            post: { creatorId: removerUser, isCloseFriend: true },
         });
         await event.manager.remove(PostLikeEntity, likes);
 
         const bookmarks = await event.manager.findBy(BookmarkEntity, {
-            userId: entity.followedId,
-            post: { creatorId: entity.followerId, isCloseFriend: true },
+            userId: removedUser,
+            post: { creatorId: removerUser, isCloseFriend: true },
         });
         await event.manager.remove(BookmarkEntity, bookmarks);
 
         // clear comment-likes in closeFriend posts
         const commentLikes = await event.manager.findBy(CommentLikeEntity, {
-            userId: entity.followedId,
-            comment: { post: { creatorId: entity.followerId, isCloseFriend: true } },
+            userId: removedUser,
+            comment: { post: { creatorId: removerUser, isCloseFriend: true } },
         });
         await event.manager.remove(CommentLikeEntity, commentLikes);
-
-        // clear closeFriend notifs
-        const notifs = await event.manager.findBy(NotificationEntity, {
-            emiterId: entity.followerId,
-            receiverId: entity.followedId,
-            type: In(['friendFollow', 'friendComment', 'friendLike']),
-        });
-        await event.manager.remove(NotificationEntity, notifs);
     }
 }
