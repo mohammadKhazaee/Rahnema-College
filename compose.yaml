@@ -6,6 +6,7 @@ services:
         environment:
             MYSQL_DATABASE: clgram
             MYSQL_ROOT_PASSWORD: rahnema403
+        container_name: db
         volumes:
             - db_storage:/var/lib/mysql
         healthcheck:
@@ -16,6 +17,7 @@ services:
     backend:
         build:
             context: .
+        container_name: backend
         ports:
             - 3000:3000
         environment:
@@ -38,6 +40,7 @@ services:
     frontend:
         build:
             context: ../built-frontend
+        container_name: frontend
         ports:
             - 80:80
         volumes:
