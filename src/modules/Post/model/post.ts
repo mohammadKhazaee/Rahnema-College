@@ -84,3 +84,16 @@ export interface FindExplorePosts {
     friendCreators: string[];
     NonFriendCreators: string[];
 }
+export interface GetPostsByTagDao {
+    posts: GetPostsDao[];
+    totalCount: number;
+    currentPage: number;
+    totalPages: number;
+}
+
+export interface GetSimilarTagsDao {
+    tags: string[];
+    totalCount: number;
+    currentPage: number;
+    totalPages: number;
+}

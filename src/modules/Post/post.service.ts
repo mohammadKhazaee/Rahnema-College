@@ -9,8 +9,11 @@ import {
     FindExplorePosts,
     FormatedSinglePost,
     GetPostDao,
+    GetPostsByTagDao,
     GetPostsDao,
+    GetSimilarTagsDao,
     Post,
+    PostWithImages,
 } from './model/post';
 import { CreateTag, Tag } from './model/tag';
 import { PostRepository } from './post.repository';
@@ -560,5 +563,63 @@ export class PostService {
             throw new HttpError(404, 'couldnt find mentioned user');
 
         return mentionedUsers as any;
+    }
+
+    async searchTags(
+        searchPattern: string,
+        { p: page, c: take }: PaginationDto
+    ): Promise<GetSimilarTagsDao> {
+        const skip = (page - 1) * take;
+        const [tags, totalCount] = await Promise.all([
+            this.tagRepo.searchTags(searchPattern, { take, skip }),
+            this.tagRepo.getTagCountByPattern(searchPattern),
+        ]);
+
+        return {
+            tags: tags.map((tag) => tag.name),
+            totalCount,
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / take),
+        };
+    }
+
+    async getPostsByTag(
+        tagName: string,
+        viewerId: string,
+        { p: page, c: take }: PaginationDto
+    ): Promise<GetPostsByTagDao> {
+        const skip = (page - 1) * take;
+        const [posts, totalCount] = await Promise.all([
+            this.postRepo.getPostsByTag(tagName, { take, skip }),
+            this.postRepo.getPostCountByTag(tagName),
+        ]);
+
+        const accessiblePosts = await Promise.all(
+            posts.map(async (post) => {
+                try {
+                    await this.canAccessPost(post.postId, viewerId);
+                    return post;
+                } catch (error) {
+                    return null;
+                }
+            })
+        );
+
+        const filteredPosts: GetPostsDao[] = accessiblePosts
+            .filter((post): post is PostWithImages => post !== null)
+            .map((p) => ({
+                postId: p.postId,
+                imageInfo: {
+                    imageId: p.images[0].imageId,
+                    url: p.images[0].url,
+                },
+            }));
+
+        return {
+            posts: filteredPosts,
+            totalCount,
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / take),
+        };
     }
 }

@@ -196,4 +196,21 @@ export class PostRepository {
             take,
         });
     }
+    async getPostsByTag(tagName: string, { take, skip }: DbPagination): Promise<PostWithImages[]> {
+        return this.postRepo
+            .createQueryBuilder('post')
+            .innerJoinAndSelect('post.tags', 'tag', 'tag.name = :tagName', { tagName })
+            .leftJoinAndSelect('post.images', 'image')
+            .leftJoinAndSelect('post.creator', 'creator')
+            .take(take)
+            .skip(skip)
+            .getMany();
+    }
+
+    async getPostCountByTag(tagName: string): Promise<number> {
+        return this.postRepo
+            .createQueryBuilder('post')
+            .innerJoin('post.tags', 'tag', 'tag.name = :tagName', { tagName })
+            .getCount();
+    }
 }

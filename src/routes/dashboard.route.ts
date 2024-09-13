@@ -86,5 +86,25 @@ export const dashboardRouter = (
             return { users };
         });
     });
+    app.get('/search-tags', isAuthenticated(userService), (req, res, next) => {
+        const { s: searchPattern } = req.query;
+        const dto = paginationDto.parse(req.query);
+        if (typeof searchPattern !== 'string') {
+            return res.status(400).json({ error: 'Search pattern is required' });
+        }
+        handleExpress(res, 200, next, async () => {
+            const tags = await postService.searchTags(searchPattern, dto);
+            return { tags }; // Wrap the tags array in an object to match the API spec
+        });
+    });
+
+    app.get('/tag-posts/:tagName', isAuthenticated(userService), (req, res, next) => {
+        const { tagName } = req.params;
+        const dto = paginationDto.parse(req.query);
+        handleExpress(res, 200, next, async () => {
+            const result = await postService.getPostsByTag(tagName, req.username, dto);
+            return { posts: result.posts }; // Only return the posts array to match the API spec
+        });
+    });
     return app;
 };
