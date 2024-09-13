@@ -117,7 +117,7 @@ export class UserRelationService {
         const fetchedFollowing = await this.followRepo.fetchRelation(followingIds);
         if (!fetchedFollowing) throw new ForbiddenError('this user is not follower');
 
-        await this.followRepo.delete(followingIds);
+        await this.followRepo.delete(fetchedFollowing);
 
         return 'success';
     }
@@ -141,7 +141,7 @@ export class UserRelationService {
                 "user can't unfallow another user if didn't follow them first"
             );
 
-        await this.followRepo.delete(followingIds);
+        await this.followRepo.delete(fetchedFollowing);
 
         return 'success';
     }
@@ -214,7 +214,7 @@ export class UserRelationService {
 
         if (relation) {
             relation.status = relation.status === 'gotBlocked' ? 'twoWayBlocked' : 'blocked';
-            await this.followRepo.upadte(relation);
+            await this.followRepo.update(relation);
         } else
             await this.followRepo.create({
                 followerId: blockerId,
@@ -225,7 +225,7 @@ export class UserRelationService {
         if (secondRelation) {
             secondRelation.status =
                 secondRelation.status === 'blocked' ? 'twoWayBlocked' : 'gotBlocked';
-            await this.followRepo.upadte(secondRelation);
+            await this.followRepo.update(secondRelation);
         } else {
             await this.followRepo.create({
                 followerId: blockedId,
@@ -268,13 +268,17 @@ export class UserRelationService {
         )
             throw new ForbiddenError('This user is not blocked');
 
-        if (relation.status === 'blocked')
-            await this.followRepo.delete({ followerId: blockerId, followedId: blockedId });
-        else await this.followRepo.updateRelationStatus(blockerId, blockedId, 'gotBlocked');
+        if (relation.status === 'blocked') await this.followRepo.delete(relation);
+        else {
+            relation.status = 'gotBlocked';
+            await this.followRepo.update(relation);
+        }
 
-        if (secondRelation.status === 'gotBlocked')
-            await this.followRepo.delete({ followerId: blockedId, followedId: blockerId });
-        else await this.followRepo.updateRelationStatus(blockedId, blockerId, 'blocked');
+        if (secondRelation.status === 'gotBlocked') await this.followRepo.delete(relation);
+        else {
+            secondRelation.status = 'blocked';
+            await this.followRepo.update(secondRelation);
+        }
 
         return 'User removed from your blocks';
     }
@@ -302,7 +306,7 @@ export class UserRelationService {
 
         relation.status = 'friend';
 
-        await this.followRepo.upadte(relation);
+        await this.followRepo.update(relation);
 
         return 'Added to close friends';
     }
@@ -347,7 +351,7 @@ export class UserRelationService {
 
         relation.status = 'follow';
 
-        await this.followRepo.upadte(relation);
+        await this.followRepo.update(relation);
 
         return 'User removed from your close friends';
     }

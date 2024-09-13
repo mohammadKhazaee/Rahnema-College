@@ -27,12 +27,12 @@ export class UserRelationRepository {
         return this.followRepo.create(createRelationData);
     }
 
-    upadte(updateObject: UpdateUserRelation) {
+    update(updateObject: UpdateUserRelation) {
         return this.followRepo.save(updateObject);
     }
 
-    delete({ followedId, followerId }: UserRelationId) {
-        return this.followRepo.delete({ followedId, followerId });
+    delete(relation: UserRelationEntity) {
+        return this.followRepo.remove(relation);
     }
 
     createFollowRequest(relation: UserRelationEntity): Promise<void> {
