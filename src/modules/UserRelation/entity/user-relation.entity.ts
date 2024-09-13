@@ -15,14 +15,14 @@ export class UserRelationEntity {
     @PrimaryGeneratedColumn('uuid')
     relationId!: string;
 
-    @Column()
+    @Column({ collation: 'utf8_bin' })
     followerId!: string;
 
     @ManyToOne(() => UserEntity, (follower) => follower.followings, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'followerId' })
     follower!: UserEntity;
 
-    @Column()
+    @Column({ collation: 'utf8_bin' })
     followedId!: string;
 
     @ManyToOne(() => UserEntity, (followed) => followed.followers, { onDelete: 'CASCADE' })

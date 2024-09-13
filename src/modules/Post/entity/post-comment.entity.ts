@@ -20,7 +20,7 @@ export class PostCommentEntity {
     @Column()
     content!: string;
 
-    @Column()
+    @Column({ collation: 'utf8_bin' })
     commenterId!: string;
 
     @ManyToOne(() => UserEntity, (commenter) => commenter.comments, {

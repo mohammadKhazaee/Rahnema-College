@@ -17,10 +17,10 @@ import { MessageEntity } from '../../Message/entity/message.entity';
 
 @Entity('users')
 export class UserEntity {
-    @PrimaryColumn()
+    @PrimaryColumn({ collation: 'utf8_bin' })
     username!: string;
 
-    @Column({ unique: true })
+    @Column({ unique: true, collation: 'utf8_bin' })
     email!: string;
 
     @Column()

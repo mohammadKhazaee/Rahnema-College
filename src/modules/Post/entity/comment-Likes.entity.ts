@@ -11,7 +11,7 @@ import { PostCommentEntity } from './post-comment.entity';
 
 @Entity('comment_likes')
 export class CommentLikeEntity {
-    @PrimaryColumn()
+    @PrimaryColumn({ collation: 'utf8_bin' })
     userId!: string;
 
     @ManyToOne(() => UserEntity, (user) => user.likes, {

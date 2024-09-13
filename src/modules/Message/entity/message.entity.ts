@@ -14,7 +14,7 @@ export class MessageEntity {
     @PrimaryGeneratedColumn('uuid')
     messageId!: string;
 
-    @Column()
+    @Column({ collation: 'utf8_bin' })
     senderId!: string;
 
     @ManyToOne(() => UserEntity, (user) => user.username, {
@@ -23,7 +23,7 @@ export class MessageEntity {
     @JoinColumn({ name: 'senderId' })
     sender!: UserEntity;
 
-    @Column()
+    @Column({ collation: 'utf8_bin' })
     receiverId!: string;
 
     @ManyToOne(() => UserEntity, (user) => user.username, {

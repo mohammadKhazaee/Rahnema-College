@@ -28,7 +28,7 @@ export class PostEntity {
     @Column({ default: false })
     isCloseFriend!: boolean;
 
-    @Column()
+    @Column({ collation: 'utf8_bin' })
     creatorId!: string;
 
     @ManyToOne(() => UserEntity, (user) => user.posts, {

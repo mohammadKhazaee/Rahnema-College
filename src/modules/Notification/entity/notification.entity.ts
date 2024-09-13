@@ -22,14 +22,14 @@ export class NotificationEntity {
     @Column({ default: false })
     isSeen!: boolean;
 
-    @Column()
+    @Column({ collation: 'utf8_bin' })
     receiverId!: string;
 
     @ManyToOne(() => UserEntity, (receiver) => receiver.receivedNotifs, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'receiverId' })
     receiver!: UserEntity;
 
-    @Column()
+    @Column({ collation: 'utf8_bin' })
     emiterId!: string;
 
     @ManyToOne(() => UserEntity, (emiter) => emiter.emitedNotifs, { onDelete: 'CASCADE' })

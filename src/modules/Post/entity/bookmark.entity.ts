@@ -11,7 +11,7 @@ import { UserEntity } from '../../User/entity/user.entity';
 
 @Entity('bookmarks')
 export class BookmarkEntity {
-    @PrimaryColumn()
+    @PrimaryColumn({ collation: 'utf8_bin' })
     userId!: string;
 
     @ManyToOne(() => UserEntity, (user) => user.bookmarks)
