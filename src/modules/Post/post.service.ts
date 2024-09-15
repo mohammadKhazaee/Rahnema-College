@@ -8,6 +8,7 @@ import {
     ExplorePostsDto,
     FindExplorePosts,
     FormatedSinglePost,
+    GetBookmarkedPostsDao,
     GetPostDao,
     GetPostsByTagDao,
     GetPostsDao,
@@ -639,5 +640,22 @@ export class PostService {
             currentPage: page,
             totalPages: Math.ceil(totalCount / take),
         };
+    }
+    async getBookmarkedPosts(
+        userId: string,
+        { p: page, c: take }: PaginationDto
+    ): Promise<GetBookmarkedPostsDao[]> {
+        const skip = (page - 1) * take;
+        const posts = await this.bookmarkRepo.getBookmarkedPosts(userId, { take, skip });
+
+        const formattedPosts: GetBookmarkedPostsDao[] = posts.map((post) => ({
+            postId: post.postId,
+            imageInfo: {
+                url: post.images[0].url,
+                imageId: post.images[0].imageId,
+            },
+        }));
+
+        return formattedPosts;
     }
 }

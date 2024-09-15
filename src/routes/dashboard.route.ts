@@ -100,5 +100,9 @@ export const dashboardRouter = (
             return { posts: result.posts }; // Only return the posts array to match the API spec
         });
     });
+    app.get('/bookmarks', isAuthenticated(userService), (req, res, next) => {
+        const dto = paginationDto.parse(req.query);
+        handleExpress(res, 200, next, () => postService.getBookmarkedPosts(req.username, dto));
+    });
     return app;
 };

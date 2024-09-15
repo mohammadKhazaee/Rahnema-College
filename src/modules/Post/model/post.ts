@@ -97,3 +97,10 @@ export interface GetSimilarTagsDao {
     currentPage: number;
     totalPages: number;
 }
+export interface GetBookmarkedPostsDao {
+    postId: string;
+    imageInfo: {
+        url: string;
+        imageId: string;
+    };
+}

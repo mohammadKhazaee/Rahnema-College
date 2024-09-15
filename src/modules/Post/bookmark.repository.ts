@@ -2,6 +2,8 @@ import { Repository, DataSource } from 'typeorm';
 import { BookmarkEntity } from './entity/bookmark.entity';
 import { PostBookmarkId } from './model/post-bookmark';
 import { PostLikeId } from './model/post-like';
+import { DbPagination } from '../Common/model/db-pagination';
+import { PostEntity } from './entity/post.entity';
 export class BookmarkRepository {
     private bookmarkRepo: Repository<BookmarkEntity>;
 
@@ -29,5 +31,16 @@ export class BookmarkRepository {
 
     async countBookmarksForPost(postId: string): Promise<number> {
         return this.bookmarkRepo.count({ where: { postId } });
+    }
+    async getBookmarkedPosts(userId: string, { take, skip }: DbPagination): Promise<PostEntity[]> {
+        return this.bookmarkRepo
+            .find({
+                where: { userId },
+                relations: ['post', 'post.images', 'post.creator'],
+                take,
+                skip,
+                order: { createdAt: 'DESC' },
+            })
+            .then((bookmarks) => bookmarks.map((bookmark) => bookmark.post));
     }
 }
