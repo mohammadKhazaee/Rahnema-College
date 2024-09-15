@@ -38,6 +38,9 @@ export class MessageEntity {
     @Column()
     content!: string;
 
+    @Column({ default: false })
+    isSeen!: boolean;
+
     @CreateDateColumn()
     createdAt!: Date;
 

@@ -71,6 +71,12 @@ export const dashboardRouter = (
         }
     );
 
+    app.get('/messages', isAuthenticated(userService), (req, res, next) => {
+        const pgDto = paginationDto.parse(req.query);
+        const username = req.username;
+        handleExpress(res, 200, next, () => messageService.chatHistory(username, pgDto));
+    });
+
     app.get('/search-users', isAuthenticated(userService), (req, res, next) => {
         const { s: query, p: page = '1', c: count = '5' } = req.query;
         if (typeof query !== 'string') {

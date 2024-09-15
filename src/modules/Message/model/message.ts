@@ -4,3 +4,18 @@ export interface CreateMessage {
     isImage: boolean;
     content: string;
 }
+
+export interface ChatHistoryList {
+    chatId: string;
+    contact: {
+        imageUrl: string;
+        username: string;
+        fname: string;
+        lname: string;
+        unseenCount: number;
+        lastMessage: {
+            content: string;
+            createdAt: Date;
+        };
+    };
+}
