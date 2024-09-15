@@ -31,7 +31,7 @@ export class PostCommentRepository {
                     commenter: true,
                 },
             },
-            order: { createdAt: 'ASC' },
+            order: { createdAt: 'DESC' },
         });
     }
 

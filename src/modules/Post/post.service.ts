@@ -384,7 +384,10 @@ export class PostService {
         if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
             throw new HttpError(403, 'you or creator have blocked eachother');
 
-        if (user.isPrivate && userStatusToCreator === 'notFollowed')
+        if (
+            user.isPrivate &&
+            (userStatusToCreator === 'notFollowed' || userStatusToCreator === 'requestedFollow')
+        )
             throw new HttpError(403, 'you have to be a follower');
     }
 
@@ -409,17 +412,23 @@ export class PostService {
         if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
             throw new HttpError(403, 'you or creator have blocked eachother');
 
-        if (creator.isPrivate && userStatusToCreator === 'notFollowed')
+        if (
+            creator.isPrivate &&
+            (userStatusToCreator === 'notFollowed' || userStatusToCreator === 'requestedFollow')
+        )
             throw new HttpError(403, 'you have to be a follower');
 
         return creatorStatusToUser === 'friend';
     }
 
     private async canAccessComment(commentId: string, viewerId: string): Promise<void | never> {
-        if (commentId === viewerId) return;
-
         const comment = await this.postCommentRepo.findCommentById(commentId);
         if (!comment) throw new HttpError(404, 'Comment not found');
+
+        const post = await this.postRepo.findPostById(comment.postId);
+        if (!post) throw new HttpError(404, 'Post not found');
+
+        if (post.creatorId === viewerId) return;
 
         const creatorStatusToUser = await this.followService.fetchRelationStatus({
             followerId: comment.post.creatorId,
@@ -437,7 +446,10 @@ export class PostService {
         if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
             throw new HttpError(403, 'you or creator have blocked eachother');
 
-        if (comment.post.creator.isPrivate && userStatusToCreator === 'notFollowed')
+        if (
+            comment.post.creator.isPrivate &&
+            (userStatusToCreator === 'notFollowed' || userStatusToCreator === 'requestedFollow')
+        )
             throw new HttpError(403, 'you have to be a follower');
 
         if (comment.post.isCloseFriend && creatorStatusToUser !== 'friend')
@@ -452,10 +464,10 @@ export class PostService {
         postId: string,
         viewerId: string
     ): Promise<boolean | never> {
-        if (commentId === viewerId) return true;
-
         const post = await this.postRepo.findPostById(postId);
         if (!post) throw new HttpError(404, 'Post not found');
+
+        if (post.creatorId === viewerId) return true;
 
         const comment = await this.postCommentRepo.findCommentById(commentId);
         if (!comment) throw new HttpError(404, 'Comment not found');
@@ -476,7 +488,10 @@ export class PostService {
         if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
             throw new HttpError(403, 'you or creator have blocked eachother');
 
-        if (post.creator.isPrivate && userStatusToCreator === 'notFollowed')
+        if (
+            post.creator.isPrivate &&
+            (userStatusToCreator === 'notFollowed' || userStatusToCreator === 'requestedFollow')
+        )
             throw new HttpError(403, 'you have to be a follower');
 
         if (post.isCloseFriend && creatorStatusToUser !== 'friend')
@@ -503,7 +518,10 @@ export class PostService {
         if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
             throw new HttpError(403, 'you or creator have blocked eachother');
 
-        if (post.creator.isPrivate && userStatusToCreator === 'notFollowed')
+        if (
+            post.creator.isPrivate &&
+            (userStatusToCreator === 'notFollowed' || userStatusToCreator === 'requestedFollow')
+        )
             throw new HttpError(403, 'you have to be a follower');
 
         if (post.isCloseFriend && creatorStatusToUser !== 'friend')

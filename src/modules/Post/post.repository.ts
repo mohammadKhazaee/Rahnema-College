@@ -29,6 +29,7 @@ export class PostRepository {
             take,
             skip,
             relations: ['images'],
+            order: { createdAt: 'DESC' },
         });
     }
 
