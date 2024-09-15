@@ -19,3 +19,20 @@ export interface ChatHistoryList {
         };
     };
 }
+
+export interface ChatHitoryRecord {
+    messageId: string;
+    senderId: string;
+    receiverId: string;
+    isImage: number;
+    content: string;
+    createdAt: Date;
+    updatedAt: Date;
+    isSeen: number;
+    senderlName: string;
+    senderfName: string;
+    senderImage: string;
+    receiverlName: string;
+    receiverfName: string;
+    receiverImage: string;
+}
