@@ -217,4 +217,17 @@ export class PostRepository {
             .innerJoin('post.tags', 'tag', 'tag.name = :tagName', { tagName })
             .getCount();
     }
+    async getMentionedPosts(username: string, { take, skip }: DbPagination): Promise<PostEntity[]> {
+        return this.postRepo.find({
+            where: {
+                mentions: {
+                    username: username,
+                },
+            },
+            relations: ['images', 'creator'],
+            take,
+            skip,
+            order: { createdAt: 'DESC' },
+        });
+    }
 }
