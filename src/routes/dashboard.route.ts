@@ -5,7 +5,7 @@ import { UserService } from '../modules/User/user.service';
 import { SocialService } from '../modules/Common/social.service';
 import { FileParser } from '../utility/file-parser';
 import { NotifService } from '../modules/Notification/notif.service';
-import { paginationDto } from '../modules/Common/dto/pagination-dto';
+import { paginationDto, searchDto } from '../modules/Common/dto/pagination-dto';
 import { isAuthenticated } from '../login-middleware';
 import { PostService } from '../modules/Post/post.service';
 import { createMessageDto } from '../modules/Message/dto/createMessageDto';
@@ -76,31 +76,19 @@ export const dashboardRouter = (
         const username = req.username;
         handleExpress(res, 200, next, () => messageService.chatHistory(username, pgDto));
     });
-
     app.get('/search-users', isAuthenticated(userService), (req, res, next) => {
-        const { s: query, p: page = '1', c: count = '5' } = req.query;
-        if (typeof query !== 'string') {
-            return res.status(400).json({ error: 'Search query is required' });
-        }
+        const { s: query, p: page, c: count } = searchDto.parse(req.query);
         handleExpress(res, 200, next, async () => {
-            const users = await socialService.searchUsers(
-                query,
-                req.username,
-                parseInt(page as string),
-                parseInt(count as string)
-            );
+            const users = await socialService.searchUsers(query, req.username, page, count);
             return { users };
         });
     });
+
     app.get('/search-tags', isAuthenticated(userService), (req, res, next) => {
-        const { s: searchPattern } = req.query;
-        const dto = paginationDto.parse(req.query);
-        if (typeof searchPattern !== 'string') {
-            return res.status(400).json({ error: 'Search pattern is required' });
-        }
+        const dto = searchDto.parse(req.query);
         handleExpress(res, 200, next, async () => {
-            const tags = await postService.searchTags(searchPattern, dto);
-            return { tags }; // Wrap the tags array in an object to match the API spec
+            const tags = await postService.searchTags(dto.s, { p: dto.p, c: dto.c });
+            return { tags };
         });
     });
 
