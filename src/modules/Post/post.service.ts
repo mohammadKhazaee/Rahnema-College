@@ -209,7 +209,7 @@ export class PostService {
         const allowedComments = [];
 
         for (let i = 0; i < comments.length; i++)
-            if (await this.canReplayComment(comments[i].commentId, postId, viewerId))
+            if (await this.isReplayableComment(comments[i].commentId, postId, viewerId))
                 allowedComments.push(comments[i]);
 
         return this.formatComments(allowedComments);
@@ -367,31 +367,6 @@ export class PostService {
         );
     }
 
-    private async canAccessUserInfo(userId: string, viewerId: string): Promise<void | never> {
-        if (userId === viewerId) return;
-
-        const user = await this.userService.fetchUser({ username: userId });
-        if (!user) throw new HttpError(404, 'User not found');
-
-        const creatorStatusToUser = await this.followService.fetchRelationStatus({
-            followerId: user.username,
-            followedId: viewerId,
-        });
-        const userStatusToCreator = await this.followService.fetchRelationStatus({
-            followedId: user.username,
-            followerId: viewerId,
-        });
-
-        if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
-            throw new HttpError(403, 'you or creator have blocked eachother');
-
-        if (
-            user.isPrivate &&
-            (userStatusToCreator === 'notFollowed' || userStatusToCreator === 'requestedFollow')
-        )
-            throw new HttpError(403, 'you have to be a follower');
-    }
-
     private async canAccessCloseFriendPost(
         creatorId: string,
         viewerId: string
@@ -497,6 +472,45 @@ export class PostService {
 
         if (post.isCloseFriend && creatorStatusToUser !== 'friend')
             throw new HttpError(403, 'you have to be a friend of creator');
+
+        return commentorStatusToUser !== 'blocked' && commentorStatusToUser !== 'gotBlocked';
+    }
+
+    private async isReplayableComment(
+        commentId: string,
+        postId: string,
+        viewerId: string
+    ): Promise<boolean | never> {
+        const post = await this.postRepo.findPostById(postId);
+        if (!post) return false;
+
+        if (post.creatorId === viewerId) return true;
+
+        const comment = await this.postCommentRepo.findCommentById(commentId);
+        if (!comment) return false;
+
+        const creatorStatusToUser = await this.followService.fetchRelationStatus({
+            followerId: post.creatorId,
+            followedId: viewerId,
+        });
+        const commentorStatusToUser = await this.followService.fetchRelationStatus({
+            followerId: comment.commenterId,
+            followedId: viewerId,
+        });
+        const userStatusToCreator = await this.followService.fetchRelationStatus({
+            followedId: post.creatorId,
+            followerId: viewerId,
+        });
+
+        if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked') return false;
+
+        if (
+            post.creator.isPrivate &&
+            (userStatusToCreator === 'notFollowed' || userStatusToCreator === 'requestedFollow')
+        )
+            return false;
+
+        if (post.isCloseFriend && creatorStatusToUser !== 'friend') return false;
 
         return commentorStatusToUser !== 'blocked' && commentorStatusToUser !== 'gotBlocked';
     }

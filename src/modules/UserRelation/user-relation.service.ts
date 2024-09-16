@@ -146,9 +146,8 @@ export class UserRelationService {
         return 'success';
     }
 
-    async getFollowersCount(username: string): Promise<number> {
-        const followersCount = await this.followRepo.followersCount(username);
-        return followersCount;
+    getFollowersCount(username: string): Promise<number> {
+        return this.followRepo.followersCount(username);
     }
 
     async getFollowingsCount(username: string): Promise<number> {

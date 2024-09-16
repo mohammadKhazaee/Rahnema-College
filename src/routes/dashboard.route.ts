@@ -104,6 +104,7 @@ export const dashboardRouter = (
         const dto = paginationDto.parse(req.query);
         handleExpress(res, 200, next, () => postService.getBookmarkedPosts(req.username, dto));
     });
+
     app.get('/mentioned-posts', isAuthenticated(userService), (req, res, next) => {
         const dto = paginationDto.parse(req.query);
         handleExpress(res, 200, next, () => postService.getMentionedPosts(req.username, dto));
