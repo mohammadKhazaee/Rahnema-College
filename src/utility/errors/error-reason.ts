@@ -1,3 +1,5 @@
+// Auth endpoints
+
 export enum SignupUserReason {
     DupUser = 'DupUser',
     InvalidUsername = 'InvalidUsername',
@@ -29,6 +31,8 @@ export enum ResetPasswordReason {
     NoSamePasswords = 'NoSamePasswords',
 }
 
+// Post endpoints
+
 export enum CreatePostReason {
     Unauthenticated = 'Unauthenticated',
     InvalidCaption = 'InvalidCaption',
@@ -41,8 +45,11 @@ export enum GetPostReason {
     NotFoundPost = 'NotFoundPost',
 }
 
+// Dashboard endpoints
+
 export enum GetUserInfoReason {
     Unauthenticated = 'Unauthenticated',
+    NotFoundUsername = 'NotFoundUsername',
 }
 
 export enum EditProfileReason {
@@ -57,6 +64,8 @@ export enum EditProfileReason {
     InvalidConfirmPassword = 'InvalidConfirmPassword',
     NoSamePasswords = 'NoSamePasswords',
 }
+
+// UserRelation endpoints
 
 export enum FollowUserReason {
     Unauthenticated = 'Unauthenticated',

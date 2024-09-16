@@ -1,7 +1,6 @@
 import { HttpError } from '../../utility/errors';
 import { FileParser } from '../../utility/file-parser';
 import { imageUrlPath } from '../../utility/path-adjuster';
-import { UserRelationRepository } from '../UserRelation/user-relation.repository';
 import { EditProfileDto } from './dto/edit-profile-dto';
 import { UserEntity } from './entity/user.entity';
 import { UpdateUser, userIdentifier, User, CreateUser, UserSearchResult } from './model/user';
