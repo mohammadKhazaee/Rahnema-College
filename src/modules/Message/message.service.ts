@@ -1,12 +1,11 @@
 import { SendMessageReason } from '../../utility/errors/error-reason';
-import { ForbiddenError } from '../../utility/errors/userFacingError';
+import { ForbiddenError, NotFoundError } from '../../utility/errors/userFacingError';
 import { imageUrlPath } from '../../utility/path-adjuster';
 import { PaginationDto } from '../Common/dto/pagination-dto';
 
 import { UserService } from '../User/user.service';
 import { UserRelationService } from '../UserRelation/user-relation.service';
 import { CreateMessageDto } from './dto/createMessageDto';
-import { MessageEntity } from './entity/message.entity';
 import { MessageRepository } from './message.repository';
 import { ChatHistoryList, ChatHitoryRecord, CreateMessage } from './model/message';
 
@@ -58,6 +57,7 @@ export class MessageService {
     async chatHistory(username: string, pagDto: PaginationDto) {
         const isUserValid = await this.userService.doesUserExists({ username });
         if (!isUserValid) throw new NotFoundError('this user does not exists');
+
         const skip = (pagDto.p - 1) * pagDto.c;
         const history = await this.messageRepo.retrieveHistory(username, skip, pagDto.c);
 

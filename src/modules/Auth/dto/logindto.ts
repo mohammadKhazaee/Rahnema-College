@@ -1,4 +1,6 @@
-import z from 'zod';
+import z, { ZodError } from 'zod';
+import { LoginUserReason } from '../../../utility/errors/error-reason';
+import { ValidationError } from '../../../utility/errors/userFacingError';
 
 export const logindto = z
     .object({
@@ -13,5 +15,22 @@ export const logindto = z
             rememberMe: z.boolean(),
         })
     );
+
+export const loginValidator = (input: any) => {
+    try {
+        return logindto.parse(input);
+    } catch (error) {
+        if (error instanceof ZodError) {
+            const formatedError = error.format();
+            let reason: LoginUserReason;
+            if ('email' in formatedError) reason = LoginUserReason.InvalidEmail;
+            if ('username' in formatedError) reason = LoginUserReason.InvalidUsername;
+            if ('password' in formatedError) reason = LoginUserReason.InvalidPassword;
+            if ('rememberMe' in formatedError) reason = LoginUserReason.InvalidRememberMe;
+
+            throw new ValidationError(reason!, formatedError);
+        }
+    }
+};
 
 export type LoginDto = z.infer<typeof logindto>;

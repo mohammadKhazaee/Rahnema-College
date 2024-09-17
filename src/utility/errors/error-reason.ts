@@ -6,7 +6,7 @@ export enum SignupUserReason {
     InvalidEmail = 'InvalidEmail',
     InvalidPassword = 'InvalidPassword',
     InvalidConfirmPassword = 'InvalidConfirmPassword',
-    NoSamePasswords = 'NoSamePasswords',
+    NotSamePasswords = 'NotSamePasswords',
 }
 
 export enum LoginUserReason {
@@ -28,7 +28,7 @@ export enum ResetPasswordReason {
     InvalidToken = 'InvalidToken',
     InvalidNewPassword = 'InvalidNewPassword',
     InvalidConfirmPassword = 'InvalidConfirmPassword',
-    NoSamePasswords = 'NoSamePasswords',
+    NotSamePasswords = 'NotSamePasswords',
 }
 
 // Post endpoints
@@ -36,7 +36,7 @@ export enum ResetPasswordReason {
 export enum CreatePostReason {
     Unauthenticated = 'Unauthenticated',
     InvalidCaption = 'InvalidCaption',
-    InvalidImage = 'InvalidImage',
+    InvalidImages = 'InvalidImages',
     InvalidIsCloseFriend = 'InvalidIsCloseFriend',
     InvalidMentions = 'InvalidMentions',
     NotFoundMentions = 'NotFoundMentions',
@@ -46,7 +46,7 @@ export enum UpdatePostReason {
     Unauthenticated = 'Unauthenticated',
     InvalidPostId = 'InvalidPostId',
     InvalidCaption = 'InvalidCaption',
-    InvalidImage = 'InvalidImage',
+    InvalidImages = 'InvalidImages',
     InvalidDeletedImages = 'InvalidDeletedImages',
     InvalidIsCloseFriend = 'InvalidIsCloseFriend',
     InvalidMentions = 'InvalidMentions',
@@ -56,60 +56,67 @@ export enum UpdatePostReason {
 }
 
 export enum GetPostReason {
+    Unauthenticated = 'Unauthenticated',
     InvalidPostId = 'InvalidPostId',
     NotFoundPost = 'NotFoundPost',
-    Blocked = 'Blocked',
+    BlockedCreator = 'BlockedCreator',
     FollowerOnly = 'FollowerOnly',
     FriendOnly = 'FriendOnly',
 }
 
 export enum GetUserPostsReason {
+    Unauthenticated = 'Unauthenticated',
     NotFoundUser = 'NotFoundUser',
-    Blocked = 'Blocked',
+    BlockedCreator = 'BlockedCreator',
     FollowerOnly = 'FollowerOnly',
 }
 
 export enum CreateCommentReason {
+    Unauthenticated = 'Unauthenticated',
     InvalidPostId = 'InvalidPostId',
     InvalidType = 'InvalidType',
     InvalidContent = 'InvalidContent',
     InvalidParentId = 'InvalidParentId',
     NotFoundPost = 'NotFoundPost',
-    BlockedByCreator = 'BlockedByCreator',
+    BlockedCreator = 'BlockedCreator',
     FollowerOnly = 'FollowerOnly',
     FriendOnly = 'FriendOnly',
     NotFoundComment = 'NotFoundComment',
-    BlockedByCommentor = 'BlockedByCommentor',
+    BlockedCommentor = 'BlockedCommentor',
 }
 
 export enum GetCommentsReason {
+    Unauthenticated = 'Unauthenticated',
     NotFoundPost = 'NotFoundPost',
-    BlockedByCreator = 'BlockedByCreator',
+    BlockedCreator = 'BlockedCreator',
     FollowerOnly = 'FollowerOnly',
     FriendOnly = 'FriendOnly',
 }
 
 export enum LikePostReason {
+    Unauthenticated = 'Unauthenticated',
     NotFoundPost = 'NotFoundPost',
-    BlockedByCreator = 'BlockedByCreator',
+    BlockedCreator = 'BlockedCreator',
     FollowerOnly = 'FollowerOnly',
     FriendOnly = 'FriendOnly',
 }
 
 export enum BookmarkPostReason {
+    Unauthenticated = 'Unauthenticated',
     NotFoundPost = 'NotFoundPost',
-    BlockedByCreator = 'BlockedByCreator',
+    BlockedCreator = 'BlockedCreator',
     FollowerOnly = 'FollowerOnly',
     FriendOnly = 'FriendOnly',
 }
 
 export enum LikeCommentReason {
+    Unauthenticated = 'Unauthenticated',
     NotFoundComment = 'NotFoundComment',
     NotFoundPost = 'NotFoundPost',
-    BlockedByCreator = 'BlockedByCreator',
+    BlockedCreator = 'BlockedCreator',
     FollowerOnly = 'FollowerOnly',
     FriendOnly = 'FriendOnly',
-    BlockedByCommentor = 'BlockedByCommentor',
+    BlockedCommentor = 'BlockedCommentor',
 }
 
 // Dashboard endpoints
@@ -136,6 +143,14 @@ export enum SearchUsersReason {
 }
 
 export enum SearchTagsReason {
+    Unauthenticated = 'Unauthenticated',
+}
+
+export enum MentionedPostsReason {
+    Unauthenticated = 'Unauthenticated',
+}
+
+export enum BookmarkedPostsReason {
     Unauthenticated = 'Unauthenticated',
 }
 
@@ -180,9 +195,6 @@ export enum CancelFollowReason {
     Unauthenticated = 'Unauthenticated',
     SelfCancel = 'SelfCancel',
     NotFoundRequest = 'NotFoundRequest',
-    Blocked = 'Blocked',
-    DupRequest = 'DupRequest',
-    AlreadyFollowed = 'AlreadyFollowed',
 }
 
 export enum RejectFollowReason {
@@ -197,18 +209,18 @@ export enum AcceptFollowReason {
     NotFoundRequest = 'NotFoundRequest',
 }
 
-export enum RemoveFollowingReason {
+export enum RemoveFollowerReason {
     Unauthenticated = 'Unauthenticated',
     SelfUnfollow = 'SelfUnfollow',
     NotFoundUser = 'NotFoundUser',
-    NotFollowing = 'NotFollowing',
+    NotFollower = 'NotFollower',
 }
 
 export enum UnfollowReason {
     Unauthenticated = 'Unauthenticated',
     SelfUnfollow = 'SelfUnfollow',
     NotFoundUser = 'NotFoundUser',
-    NotFollower = 'NotFollower',
+    NotFollowing = 'NotFollowing',
 }
 
 export enum GetFollowersReason {

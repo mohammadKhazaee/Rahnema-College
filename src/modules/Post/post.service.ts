@@ -1,4 +1,3 @@
-import { HttpError } from '../../utility/errors';
 import { imageUrlPath } from '../../utility/path-adjuster';
 import { User } from '../User/model/user';
 import { UserService } from '../User/user.service';
@@ -38,6 +37,16 @@ import { CreateLikeNotif } from '../Notification/model/notifications';
 import { UserRelationService } from '../UserRelation/user-relation.service';
 import { PostEntity } from './entity/post.entity';
 import { PostCommentEntity } from './entity/post-comment.entity';
+import { ForbiddenError, NotFoundError } from '../../utility/errors/userFacingError';
+import {
+    CreateCommentReason,
+    CreatePostReason,
+    GetPostReason,
+    GetUserPostsReason,
+    LikeCommentReason,
+    UpdatePostReason,
+} from '../../utility/errors/error-reason';
+import ApplicationError from '../../utility/errors/applicationError';
 
 export class PostService {
     constructor(
@@ -52,8 +61,12 @@ export class PostService {
         private imageRepo: PostImageRepository
     ) {}
 
-    async getPostById(postId: string, userId: string): Promise<GetPostDao> {
+    async getPostById(
+        postId: string,
+        userId: string
+    ): Promise<GetPostDao | NotFoundError | ForbiddenError> {
         const post = await this.canAccessPost(postId, userId);
+        if (post instanceof ApplicationError) return post;
 
         const [isLiked, likeCount, commentsCount, isBookMarked, bookMarkCount] = await Promise.all([
             this.postLikeRepo.doesLikeExists({ postId, userId }),
@@ -73,8 +86,12 @@ export class PostService {
         };
     }
 
-    async togglePostBookmark({ userId, postId }: PostBookmarkId): Promise<BookmarkResultDao> {
-        await this.canAccessPost(postId, userId);
+    async togglePostBookmark({
+        userId,
+        postId,
+    }: PostBookmarkId): Promise<BookmarkResultDao | NotFoundError | ForbiddenError> {
+        const isAuthorized = await this.canAccessPost(postId, userId);
+        if (isAuthorized instanceof ApplicationError) return isAuthorized;
 
         const bookmark = await this.bookmarkRepo.findBookmark({ userId, postId });
 
@@ -94,22 +111,35 @@ export class PostService {
 
     async updatePost(
         username: string,
-        { postId, mentions, caption, deletedImages, images }: EditPostDto,
+        { postId, mentions, caption, deletedImages, isCloseFriend, images }: EditPostDto,
         fileHandler: FileParser
-    ): Promise<FormatedSinglePost> {
+    ): Promise<
+        | {
+              message: string;
+              updatedPost: FormatedSinglePost;
+          }
+        | NotFoundError
+        | ForbiddenError
+    > {
         const post = await this.postRepo.findPostById(postId);
-        if (!post) throw new HttpError(404, 'Post not found');
+        if (!post) return new NotFoundError(UpdatePostReason.PostNotFound, 'Post not found');
 
         if (post.creatorId !== username)
-            throw new HttpError(403, 'only creator of the post can edit it');
+            return new ForbiddenError(
+                UpdatePostReason.NonCreator,
+                'only creator of the post can edit it'
+            );
 
         const oldMentions = post.mentions;
 
         let tags: Tag[] | undefined;
         if (caption !== undefined) tags = await this.makeUpdateTags(caption);
 
-        let mentionedUsers: User[] | undefined;
-        if (mentions) mentionedUsers = await this.verifyMentionedExists(mentions);
+        let mentionedUsers;
+        if (mentions) {
+            mentionedUsers = await this.verifyMentionedExists(mentions);
+            if (mentionedUsers instanceof ApplicationError) return mentionedUsers;
+        }
 
         let newImageEntities: PostImageEntity[] = [];
         if (images) {
@@ -129,16 +159,26 @@ export class PostService {
             await fileHandler.deleteFiles(deletedImages.map((i) => i.url));
         }
 
-        return this.formatSinglePost(updatedPost);
+        return {
+            message: 'post updated successfully',
+            updatedPost: this.formatSinglePost(updatedPost),
+        };
     }
 
     async createPost(
         { mentions, caption, images }: CreatePostDto,
         creatorId: string
-    ): Promise<FormatedSinglePost> {
+    ): Promise<
+        | {
+              message: string;
+              createdPost: FormatedSinglePost;
+          }
+        | NotFoundError
+    > {
         const tags = await this.makeCreateTags(caption);
 
-        const mentionedUsers: User[] = await this.verifyMentionedExists(mentions);
+        let mentionedUsers = await this.verifyMentionedExists(mentions);
+        if (mentionedUsers instanceof ApplicationError) return mentionedUsers;
 
         const preparedImageUrls: CreateRelatedPostImage[] = images.map((i) => ({
             url: imageUrlPath(i.path),
@@ -154,15 +194,19 @@ export class PostService {
 
         const createdPost = await this.postRepo.create(newPost);
 
-        return this.formatSinglePost(createdPost);
+        return {
+            message: 'post created successfully',
+            createdPost: this.formatSinglePost(createdPost),
+        };
     }
 
     async getUserPosts(
         username: string,
         viewerId: string,
         { p: page, c: take }: PaginationDto
-    ): Promise<GetPostsDao[]> {
+    ): Promise<{ posts: GetPostsDao[] } | NotFoundError | ForbiddenError> {
         const isAuthorized = await this.canAccessCloseFriendPost(username, viewerId);
+        if (isAuthorized instanceof ApplicationError) return isAuthorized;
 
         const skip = (page - 1) * take;
         const posts = await this.postRepo.getPosts(username, isAuthorized, { take, skip });
@@ -172,7 +216,7 @@ export class PostService {
             imageInfo: { imageId: p.images[0].imageId, url: p.images[0].url },
         }));
 
-        return resultPosts;
+        return { posts: resultPosts };
     }
 
     async getPostCount(username: string): Promise<number> {
@@ -182,14 +226,18 @@ export class PostService {
     async createComment(
         dto: CreateCommentDto,
         commenterId: string
-    ): Promise<PostCommentWithReplays> {
-        await this.canAccessPost(dto.postId, commenterId);
+    ): Promise<PostCommentWithReplays | NotFoundError | ForbiddenError> {
+        const isAuthorized = await this.canAccessPost(dto.postId, commenterId);
+        if (isAuthorized instanceof ApplicationError) return isAuthorized;
 
         if (
             dto.type === 'replay' &&
             !(await this.canReplayComment(dto.parentId, dto.postId, commenterId))
         )
-            throw new HttpError(403, 'you have no access to the comment');
+            return new ForbiddenError(
+                CreateCommentReason.BlockedCommentor,
+                'you have no access to the comment'
+            );
 
         const { type, ...createCommentData } = dto;
 
@@ -200,8 +248,15 @@ export class PostService {
         postId: string,
         viewerId: string,
         { p: page, c: count }: PaginationDto
-    ): Promise<GetCommentsDao[]> {
-        await this.canAccessPost(postId, viewerId);
+    ): Promise<
+        | {
+              comments: GetCommentsDao[];
+          }
+        | NotFoundError
+        | ForbiddenError
+    > {
+        const isAuthorized = await this.canAccessPost(postId, viewerId);
+        if (isAuthorized instanceof ApplicationError) return isAuthorized;
 
         const skip = (page - 1) * count;
         const comments = await this.postCommentRepo.getComments(postId, count, skip);
@@ -212,11 +267,14 @@ export class PostService {
             if (await this.isReplayableComment(comments[i].commentId, postId, viewerId))
                 allowedComments.push(comments[i]);
 
-        return this.formatComments(allowedComments);
+        return { comments: await this.formatComments(allowedComments) };
     }
 
-    async togglePostLike(likeId: PostLikeId): Promise<LikeResultDao> {
+    async togglePostLike(
+        likeId: PostLikeId
+    ): Promise<LikeResultDao | NotFoundError | ForbiddenError> {
         const post = await this.canAccessPost(likeId.postId, likeId.userId);
+        if (post instanceof ApplicationError) return post;
 
         const createLikeNotif: CreateLikeNotif = {
             emiterId: likeId.userId,
@@ -240,8 +298,14 @@ export class PostService {
         };
     }
 
-    async toggleCommentLike(commentLikeId: CommentLikeId): Promise<LikeResultDao> {
-        await this.canAccessComment(commentLikeId.commentId, commentLikeId.userId);
+    async toggleCommentLike(
+        commentLikeId: CommentLikeId
+    ): Promise<LikeResultDao | NotFoundError | ForbiddenError> {
+        const isAuthorized = await this.canAccessComment(
+            commentLikeId.commentId,
+            commentLikeId.userId
+        );
+        if (isAuthorized instanceof ApplicationError) return isAuthorized;
 
         if (await this.commentLikeRepo.doesLikeExists(commentLikeId)) {
             await this.commentLikeRepo.delete(commentLikeId);
@@ -370,11 +434,15 @@ export class PostService {
     private async canAccessCloseFriendPost(
         creatorId: string,
         viewerId: string
-    ): Promise<boolean | never> {
+    ): Promise<boolean | NotFoundError | ForbiddenError> {
         if (creatorId === viewerId) return true;
 
         const creator = await this.userService.fetchUser({ username: creatorId });
-        if (!creator) throw new HttpError(404, 'Targeted User was not found');
+        if (!creator)
+            return new NotFoundError(
+                GetUserPostsReason.NotFoundUser,
+                'Targeted User was not found'
+            );
 
         const creatorStatusToUser = await this.followService.fetchRelationStatus({
             followerId: creatorId,
@@ -386,23 +454,30 @@ export class PostService {
         });
 
         if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
-            throw new HttpError(403, 'you or creator have blocked eachother');
+            return new ForbiddenError(
+                GetUserPostsReason.BlockedCreator,
+                'you or creator have blocked eachother'
+            );
 
         if (
             creator.isPrivate &&
             (userStatusToCreator === 'notFollowed' || userStatusToCreator === 'requestedFollow')
         )
-            throw new HttpError(403, 'you have to be a follower');
+            return new ForbiddenError(GetUserPostsReason.FollowerOnly, 'you have to be a follower');
 
         return creatorStatusToUser === 'friend';
     }
 
-    private async canAccessComment(commentId: string, viewerId: string): Promise<void | never> {
+    private async canAccessComment(
+        commentId: string,
+        viewerId: string
+    ): Promise<void | NotFoundError | ForbiddenError> {
         const comment = await this.postCommentRepo.findCommentById(commentId);
-        if (!comment) throw new HttpError(404, 'Comment not found');
+        if (!comment)
+            return new NotFoundError(LikeCommentReason.NotFoundComment, 'Comment not found');
 
         const post = await this.postRepo.findPostById(comment.postId);
-        if (!post) throw new HttpError(404, 'Post not found');
+        if (!post) return new NotFoundError(LikeCommentReason.NotFoundPost, 'Post not found');
 
         if (post.creatorId === viewerId) return;
 
@@ -420,33 +495,43 @@ export class PostService {
         });
 
         if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
-            throw new HttpError(403, 'you or creator have blocked eachother');
+            return new ForbiddenError(
+                LikeCommentReason.BlockedCreator,
+                'you or creator have blocked eachother'
+            );
 
         if (
             comment.post.creator.isPrivate &&
             (userStatusToCreator === 'notFollowed' || userStatusToCreator === 'requestedFollow')
         )
-            throw new HttpError(403, 'you have to be a follower');
+            return new ForbiddenError(LikeCommentReason.FollowerOnly, 'you have to be a follower');
 
         if (comment.post.isCloseFriend && creatorStatusToUser !== 'friend')
-            throw new HttpError(403, 'you have to be a friend of creator');
+            return new ForbiddenError(
+                LikeCommentReason.FriendOnly,
+                'you have to be a friend of creator'
+            );
 
         if (commentorStatusToUser === 'blocked' || commentorStatusToUser === 'gotBlocked')
-            throw new HttpError(403, 'you have to be a friend of creator');
+            return new ForbiddenError(
+                LikeCommentReason.BlockedCommentor,
+                'you have to be a friend of creator'
+            );
     }
 
     private async canReplayComment(
         commentId: string,
         postId: string,
         viewerId: string
-    ): Promise<boolean | never> {
+    ): Promise<boolean | NotFoundError | ForbiddenError> {
         const post = await this.postRepo.findPostById(postId);
-        if (!post) throw new HttpError(404, 'Post not found');
+        if (!post) return new NotFoundError(CreateCommentReason.NotFoundPost, 'Post not found');
 
         if (post.creatorId === viewerId) return true;
 
         const comment = await this.postCommentRepo.findCommentById(commentId);
-        if (!comment) throw new HttpError(404, 'Comment not found');
+        if (!comment)
+            return new NotFoundError(CreateCommentReason.NotFoundComment, 'Comment not found');
 
         const creatorStatusToUser = await this.followService.fetchRelationStatus({
             followerId: post.creatorId,
@@ -462,16 +547,25 @@ export class PostService {
         });
 
         if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
-            throw new HttpError(403, 'you or creator have blocked eachother');
+            return new ForbiddenError(
+                CreateCommentReason.BlockedCreator,
+                'you or creator have blocked eachother'
+            );
 
         if (
             post.creator.isPrivate &&
             (userStatusToCreator === 'notFollowed' || userStatusToCreator === 'requestedFollow')
         )
-            throw new HttpError(403, 'you have to be a follower');
+            return new ForbiddenError(
+                CreateCommentReason.FollowerOnly,
+                'you have to be a follower'
+            );
 
         if (post.isCloseFriend && creatorStatusToUser !== 'friend')
-            throw new HttpError(403, 'you have to be a friend of creator');
+            return new ForbiddenError(
+                CreateCommentReason.FriendOnly,
+                'you have to be a friend of creator'
+            );
 
         return commentorStatusToUser !== 'blocked' && commentorStatusToUser !== 'gotBlocked';
     }
@@ -515,9 +609,12 @@ export class PostService {
         return commentorStatusToUser !== 'blocked' && commentorStatusToUser !== 'gotBlocked';
     }
 
-    private async canAccessPost(postId: string, viewerId: string): Promise<Post | never> {
+    private async canAccessPost(
+        postId: string,
+        viewerId: string
+    ): Promise<Post | NotFoundError | ForbiddenError> {
         const post = await this.postRepo.findPostById(postId);
-        if (!post) throw new HttpError(404, 'Post not found');
+        if (!post) return new NotFoundError(GetPostReason.NotFoundPost, 'Post not found');
 
         if (post.creatorId === viewerId) return post;
 
@@ -531,16 +628,22 @@ export class PostService {
         });
 
         if (creatorStatusToUser === 'blocked' || creatorStatusToUser === 'gotBlocked')
-            throw new HttpError(403, 'you or creator have blocked eachother');
+            return new ForbiddenError(
+                GetPostReason.BlockedCreator,
+                'you or creator have blocked eachother'
+            );
 
         if (
             post.creator.isPrivate &&
             (userStatusToCreator === 'notFollowed' || userStatusToCreator === 'requestedFollow')
         )
-            throw new HttpError(403, 'you have to be a follower');
+            return new ForbiddenError(GetPostReason.FollowerOnly, 'you have to be a follower');
 
         if (post.isCloseFriend && creatorStatusToUser !== 'friend')
-            throw new HttpError(403, 'you have to be a friend of creator');
+            return new ForbiddenError(
+                GetPostReason.FriendOnly,
+                'you have to be a friend of creator'
+            );
 
         return post;
     }
@@ -587,13 +690,16 @@ export class PostService {
             .filter((s) => s !== '');
     }
 
-    private async verifyMentionedExists(mentions: string[]): Promise<User[] | never> {
+    private async verifyMentionedExists(mentions: string[]): Promise<User[] | NotFoundError> {
         const mentionedUsers: (User | null)[] = await Promise.all(
             mentions.map((userId) => this.userService.fetchUser({ username: userId }))
         );
 
         if (!mentionedUsers.every((u) => u !== null))
-            throw new HttpError(404, 'couldnt find mentioned user');
+            return new NotFoundError(
+                CreatePostReason.NotFoundMentions,
+                'couldnt find mentioned user'
+            );
 
         return mentionedUsers as any;
     }
