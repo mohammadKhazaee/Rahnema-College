@@ -24,7 +24,6 @@ export class UserRepository {
     upadte(user: UpdateUser): Promise<User> {
         return this.userRepo.save(user);
     }
-
     async searchUsers(
         query: string,
         currentUsername: string,
@@ -34,28 +33,35 @@ export class UserRepository {
         const lowerQuery = query.toLowerCase();
         const allMatchingUsers = await this.userRepo
             .createQueryBuilder('user')
-            .leftJoinAndSelect('user.followers', 'followers', 'followers.status = :followStatus')
+            .leftJoinAndSelect(
+                'user.followers',
+                'followers',
+                'followers.status IN (:...followStatuses)'
+            )
             .leftJoinAndSelect(
                 'user.followers',
                 'blockers',
-                'blockers.status = :blockedStatus AND blockers.followerId = :currentUsername',
-                {
-                    blockedStatus: 'blocked',
-                    currentUsername,
-                }
+                'blockers.status = :blockedStatus AND blockers.followerId = :currentUsername'
             )
             .where(
                 '(LOWER(user.fName) LIKE :query OR LOWER(user.lName) LIKE :query OR LOWER(user.username) LIKE :query)',
                 { query: `%${lowerQuery}%` }
             )
-            .andWhere('user.username != :currentUsername', { currentUsername })
+            .andWhere('user.username != :currentUsername')
             .andWhere('blockers.followerId IS NULL')
             .select(['user.username', 'user.imageUrl', 'user.fName', 'user.lName'])
-            .addSelect('COUNT(DISTINCT followers.followerId)', 'followersCount')
-            .setParameter('followStatus', 'follow')
+            .addSelect(
+                'COUNT(DISTINCT CASE WHEN followers.status IN (:...followStatuses) THEN followers.followerId END)',
+                'followersCount'
+            )
+            .setParameter('followStatuses', ['follow', 'friend'])
+            .setParameter('blockedStatus', 'blocked')
+            .setParameter('currentUsername', currentUsername)
+            .setParameter('query', `%${lowerQuery}%`)
             .groupBy('user.username')
             .orderBy('followersCount', 'DESC')
             .getRawAndEntities();
+
         const startIndex = (page - 1) * count;
         const paginatedEntities = allMatchingUsers.entities.slice(startIndex, startIndex + count);
         const paginatedRaw = allMatchingUsers.raw.slice(startIndex, startIndex + count);
