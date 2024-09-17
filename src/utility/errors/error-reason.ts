@@ -10,6 +10,7 @@ export enum SignupUserReason {
 }
 
 export enum LoginUserReason {
+    WrongEmail = 'WrongEmail',
     WrongPassword = 'WrongPassword',
     InvalidUsername = 'InvalidUsername',
     InvalidEmail = 'InvalidEmail',

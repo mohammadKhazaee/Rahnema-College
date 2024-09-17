@@ -7,7 +7,6 @@ import morgan from 'morgan';
 import * as path from 'path';
 
 import { authRouter } from './routes/auth.route';
-import { HttpError } from './utility/errors';
 import { AuthService } from './modules/Auth/auth.service';
 import { UserRepository } from './modules/User/user.repository';
 import { GmailHandler } from './utility/gmail-handler';

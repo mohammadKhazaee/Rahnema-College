@@ -31,7 +31,7 @@ export class AuthService {
     > {
         const user = await this.userService.fetchUser(dto);
 
-        if (!user) return new UnauthenticatedError(LoginUserReason.InvalidEmail, 'User not found');
+        if (!user) return new UnauthenticatedError(LoginUserReason.WrongEmail, 'User not found');
 
         const isPasswordValid = await bcrypt.compare(dto.password, user.password);
 
