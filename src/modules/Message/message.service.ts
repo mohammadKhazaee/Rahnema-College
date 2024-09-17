@@ -1,4 +1,5 @@
-import { ForbiddenError, NotFoundError } from '../../utility/errors';
+import { SendMessageReason } from '../../utility/errors/error-reason';
+import { ForbiddenError } from '../../utility/errors/userFacingError';
 import { imageUrlPath } from '../../utility/path-adjuster';
 import { PaginationDto } from '../Common/dto/pagination-dto';
 
@@ -16,8 +17,16 @@ export class MessageService {
         private relationService: UserRelationService
     ) {}
 
-    async addMessage(messageDto: CreateMessageDto, receiverId: string, senderId: string) {
-        if (receiverId === senderId) throw new ForbiddenError('Users cant message themselves');
+    async addMessage(
+        messageDto: CreateMessageDto,
+        receiverId: string,
+        senderId: string
+    ): Promise<{ message: string } | ForbiddenError> {
+        if (receiverId === senderId)
+            return new ForbiddenError(
+                SendMessageReason.SelfMessage,
+                'Users cant message themselves'
+            );
 
         await this.relationService.fetchRelationStatus({
             followerId: receiverId,
@@ -33,7 +42,7 @@ export class MessageService {
                 isImage: true,
             };
             await this.messageRepo.create(newMessage);
-            return 'succes';
+            return { message: 'succes' };
         }
 
         const newMessage: CreateMessage = {
@@ -43,7 +52,7 @@ export class MessageService {
             content: messageDto.content,
         };
         await this.messageRepo.create(newMessage);
-        return 'succes';
+        return { message: 'succes' };
     }
 
     async chatHistory(username: string, pagDto: PaginationDto) {

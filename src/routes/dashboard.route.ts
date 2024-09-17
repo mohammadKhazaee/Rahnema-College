@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { handleExpress } from '../utility/handle-express';
-import { editProfileDtoValidator } from '../modules/User/dto/edit-profile-dto';
+import { editProfileValidator } from '../modules/User/dto/edit-profile-dto';
 import { UserService } from '../modules/User/user.service';
 import { SocialService } from '../modules/Common/social.service';
 import { FileParser } from '../utility/file-parser';
@@ -8,7 +8,7 @@ import { NotifService } from '../modules/Notification/notif.service';
 import { paginationDto, searchDto } from '../modules/Common/dto/pagination-dto';
 import { isAuthenticated } from '../login-middleware';
 import { PostService } from '../modules/Post/post.service';
-import { createMessageDto } from '../modules/Message/dto/createMessageDto';
+import { createMessageValidator } from '../modules/Message/dto/createMessageDto';
 import { MessageService } from '../modules/Message/message.service';
 
 export const dashboardRouter = (
@@ -32,7 +32,7 @@ export const dashboardRouter = (
         isAuthenticated(userService),
         fileParser.fileParser().single('image'),
         (req, res, next) => {
-            const dto = editProfileDtoValidator({ ...req.body, image: req.file })!;
+            const dto = editProfileValidator({ ...req.body, image: req.file })!;
             handleExpress(res, 200, next, async () =>
                 userService.editUser(req.username, dto, fileParser)
             );
@@ -64,10 +64,10 @@ export const dashboardRouter = (
         fileParser.fileParser().single('image'),
         isAuthenticated(userService),
         (req, res, next) => {
-            const dto = createMessageDto.parse({ ...req.body, image: req.file });
-            handleExpress(res, 200, next, async () => ({
-                message: await messageService.addMessage(dto, req.params.username, req.username),
-            }));
+            const dto = createMessageValidator({ ...req.body, image: req.file })!;
+            handleExpress(res, 200, next, async () =>
+                messageService.addMessage(dto, req.params.username, req.username)
+            );
         }
     );
 

@@ -3,20 +3,19 @@ import { verify } from 'jsonwebtoken';
 import { UserService } from './modules/User/user.service';
 
 export const isAuthenticated =
-    (userService: UserService) =>
-    async (req: Request, res: Response, next: NextFunction) => {
+    (userService: UserService) => async (req: Request, res: Response, next: NextFunction) => {
         const authHeader = req.headers.authorization;
 
         if (!authHeader) {
             return res
                 .status(401)
-                .json({ message: 'Authorization header is missing' });
+                .json({ reason: 'Unauthenticated', message: 'Authorization header is missing' });
         }
 
         const token = authHeader.split(' ')[1];
 
         if (!token) {
-            return res.status(401).json({ message: 'Token is missing' });
+            return res.status(401).json({ reason: 'Unauthenticated', message: 'Token is missing' });
         }
 
         try {
@@ -29,10 +28,12 @@ export const isAuthenticated =
             });
 
             if (!user)
-                return res.status(401).json({ message: 'Not authenticated' });
+                return res
+                    .status(401)
+                    .json({ reason: 'Unauthenticated', message: 'Not authenticated' });
 
             next();
         } catch (error) {
-            return res.status(401).json({ message: 'Invalid token' });
+            return res.status(401).json({ reason: 'Unauthenticated', message: 'Invalid token' });
         }
     };

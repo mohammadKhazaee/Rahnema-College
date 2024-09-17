@@ -24,7 +24,7 @@ export const editProfileDto = z
         }
     });
 
-export const editProfileDtoValidator = (input: any) => {
+export const editProfileValidator = (input: any) => {
     try {
         return editProfileDto.parse(input);
     } catch (error) {
