@@ -1,4 +1,5 @@
-import { HttpError } from '../../utility/errors';
+import { EditProfileReason } from '../../utility/errors/error-reason';
+import { ConflictError, NotFoundError } from '../../utility/errors/userFacingError';
 import { FileParser } from '../../utility/file-parser';
 import { imageUrlPath } from '../../utility/path-adjuster';
 import { EditProfileDto } from './dto/edit-profile-dto';
@@ -14,13 +15,15 @@ export class UserService {
         username: string,
         dto: EditProfileDto,
         fileHandler: FileParser
-    ): Promise<string> | never {
+    ): Promise<{ message: string } | ConflictError | NotFoundError> {
         const dupUser = await this.userRepo.findByEmail(dto.email);
 
         if (dupUser && dupUser.username !== username)
-            throw new HttpError(409, 'the new email is already in use');
+            return new ConflictError(EditProfileReason.DupEmail, 'the new email is already in use');
 
-        const user = await this.getUser({ username });
+        const user = await this.fetchUser({ username });
+
+        if (!user) return new NotFoundError(EditProfileReason.NotFoundUsername);
 
         const updateData: UpdateUser = {
             username,
@@ -39,15 +42,7 @@ export class UserService {
 
         if ('image' in dto && dto.image) await fileHandler.deleteFiles([user.imageUrl]);
 
-        return 'Profile Updated';
-    }
-
-    async getUser(userIds: userIdentifier): Promise<User> | never {
-        const user = await this.fetchUser(userIds);
-
-        if (!user) throw new HttpError(401, 'username or password not found');
-
-        return user;
+        return { message: 'Profile Updated' };
     }
 
     async fetchUser(userIds: userIdentifier): Promise<User | null> {

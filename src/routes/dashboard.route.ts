@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { handleExpress } from '../utility/handle-express';
-import { editProfileDto } from '../modules/User/dto/edit-profile-dto';
+import { editProfileDtoValidator } from '../modules/User/dto/edit-profile-dto';
 import { UserService } from '../modules/User/user.service';
 import { SocialService } from '../modules/Common/social.service';
 import { FileParser } from '../utility/file-parser';
@@ -32,10 +32,10 @@ export const dashboardRouter = (
         isAuthenticated(userService),
         fileParser.fileParser().single('image'),
         (req, res, next) => {
-            const dto = editProfileDto.parse({ ...req.body, image: req.file });
-            handleExpress(res, 200, next, async () => ({
-                message: await userService.editUser(req.username, dto, fileParser),
-            }));
+            const dto = editProfileDtoValidator({ ...req.body, image: req.file })!;
+            handleExpress(res, 200, next, async () =>
+                userService.editUser(req.username, dto, fileParser)
+            );
         }
     );
 

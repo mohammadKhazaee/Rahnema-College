@@ -34,6 +34,7 @@ import { RelationNotifRepository } from './modules/Notification/follow-notif.rep
 import { userRelationRouter } from './routes/user-relation.route';
 import { MessageService } from './modules/Message/message.service';
 import { MessageRepository } from './modules/Message/message.repository';
+import { UserFacingError } from './utility/errors/userFacingError';
 
 export const appFactory = (dataSource: DataSource) => {
     const app = express();
@@ -135,9 +136,8 @@ export const appFactory = (dataSource: DataSource) => {
 
     const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
         console.log(err);
-        if (err instanceof ZodError) return res.status(422).send({ message: err.format() });
-        if (err instanceof HttpError)
-            return res.status(err.statusCode).send({ message: err.message });
+        if (err instanceof UserFacingError)
+            return res.status(err.statusCode).send({ reason: err.reason, message: err.message });
         res.status(500).send({ message: 'somethin went wrong' });
     };
 

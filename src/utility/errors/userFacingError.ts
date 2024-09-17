@@ -1,43 +1,48 @@
 import ApplicationError from './applicationError';
 
-export class UserFacingError extends ApplicationError {
-    constructor(statusCode: number, message: string) {
-        super(statusCode, message);
+export abstract class UserFacingError extends ApplicationError {
+    constructor(public statusCode: number, public reason: string, message?: any) {
+        super(statusCode, message || '');
     }
 }
 
 export class BadRequestError extends UserFacingError {
-    constructor(message: string) {
-        super(400, message);
+    constructor(reason: string, message?: string) {
+        super(400, reason, message);
     }
 }
 
 export class NotFoundError extends UserFacingError {
-    constructor(message: string) {
-        super(404, message);
+    constructor(reason: string, message?: string) {
+        super(404, reason, message);
     }
 }
 
 export class ConflictError extends UserFacingError {
-    constructor(message: string) {
-        super(409, message);
+    constructor(reason: string, message?: string) {
+        super(409, reason, message);
     }
 }
 
 export class ValidationError extends UserFacingError {
-    constructor(message: string) {
-        super(422, message);
+    constructor(
+        reason: string,
+        message?: {
+            _errors: string[];
+        }
+    ) {
+        super(422, reason, message);
     }
 }
 
 export class UnauthenticatedError extends UserFacingError {
-    constructor(message: string) {
-        super(401, message);
+    constructor(reason: string, message?: string) {
+        super(401, reason, message);
     }
 }
 
 export class ForbiddenError extends UserFacingError {
-    constructor(message: string) {
-        super(403, message);
+    constructor(reason: string, message?: string) {
+        super(403, reason, message);
     }
 }

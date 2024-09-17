@@ -157,6 +157,7 @@ export enum EditProfileReason {
     InvalidEmail = 'InvalidEmail',
     InvalidFName = 'InvalidFName',
     InvalidLName = 'InvalidLName',
+    InvalidImage = 'InvalidImage',
     InvalidBio = 'InvalidBio',
     InvalidIsPrivate = 'InvalidIsPrivate',
     InvalidPassword = 'InvalidPassword',

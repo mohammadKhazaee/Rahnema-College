@@ -13,7 +13,7 @@ export class AuthService {
     constructor(private userService: UserService, private gmailHandler: GmailHandler) {}
 
     async login(dto: LoginDto) {
-        const user = await this.userService.getUser(dto);
+        const user = await this.userService.fetchUser(dto);
 
         if (!user) throw new HttpError(401, 'User not found');
 

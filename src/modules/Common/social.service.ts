@@ -1,5 +1,5 @@
+import { HttpError } from '../../utility/errors';
 import { PostService } from '../Post/post.service';
-import { UserEntity } from '../User/entity/user.entity';
 import { UserProfileDao, UserSearchResult } from '../User/model/user';
 import { UserService } from '../User/user.service';
 import { UserRelationService } from '../UserRelation/user-relation.service';
@@ -12,7 +12,9 @@ export class SocialService {
     ) {}
 
     async getUserInfo(username: string, mainUser: string): Promise<UserProfileDao> {
-        const user = await this.userService.getUser({ username });
+        const user = await this.userService.fetchUser({ username });
+
+        if (!user) throw new HttpError(401, 'user not found');
 
         const [followersCount, followingsCount, postCount, relationState] = await Promise.all([
             this.followService.getFollowersCount(username),
