@@ -34,7 +34,7 @@ export class UserRepository {
         const lowerQuery = query.toLowerCase();
         const allMatchingUsers = await this.userRepo
             .createQueryBuilder('user')
-            .leftJoinAndSelect('user.followers', 'followers')
+            .leftJoinAndSelect('user.followers', 'followers', 'followers.status = :followStatus')
             .leftJoinAndSelect(
                 'user.followers',
                 'blockers',
@@ -52,6 +52,7 @@ export class UserRepository {
             .andWhere('blockers.followerId IS NULL')
             .select(['user.username', 'user.imageUrl', 'user.fName', 'user.lName'])
             .addSelect('COUNT(DISTINCT followers.followerId)', 'followersCount')
+            .setParameter('followStatus', 'follow')
             .groupBy('user.username')
             .orderBy('followersCount', 'DESC')
             .getRawAndEntities();
