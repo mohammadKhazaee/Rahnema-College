@@ -60,7 +60,7 @@ export const dashboardRouter = (
     });
 
     app.post(
-        '/message/send/:username',
+        '/messages/:username',
         fileParser.fileParser().single('image'),
         isAuthenticated(userService),
         (req, res, next) => {
@@ -76,6 +76,14 @@ export const dashboardRouter = (
         const username = req.username;
         handleExpress(res, 200, next, () => messageService.chatHistory(username, pgDto));
     });
+
+    app.get('/messages/:username', isAuthenticated(userService), (req, res, next) => {
+        const pgDto = paginationDto.parse(req.query);
+        const username = req.username;
+        const chaterId = req.params.username;
+        handleExpress(res, 200, next, () => messageService.getChats({ username, chaterId }, pgDto));
+    });
+
     app.get('/search-users', isAuthenticated(userService), (req, res, next) => {
         const { s: query, p: page, c: count } = searchDto.parse(req.query);
         handleExpress(res, 200, next, async () => {

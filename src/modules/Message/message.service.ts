@@ -6,8 +6,15 @@ import { PaginationDto } from '../Common/dto/pagination-dto';
 import { UserService } from '../User/user.service';
 import { UserRelationService } from '../UserRelation/user-relation.service';
 import { CreateMessageDto } from './dto/createMessageDto';
+import { MessageEntity } from './entity/message.entity';
 import { MessageRepository } from './message.repository';
-import { ChatHistoryList, ChatHitoryRecord, CreateMessage } from './model/message';
+import {
+    ChatersId,
+    ChatHistoryList,
+    ChatHitoryRecord,
+    CreateMessage,
+    GetMessageDao,
+} from './model/message';
 
 export class MessageService {
     constructor(
@@ -15,6 +22,33 @@ export class MessageService {
         private userService: UserService,
         private relationService: UserRelationService
     ) {}
+
+    async getChats(
+        { chaterId, username }: ChatersId,
+        { p: page, c: count }: PaginationDto
+    ): Promise<GetMessageDao[]> {
+        const relationState = await this.relationService.fetchRelationStatus({
+            followerId: username,
+            followedId: chaterId,
+        });
+
+        if (
+            relationState === 'blocked' ||
+            relationState === 'gotBlocked' ||
+            relationState === 'twoWayBlocked'
+        )
+            throw new ForbiddenError('Blocked', 'you or targeted user have blocked eachother');
+
+        const skip = (page - 1) * count;
+        const messageEntities = await this.messageRepo.getChats(
+            { chaterId, username },
+            { take: count, skip }
+        );
+
+        await this.messageRepo.update(messageEntities.map((m) => ({ ...m, isSeen: true })));
+
+        return this.formatChatMessages(messageEntities, username);
+    }
 
     async addMessage(
         messageDto: CreateMessageDto,
@@ -61,11 +95,11 @@ export class MessageService {
         const skip = (pagDto.p - 1) * pagDto.c;
         const history = await this.messageRepo.retrieveHistory(username, skip, pagDto.c);
 
-        const chatList = await this.formatChat(history, username);
+        const chatList = await this.formatChatHistory(history, username);
         return chatList;
     }
 
-    private async formatChat(chats: ChatHitoryRecord[], username: string) {
+    private async formatChatHistory(chats: ChatHitoryRecord[], username: string) {
         const formatedChat: ChatHistoryList[] = await Promise.all(
             chats.map(async (chat) => ({
                 chatId: chat.messageId,
@@ -83,5 +117,23 @@ export class MessageService {
             }))
         );
         return formatedChat;
+    }
+
+    private formatChatMessages(chats: MessageEntity[], username: string): GetMessageDao[] {
+        return chats.map((m) => {
+            if (m.isImage)
+                return {
+                    messageId: m.messageId,
+                    isOwned: m.senderId === username,
+                    createdAt: m.createdAt,
+                    image: m.content,
+                };
+            return {
+                messageId: m.messageId,
+                isOwned: m.senderId === username,
+                createdAt: m.createdAt,
+                content: m.content,
+            };
+        });
     }
 }

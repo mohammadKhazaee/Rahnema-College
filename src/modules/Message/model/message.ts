@@ -1,3 +1,14 @@
+export interface ChatersId {
+    username: string;
+    chaterId: string;
+}
+
+export type GetMessageDao = {
+    messageId: string;
+    createdAt: Date;
+    isOwned: boolean;
+} & ({ content: string } | { image: string });
+
 export interface CreateMessage {
     receiverId: string;
     senderId: string;

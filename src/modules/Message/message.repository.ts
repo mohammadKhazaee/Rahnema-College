@@ -1,8 +1,9 @@
 import { Brackets, DataSource, Repository, ReturnDocument } from 'typeorm';
 import { MessageEntity } from './entity/message.entity';
-import { ChatHitoryRecord, CreateMessage } from './model/message';
+import { ChatersId, ChatHitoryRecord, CreateMessage } from './model/message';
 
 import { AppDataSource } from '../../data-source';
+import { DbPagination } from '../Common/model/db-pagination';
 
 export class MessageRepository {
     private messageRepo: Repository<MessageEntity>;
@@ -14,15 +15,19 @@ export class MessageRepository {
         return this.messageRepo.save(message);
     }
 
-    getChat(chatId: string) {
+    update(messages: MessageEntity[]) {
+        return this.messageRepo.save(messages);
+    }
+
+    getChats({ chaterId, username }: ChatersId, pagination: DbPagination) {
         return this.messageRepo.find({
-            where: {
-                messageId: chatId,
-            },
-            relations: {
-                sender: true,
-                receiver: true,
-            },
+            where: [
+                { receiverId: chaterId, senderId: username },
+                { receiverId: username, senderId: chaterId },
+            ],
+            relations: { sender: true, receiver: true },
+            order: { createdAt: 'DESC' },
+            ...pagination,
         });
     }
 
