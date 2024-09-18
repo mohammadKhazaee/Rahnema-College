@@ -51,6 +51,7 @@ describe.skip('Post route test suite', () => {
                 caption: 'dummy #caption this is',
                 images: [],
                 mentions: [dummyUser2.username],
+                isCloseFriend: false,
             };
 
             await singupTest(app, dummyUser, 201);
@@ -87,6 +88,7 @@ describe.skip('Post route test suite', () => {
                 caption: 'dummy #caption this is',
                 images: [],
                 mentions: [],
+                isCloseFriend: false,
             };
 
             await singupTest(app, dummyUser, 201);
@@ -108,6 +110,7 @@ describe.skip('Post route test suite', () => {
                     url: i.url,
                     imageId: i.imageId,
                 })),
+                isCloseFriend: false,
             };
 
             const partialRequest = request(app)
@@ -146,6 +149,7 @@ describe.skip('Post route test suite', () => {
                 caption: 'dummy #caption this is',
                 images: [],
                 mentions: [],
+                isCloseFriend: false,
             };
 
             await singupTest(app, dummyUser, 201);
@@ -179,6 +183,7 @@ describe.skip('Post route test suite', () => {
                 caption: 'dummy #caption this is',
                 images: [],
                 mentions: [],
+                isCloseFriend: false,
             };
 
             await singupTest(app, dummyUser, 201);
@@ -213,6 +218,7 @@ describe.skip('Post route test suite', () => {
                 caption: 'dummy #caption this is',
                 images: [],
                 mentions: [],
+                isCloseFriend: false,
             };
 
             await singupTest(app, dummyUser, 201);
@@ -249,6 +255,7 @@ describe.skip('Post route test suite', () => {
                 caption: 'dummy #caption this is',
                 images: [],
                 mentions: [],
+                isCloseFriend: false,
             };
 
             await singupTest(app, dummyUser, 201);
@@ -296,6 +303,7 @@ describe.skip('Post route test suite', () => {
                 caption: 'dummy #caption this is',
                 images: [],
                 mentions: [],
+                isCloseFriend: false,
             };
 
             await singupTest(app, dummyUser, 201);
@@ -349,6 +357,7 @@ describe.skip('Post route test suite', () => {
                 caption: 'dummy #caption this is',
                 images: [],
                 mentions: [],
+                isCloseFriend: false,
             };
 
             await singupTest(app, dummyUser, 201);
@@ -387,6 +396,7 @@ describe.skip('Post route test suite', () => {
                 caption: 'dummy #caption this is',
                 images: [],
                 mentions: [],
+                isCloseFriend: false,
             };
 
             await singupTest(app, dummyUser, 201);
