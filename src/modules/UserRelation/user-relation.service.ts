@@ -413,6 +413,7 @@ export class UserRelationService {
                     lName: b.followed.lName,
                     imageUrl: b.followed.imageUrl,
                     followersCount: await this.followRepo.followersCount(b.followedId),
+                    relationStatus: 'blocked',
                 }))
             ),
         };
@@ -430,6 +431,7 @@ export class UserRelationService {
                     lName: f.followed.lName,
                     imageUrl: f.followed.imageUrl,
                     followersCount: await this.followRepo.followersCount(f.followedId),
+                    relationStatus: 'friend',
                 }))
             ),
         };
