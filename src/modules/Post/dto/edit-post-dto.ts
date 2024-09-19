@@ -14,7 +14,7 @@ export const editPostDto = z.object({
     mentions: z.array(z.string().min(3).regex(/^\w+$/)),
     deletedImages: z.array(editImagesDto).optional().default([]),
     images: z.array(zodFileSchema).optional(),
-    isCloseFriend: z.boolean(),
+    isCloseFriend: z.coerce.boolean(),
 });
 
 export const editPostValidator = (input: any) => {

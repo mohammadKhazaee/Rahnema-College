@@ -7,7 +7,7 @@ export const createPostDto = z.object({
     caption: z.string().optional().default(''),
     images: z.array(zodFileSchema).min(1),
     mentions: z.array(z.string().min(3).regex(/^\w+$/)).optional().default([]),
-    isCloseFriend: z.boolean(),
+    isCloseFriend: z.coerce.boolean(),
 });
 
 export const createPostValidator = (input: any) => {
