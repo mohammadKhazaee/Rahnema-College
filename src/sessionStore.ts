@@ -7,10 +7,10 @@ export interface FindSession {
 
 export class SessionStore {
     private client;
-
     constructor() {
-        this.client = createClient();
-
+        this.client = createClient({
+            url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+        });
         this.client.on('error', (err) => console.log('Redis Client Error', err));
     }
 
