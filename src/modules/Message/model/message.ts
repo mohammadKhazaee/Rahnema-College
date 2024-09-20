@@ -14,6 +14,7 @@ export interface CreateMessage {
     senderId: string;
     isImage: boolean;
     content: string;
+    createdAt: Date;
 }
 
 export interface ChatHistoryList {

@@ -1,8 +1,9 @@
+import { FindSession, SessionStore } from '../../sessionStore';
+import { getIo } from '../../socket';
 import { SendMessageReason } from '../../utility/errors/error-reason';
 import { ForbiddenError, NotFoundError } from '../../utility/errors/userFacingError';
 import { imageUrlPath } from '../../utility/path-adjuster';
 import { PaginationDto } from '../Common/dto/pagination-dto';
-
 import { UserService } from '../User/user.service';
 import { UserRelationService } from '../UserRelation/user-relation.service';
 import { CreateMessageDto } from './dto/createMessageDto';
@@ -20,7 +21,8 @@ export class MessageService {
     constructor(
         private messageRepo: MessageRepository,
         private userService: UserService,
-        private relationService: UserRelationService
+        private relationService: UserRelationService,
+        private sessionStore: SessionStore
     ) {}
 
     unSeenCount(username: string) {
@@ -70,25 +72,30 @@ export class MessageService {
             followedId: senderId,
         });
 
+        let newMessage: CreateMessage;
         if ('image' in messageDto) {
             const url = imageUrlPath(messageDto.image.path);
-            const newMessage: CreateMessage = {
+            newMessage = {
                 receiverId,
                 senderId,
                 content: url,
                 isImage: true,
+                createdAt: new Date(),
             };
-            await this.messageRepo.create(newMessage);
-            return { message: 'succes' };
+        } else {
+            newMessage = {
+                receiverId,
+                senderId,
+                isImage: false,
+                content: messageDto.content,
+                createdAt: new Date(),
+            };
         }
 
-        const newMessage: CreateMessage = {
-            receiverId,
-            senderId,
-            isImage: false,
-            content: messageDto.content,
-        };
         await this.messageRepo.create(newMessage);
+
+        await this.sendFriendMessage({ username: senderId, friendId: receiverId }, newMessage);
+
         return { message: 'succes' };
     }
 
@@ -102,6 +109,13 @@ export class MessageService {
         const chatList = await this.formatChatHistory(history, username);
 
         return chatList;
+    }
+
+    private async sendFriendMessage({ username, friendId }: FindSession, message: CreateMessage) {
+        const socketId = await this.sessionStore.findReceiverSession({ username, friendId });
+        if (!socketId) return;
+
+        getIo().to(socketId).emit('pvMessage', message);
     }
 
     private async formatChatHistory(chats: ChatHitoryRecord[], username: string) {

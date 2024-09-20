@@ -34,8 +34,9 @@ import { userRelationRouter } from './routes/user-relation.route';
 import { MessageService } from './modules/Message/message.service';
 import { MessageRepository } from './modules/Message/message.repository';
 import { UserFacingError } from './utility/errors/userFacingError';
+import { SessionStore } from './sessionStore';
 
-export const appFactory = (dataSource: DataSource) => {
+export const appFactory = (dataSource: DataSource, sessionStore: SessionStore) => {
     const app = express();
 
     if (process.env.SERVE_IMAGE_LOCALY)
@@ -110,7 +111,12 @@ export const appFactory = (dataSource: DataSource) => {
         postImageRepo
     );
 
-    const messageService = new MessageService(messageRepo, userService, userRelationService);
+    const messageService = new MessageService(
+        messageRepo,
+        userService,
+        userRelationService,
+        sessionStore
+    );
     const socialService = new SocialService(
         userService,
         userRelationService,
