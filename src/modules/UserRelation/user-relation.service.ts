@@ -48,23 +48,11 @@ export class UserRelationService {
         if (followerId === followedId)
             return new ForbiddenError(FollowReqReason.SelfFollow, 'user cant follow themself');
 
-        const followed = await this.userService.doesUserExists({
+        const followedUser = await this.userService.fetchUser({
             username: followedId,
         });
-        if (!followed)
+        if (!followedUser)
             return new NotFoundError(FollowReqReason.NotFoundUser, 'Targeted user was not found');
-
-        if (
-            await this.followRepo.doesRelationExist({
-                followerId: followedId,
-                followedId: followerId,
-                status: ['blocked'],
-            })
-        )
-            return new ForbiddenError(
-                FollowReqReason.Blocked,
-                'cant follow someone who has blocked you'
-            );
 
         const followingIds: FindUserRelation = {
             followerId,
@@ -73,11 +61,32 @@ export class UserRelationService {
 
         const fetchedfollowing = await this.followRepo.fetchRelation(followingIds);
 
-        if (fetchedfollowing && fetchedfollowing.status === 'blocked')
-            return new ForbiddenError(FollowReqReason.Blocked, 'cant follow a blokced user');
+        // the page is public & should bypass request
+        if (!fetchedfollowing && !followedUser.isPrivate) {
+            const followEntity = this.followRepo.createEntity({
+                ...followingIds,
+                status: 'follow',
+            });
+
+            await this.followRepo.createFollowRequest(followEntity);
+        }
+
+        if (
+            fetchedfollowing &&
+            (fetchedfollowing.status === 'blocked' ||
+                fetchedfollowing.status === 'twoWayBlocked' ||
+                fetchedfollowing.status === 'gotBlocked')
+        )
+            return new ForbiddenError(
+                FollowReqReason.Blocked,
+                'you or user have blokced eachother'
+            );
         if (fetchedfollowing && fetchedfollowing.status === 'requestedFollow')
             return new ForbiddenError(FollowReqReason.DupRequest, 'already sent request');
-        if (fetchedfollowing)
+        if (
+            fetchedfollowing &&
+            (fetchedfollowing.status === 'follow' || fetchedfollowing.status === 'friend')
+        )
             return new ForbiddenError(
                 FollowReqReason.AlreadyFollowed,
                 'already following the user'

@@ -42,7 +42,7 @@ export class UserRelationRepository {
 
             // save notif record
             await entityManager.save(NotificationEntity, {
-                type: 'incommingReq',
+                type: relation.status === 'follow' ? 'followedBy' : 'incommingReq',
                 emiterId: relation.followerId,
                 receiverId: relation.followedId,
             });
