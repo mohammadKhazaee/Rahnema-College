@@ -110,8 +110,14 @@ export const appFactory = (dataSource: DataSource) => {
         postImageRepo
     );
 
-    const socialService = new SocialService(userService, userRelationService, postService);
     const messageService = new MessageService(messageRepo, userService, userRelationService);
+    const socialService = new SocialService(
+        userService,
+        userRelationService,
+        postService,
+        notifService,
+        messageService
+    );
 
     app.use('/auth', authRouter(authService));
     app.use('/posts', postRouter(userService, postService, fileParser));

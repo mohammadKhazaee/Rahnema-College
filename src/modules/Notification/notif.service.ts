@@ -30,6 +30,10 @@ export class NotifService {
         private userRelationRepo: UserRelationService
     ) {}
 
+    unSeenNotifsCount(username: string): Promise<number> {
+        return this.notifRepo.unSeenCount(username);
+    }
+
     async followingList(username: string, { p: page, c: take }: PaginationDto) {
         const skip = (page - 1) * take;
         const notifs = await this.notifRepo.notifList(username, { take, skip });

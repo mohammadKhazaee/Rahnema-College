@@ -16,6 +16,10 @@ export class NotifRepository {
         this.notifRepo = dataSource.getRepository(NotificationEntity);
     }
 
+    async unSeenCount(username: string): Promise<number> {
+        return this.notifRepo.count({ where: { receiverId: username, isSeen: false } });
+    }
+
     async notifList(username: string, { skip, take }: DbPagination): Promise<NormalNotifEntity[]> {
         const notifList = await this.notifRepo.find({
             where: {

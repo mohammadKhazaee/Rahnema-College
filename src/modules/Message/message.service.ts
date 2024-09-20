@@ -23,6 +23,10 @@ export class MessageService {
         private relationService: UserRelationService
     ) {}
 
+    unSeenCount(username: string) {
+        return this.messageRepo.unSeenCount(username);
+    }
+
     async getChats(
         { chaterId, username }: ChatersId,
         { p: page, c: count }: PaginationDto

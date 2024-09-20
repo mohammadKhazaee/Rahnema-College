@@ -19,6 +19,10 @@ export class MessageRepository {
         return this.messageRepo.save(messages);
     }
 
+    unSeenCount(username: string): Promise<number> {
+        return this.messageRepo.count({ where: { receiverId: username, isSeen: false } });
+    }
+
     getChats({ chaterId, username }: ChatersId, pagination: DbPagination) {
         return this.messageRepo.find({
             where: [

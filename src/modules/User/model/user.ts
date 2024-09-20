@@ -28,6 +28,8 @@ export interface UserProfileDao {
     followingsCount: number;
     postCount: number;
     relationState: FollowedByState;
+    messagesCount: number;
+    notifsCount: number;
 }
 
 export interface UserLinkDao {

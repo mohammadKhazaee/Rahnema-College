@@ -1,5 +1,7 @@
 import { GetUserInfoReason } from '../../utility/errors/error-reason';
 import { NotFoundError } from '../../utility/errors/userFacingError';
+import { MessageService } from '../Message/message.service';
+import { NotifService } from '../Notification/notif.service';
 import { PostService } from '../Post/post.service';
 import { UserProfileDao, UserSearchResult } from '../User/model/user';
 import { UserService } from '../User/user.service';
@@ -9,7 +11,9 @@ export class SocialService {
     constructor(
         private userService: UserService,
         private followService: UserRelationService,
-        private postService: PostService
+        private postService: PostService,
+        private notifService: NotifService,
+        private messageService: MessageService
     ) {}
 
     async getUserInfo(username: string, mainUser: string): Promise<UserProfileDao | NotFoundError> {
@@ -17,11 +21,20 @@ export class SocialService {
 
         if (!user) return new NotFoundError(GetUserInfoReason.NotFoundUsername, 'user not found');
 
-        const [followersCount, followingsCount, postCount, relationState] = await Promise.all([
+        const [
+            followersCount,
+            followingsCount,
+            postCount,
+            relationState,
+            messagesCount,
+            notifsCount,
+        ] = await Promise.all([
             this.followService.getFollowersCount(username),
             this.followService.getFollowingsCount(username),
             this.postService.getPostCount(username),
             this.followService.fetchRelationStatus({ followerId: mainUser, followedId: username }),
+            this.messageService.unSeenCount(mainUser),
+            this.notifService.unSeenNotifsCount(mainUser),
         ]);
 
         return {
@@ -36,6 +49,8 @@ export class SocialService {
             followingsCount,
             postCount,
             relationState,
+            messagesCount,
+            notifsCount,
         };
     }
 
