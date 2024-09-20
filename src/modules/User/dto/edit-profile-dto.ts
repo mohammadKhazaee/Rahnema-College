@@ -12,7 +12,11 @@ export const editProfileDto = z
         fName: z.string().min(3),
         lName: z.string().min(3),
         bio: z.string(),
-        isPrivate: z.coerce.boolean(),
+        isPrivate: z
+            .string()
+            .toLowerCase()
+            .transform((x) => x === 'true')
+            .pipe(z.boolean()),
     })
     .superRefine(({ confirmPassword, password }, ctx) => {
         if (confirmPassword !== password) {
