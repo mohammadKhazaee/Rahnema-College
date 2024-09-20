@@ -5,8 +5,7 @@ import { generateTokenForReset, loginTest } from './utility';
 import { ResetPaswordDto } from '../../src/modules/Auth/dto/resetpassword-dto';
 import { User } from '../../src/modules/User/model/user';
 import { UserRepository } from '../../src/modules/User/user.repository';
-import { UserEntity } from '../../src/modules/User/entity/user.entity';
-import { LoginDto } from '../../src/modules/Auth/dto/logindto';
+import { SessionStore } from '../../src/sessionStore';
 
 describe.skip('CollegeGram Test Suit', () => {
     const userRepo = new UserRepository(AppDataSource);
@@ -14,7 +13,8 @@ describe.skip('CollegeGram Test Suit', () => {
     let app: Express;
     beforeAll(async () => {
         const dataSource = await AppDataSource.initialize();
-        app = appFactory(dataSource);
+        const sessionStore = new SessionStore();
+        app = appFactory(dataSource, sessionStore);
     });
 
     afterAll(async () => {

@@ -23,6 +23,7 @@ import { SignupDto } from '../../src/modules/Auth/dto/signup-dto';
 import { UserRelationEntity } from '../../src/modules/UserRelation/entity/user-relation.entity';
 import { PostEntity } from '../../src/modules/Post/entity/post.entity';
 import request from 'supertest';
+import { SessionStore } from '../../src/sessionStore';
 
 describe('Profile Route Test Suit', () => {
     const userRepo = new UserRepository(AppDataSource);
@@ -30,7 +31,8 @@ describe('Profile Route Test Suit', () => {
     let app: Express;
     beforeAll(async () => {
         const dataSource = await AppDataSource.initialize();
-        app = appFactory(dataSource);
+        const sessionStore = new SessionStore();
+        app = appFactory(dataSource, sessionStore);
     });
 
     beforeEach(async () => {

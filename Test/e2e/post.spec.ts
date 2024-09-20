@@ -1,5 +1,3 @@
-import * as path from 'path';
-
 import request from 'supertest';
 
 import { AppDataSource } from '../../src/data-source';
@@ -12,6 +10,7 @@ import { UserEntity } from '../../src/modules/User/entity/user.entity';
 import { PostEntity } from '../../src/modules/Post/entity/post.entity';
 import { CreateCommentDto } from '../../src/modules/Post/dto/create-comment.dto';
 import { PostCommentEntity } from '../../src/modules/Post/entity/post-comment.entity';
+import { SessionStore } from '../../src/sessionStore';
 
 describe.skip('Post route test suite', () => {
     // @ts-ignore
@@ -19,7 +18,8 @@ describe.skip('Post route test suite', () => {
 
     beforeAll(async () => {
         const dataSource = await AppDataSource.initialize();
-        app = appFactory(dataSource);
+        const sessionStore = new SessionStore();
+        app = appFactory(dataSource, sessionStore);
     });
 
     beforeEach(async () => {
