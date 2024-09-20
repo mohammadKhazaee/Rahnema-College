@@ -16,6 +16,12 @@ services:
             interval: 10s
             timeout: 12s
             retries: 10
+    redis:
+        image: hub.hamdocker.ir/redis
+        restart: always
+        container_name: redis_db
+        ports:
+            - 6379:6379
     backend:
         build:
             context: .
@@ -35,10 +41,11 @@ services:
         volumes:
             - ./src/images:/app/src/images
         depends_on:
+            redis:
+                condition: service_started
             main_db:
                 condition: service_healthy
         restart: on-failure
-
     frontend:
         build:
             context: ../built-frontend
