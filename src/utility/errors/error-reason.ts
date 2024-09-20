@@ -164,6 +164,8 @@ export enum SendMessageReason {
     InvalidContent = 'InvalidContent',
     InvalidImage = 'InvalidImage',
     SelfMessage = 'SelfMessage',
+    NoReceiver = 'NoReceiver',
+    Blocked = 'Blocked',
 }
 
 export enum EditProfileReason {

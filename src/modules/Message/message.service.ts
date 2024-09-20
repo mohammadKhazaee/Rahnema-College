@@ -60,17 +60,32 @@ export class MessageService {
         messageDto: CreateMessageDto,
         receiverId: string,
         senderId: string
-    ): Promise<{ message: string } | ForbiddenError> {
+    ): Promise<{ message: string } | ForbiddenError | NotFoundError> {
         if (receiverId === senderId)
             return new ForbiddenError(
                 SendMessageReason.SelfMessage,
                 'Users cant message themselves'
             );
+        // blocka nabashe & vojood dashe bashe receiver
 
-        await this.relationService.fetchRelationStatus({
-            followerId: receiverId,
-            followedId: senderId,
+        if (!(await this.userService.doesUserExists({ username: receiverId })))
+            return new NotFoundError(SendMessageReason.NoReceiver, 'receiver not found');
+
+        const relationOtherUser = await this.relationService.fetchRelationStatus({
+            followerId: senderId,
+            followedId: receiverId,
         });
+
+        if (
+            relationOtherUser &&
+            (relationOtherUser === 'blocked' ||
+                relationOtherUser === 'twoWayBlocked' ||
+                relationOtherUser === 'gotBlocked')
+        )
+            return new ForbiddenError(
+                SendMessageReason.Blocked,
+                'you or user have blokced eachother'
+            );
 
         let newMessage: CreateMessage;
         if ('image' in messageDto) {
