@@ -11,8 +11,7 @@ const editImagesDto = z.preprocess(
 export const editPostDto = z.object({
     postId: z.string().uuid(),
     caption: z.string(),
-    // mentions: z.array(z.string().min(3).regex(/^\w+$/)),
-    mentions: z.preprocess((x) => (x === '[]' ? [] : x), z.array(z.string())),
+    mentions: z.array(z.string().min(3).regex(/^\w+$/)).optional().default([]),
     deletedImages: z.array(editImagesDto).optional().default([]),
     images: z.array(zodFileSchema).optional(),
     isCloseFriend: z
