@@ -100,6 +100,7 @@ export class MessageService {
         const history = await this.messageRepo.retrieveHistory(username, skip, pagDto.c);
 
         const chatList = await this.formatChatHistory(history, username);
+
         return chatList;
     }
 

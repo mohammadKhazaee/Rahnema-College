@@ -35,31 +35,28 @@ export class MessageRepository {
         });
     }
 
-    async retrieveHistory(
-        username: string,
-        skip: number,
-        take: number
-    ): Promise<ChatHitoryRecord[]> {
-        const queryRunner = AppDataSource.createQueryRunner();
-        const chatList = await queryRunner.manager.query(
-            `SELECT m.*, u.lName as senderlName, u.fName as senderfName, u.imageUrl as senderImage, u2.lName as receiverlName, u2.fName as receiverfName, u2.imageUrl as receiverImage
-                FROM messages m
-                join users u
-                on m.senderId = u.username
-                join users u2
-                on m.receiverId = u2.username
-                WHERE (m.senderId=? OR m.receiverId=?)
-                AND m.createdAt = (
-                    SELECT MAX(createdAt)
-                    FROM messages
-                    WHERE (senderId = m.senderId AND receiverId = m.receiverId)
-                        OR (senderId = m.receiverId AND receiverId = m.senderId)
-                )
-                ORDER BY m.createdAt DESC
-            LIMIT ? OFFSET ?`,
-            [username, username, take, skip]
-        );
-        return chatList;
+    retrieveHistory(username: string, skip: number, take: number): Promise<ChatHitoryRecord[]> {
+        return this.messageRepo
+            .createQueryBuilder('m')
+            .select(
+                'm.*, u.lName as senderlName, u.fName as senderfName, u.imageUrl as senderImage, u2.lName as receiverlName, u2.fName as receiverfName, u2.imageUrl as receiverImage'
+            )
+            .innerJoin('m.sender', 'u')
+            .innerJoin('m.receiver', 'u2')
+            .where('(m.senderId = :senderId', { senderId: username })
+            .orWhere('m.receiverId = :receiverId)', { receiverId: username })
+            .andWhere(
+                `m.createdAt = (
+                    SELECT MAX(sub_m.createdAt)
+                    FROM messages sub_m
+                    WHERE (sub_m.senderId = m.senderId AND sub_m.receiverId = m.receiverId)
+                    OR (sub_m.senderId = m.receiverId AND sub_m.receiverId = m.senderId)
+                )`
+            )
+            .orderBy('m.createdAt', 'DESC')
+            .skip(skip)
+            .limit(take)
+            .getRawMany();
     }
 
     unseenCount(senderName: string, receiverName: string) {
