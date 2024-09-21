@@ -52,9 +52,13 @@ services:
         container_name: frontend
         ports:
             - 80:80
+            - 443:443
         volumes:
             - ./src/images:/usr/share/nginx/html/images
             - ../built-frontend:/usr/share/nginx/html
+            - /etc/letsencrypt/live/rebuilders.dev1403.rahnemacollege.ir:/etc/letsencrypt/live/rebuilders.dev1403.rahnemacollege.ir:ro
+            - /etc/letsencrypt/archive/rebuilders.dev1403.rahnemacollege.ir:/etc/letsencrypt/archive/rebuilders.dev1403.rahnemacollege.ir:ro
+            - /etc/letsencrypt/renewal/rebuilders.dev1403.rahnemacollege.ir.conf:/etc/letsencrypt/renewal/rebuilders.dev1403.rahnemacollege.ir.conf:ro
         depends_on:
             - backend
         restart: on-failure
