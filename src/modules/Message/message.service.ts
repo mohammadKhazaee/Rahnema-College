@@ -143,6 +143,7 @@ export class MessageService {
                     fname: chat.senderId !== username ? chat.senderfName : chat.receiverfName,
                     lname: chat.senderId !== username ? chat.senderlName : chat.receiverlName,
                     lastMessage: {
+                        isImage: chat.isImage === 1,
                         content: chat.content,
                         createdAt: chat.createdAt,
                     },

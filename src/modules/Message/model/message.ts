@@ -26,6 +26,7 @@ export interface ChatHistoryList {
         lname: string;
         unseenCount: number;
         lastMessage: {
+            isImage: boolean;
             content: string;
             createdAt: Date;
         };
