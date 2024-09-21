@@ -26,6 +26,7 @@ export interface GetCommentsDao {
         imageUrl: string;
     };
     likeCount: number;
+    isLiked: boolean;
     content: string;
     createDate: Date;
     replays: {
@@ -37,5 +38,6 @@ export interface GetCommentsDao {
         content: string;
         createDate: Date;
         likeCount: number;
+        isLiked: boolean;
     }[];
 }

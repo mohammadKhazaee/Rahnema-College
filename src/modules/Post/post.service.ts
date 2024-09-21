@@ -267,7 +267,7 @@ export class PostService {
             if (await this.isReplayableComment(comments[i].commentId, postId, viewerId))
                 allowedComments.push(comments[i]);
 
-        return { comments: await this.formatComments(allowedComments) };
+        return { comments: await this.formatComments(allowedComments, viewerId) };
     }
 
     async togglePostLike(
@@ -361,7 +361,10 @@ export class PostService {
         return this.formatExplorePost(authorizedPosts);
     }
 
-    private formatComments(comments: PostCommentEntity[]): Promise<GetCommentsDao[]> {
+    private formatComments(
+        comments: PostCommentEntity[],
+        viewerId: string
+    ): Promise<GetCommentsDao[]> {
         return Promise.all(
             comments.map(async (c) => ({
                 commentId: c.commentId,
@@ -370,6 +373,10 @@ export class PostService {
                     imageUrl: c.commenter.imageUrl,
                 },
                 likeCount: await this.commentLikeRepo.countLikesForComment(c.commentId),
+                isLiked: await this.commentLikeRepo.doesLikeExists({
+                    commentId: c.commentId,
+                    userId: viewerId,
+                }),
                 content: c.content,
                 createDate: c.createdAt,
                 replays: await Promise.all(
@@ -382,6 +389,10 @@ export class PostService {
                         content: r.content,
                         createDate: r.createdAt,
                         likeCount: await this.commentLikeRepo.countLikesForComment(r.commentId),
+                        isLiked: await this.commentLikeRepo.doesLikeExists({
+                            commentId: r.commentId,
+                            userId: viewerId,
+                        }),
                     }))
                 ),
             }))
