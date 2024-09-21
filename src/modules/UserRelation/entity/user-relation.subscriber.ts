@@ -120,11 +120,16 @@ export class UserRelationSubscriber implements EntitySubscriberInterface<UserRel
         )
             return;
 
-        const user = (await event.manager.findOneBy(UserEntity, {
-            username: entity.followedId,
-        }))!;
+        const user = (await event.manager.findOneBy(UserEntity, { username: entity.followedId }))!;
 
-        // delete all notifications between users
+        // delete followedBy notification from follower
+        await event.manager.delete(NotificationEntity, {
+            emiterId: entity.followerId,
+            receiverId: entity.followedId,
+            type: 'followedBy',
+        });
+
+        // delete all notifications comming from followed
         await event.manager.delete(NotificationEntity, {
             emiterId: entity.followedId,
             receiverId: entity.followerId,
