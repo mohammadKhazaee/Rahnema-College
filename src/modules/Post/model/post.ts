@@ -82,8 +82,9 @@ export interface ExplorePostsDto {
 
 export interface FindExplorePosts {
     friendCreators: string[];
-    NonFriendCreators: string[];
+    nonFriendCreators: string[];
 }
+
 export interface GetPostsByTagDao {
     posts: GetPostsDao[];
     totalCount: number;

@@ -183,14 +183,14 @@ export class PostRepository {
     }
 
     explorePosts(
-        { friendCreators, NonFriendCreators }: FindExplorePosts,
+        { friendCreators, nonFriendCreators }: FindExplorePosts,
         { take, skip }: DbPagination
     ) {
         let where: FindOptionsWhere<PostEntity>[] = [];
 
         if (friendCreators) where = [...where, { creatorId: In([...friendCreators]) }];
-        if (NonFriendCreators)
-            where = [...where, { creatorId: In([...NonFriendCreators]), isCloseFriend: false }];
+        if (nonFriendCreators)
+            where = [...where, { creatorId: In([...nonFriendCreators]), isCloseFriend: false }];
 
         return this.postRepo.find({
             order: { createdAt: 'DESC' },

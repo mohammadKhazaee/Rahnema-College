@@ -338,7 +338,7 @@ export class PostService {
         if (followings.length === 0) return [];
 
         // creators that we're their friend
-        const friendCreators = (
+        const friends = (
             await this.followService.fetchRelations({
                 followerId: followings,
                 followedId: [username],
@@ -346,9 +346,11 @@ export class PostService {
             })
         ).map((f) => f.followerId);
 
-        const NonFriendCreators = followings.filter((f) => !friendCreators.includes(f));
+        const friendCreators = followings.filter((f) => friends.includes(f));
+        const nonFriendCreators = followings.filter((f) => !friends.includes(f));
 
-        const findExplorePostsData: FindExplorePosts = { friendCreators, NonFriendCreators };
+        const findExplorePostsData: FindExplorePosts = { friendCreators, nonFriendCreators };
+
         const skip = (page - 1) * take;
 
         const authorizedPosts = await this.postRepo.explorePosts(findExplorePostsData, {

@@ -28,8 +28,6 @@ export class UserRelationService {
     constructor(private followRepo: UserRelationRepository, private userService: UserService) {}
 
     fetchRelations(findObject: FindOneWayRelations) {
-        console.log(findObject);
-
         return this.followRepo.fetchRelations(findObject);
     }
 
