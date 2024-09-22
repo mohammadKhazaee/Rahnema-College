@@ -51,7 +51,12 @@ export class MessageService {
             { take: count, skip }
         );
 
-        await this.messageRepo.update(messageEntities.map((m) => ({ ...m, isSeen: true })));
+        await this.messageRepo.update(
+            messageEntities.map((m) => {
+                if (m.senderId === username) return m;
+                return { ...m, isSeen: true };
+            })
+        );
 
         return this.formatChatMessages(messageEntities, username);
     }
